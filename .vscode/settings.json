@@ -1,0 +1,9 @@
+{
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact",
+        { "language": "typescript", "autoFix": true },
+        { "language": "typescriptReact", "autoFix": true },
+    ],
+    "eslint.workingDirectories": [ "src" ]
+}

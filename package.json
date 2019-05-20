@@ -1,0 +1,35 @@
+{
+  "name": "markdown",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "echo \"*** Change input/input.md and see outputs in output/output.html\" && npx tsc && node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "browser-sync": "^2.26.5",
+    "github-markdown-css": "^3.0.1",
+    "highlight.js": "^9.15.6",
+    "jsdom": "^15.0.0",
+    "markdown-it": "^8.4.2",
+    "mathjax-single-file": "github:pkra/MathJax-single-file#12.0.0",
+    "typescript": "^3.4.4",
+    "viz.js": "^2.1.2",
+    "web-resource-inliner": "^4.3.2"
+  },
+  "devDependencies": {
+    "@types/browser-sync": "0.0.43",
+    "@types/highlight.js": "^9.12.3",
+    "@types/jsdom": "^12.2.3",
+    "@types/markdown-it": "0.0.7",
+    "@types/web-resource-inliner": "^4.2.0",
+    "@typescript-eslint/eslint-plugin": "^1.7.0",
+    "@typescript-eslint/parser": "^1.7.0",
+    "eslint": "^5.16.0",
+    "install": "^0.12.2",
+    "npm": "^6.9.0"
+  }
+}
