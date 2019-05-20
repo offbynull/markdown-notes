@@ -1,5 +1,7 @@
 # MarkdownNotes
 
+<p align="center"><img src ="logo.png" alt="MarkdownNotes logo" /></p>
+
 Inspired by the lack of simple note taking tools for developers and engineers, MarkdownNotes is an ultra-simple yet extendable application for taking engineering/development notes in markdown. Why use MarkdownNotes over other note taking tools and markdown implementations?
 
 * Bloat-free and cross-platform -- no built-in editors, UIs, cloud-support, etc..
