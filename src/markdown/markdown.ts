@@ -27,6 +27,7 @@ import { NoteExtension } from './note_extension';
 import { MathJaxExtension } from './mathjax_extension';
 import { TitleExtension } from './title_extension';
 import { JSDOM } from 'jsdom';
+import { KatexExtension } from './katex_extension';
 
 export default class Markdown {
     private readonly markdownIt: MarkdownIt;
@@ -49,6 +50,7 @@ export default class Markdown {
         extenderConfig.register(new DotExtension());
         extenderConfig.register(new NoteExtension());
         extenderConfig.register(new MathJaxExtension());
+        extenderConfig.register(new KatexExtension())
         this.markdownIt.use(extender, extenderConfig);
         // this.markdownIt.use(indexer);
     }
