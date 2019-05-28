@@ -94,6 +94,25 @@ Block output:
 \frac{a}{b}
 ```
 
+# KaTeX
+
+Add a KaTeX TeX expression using kt inline/block tag:
+
+
+````
+```{kt}
+\frac{a}{b}
+```
+````
+
+Inline output: `{kt} \frac{a}{b}`
+
+Block output:
+
+```{kt}
+\frac{a}{b}
+```
+
 # Standard Markdown
 Normal CommonMark features are supported out of the box.
 
