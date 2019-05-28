@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "browser-sync": "^2.26.5",
+    "diff": "^4.0.1",
     "github-markdown-css": "^3.0.1",
     "highlight.js": "^9.15.6",
     "jsdom": "^15.0.0",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@types/browser-sync": "0.0.43",
+    "@types/diff": "^4.0.2",
     "@types/highlight.js": "^9.12.3",
     "@types/jsdom": "^12.2.3",
     "@types/markdown-it": "0.0.7",
