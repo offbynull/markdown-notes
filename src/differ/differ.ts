@@ -1,51 +1,41 @@
-import { JSDOM } from "jsdom";
-import { diffChars } from "diff";
+// const newBody = new JSDOM(newIn).window.document.getElementsByName('body')[0].innerHTML;
+// const oldBody = new JSDOM(oldIn).window.document.getElementsByName('body')[0].innerHTML;
 
-
-export function diffAndMark(input1: string, input2: string): string {
-    const sanitized1 = new JSDOM(input1).serialize();
-    const sanitized2 = new JSDOM(input2).serialize();
-    
-    const changes = diffChars(sanitized1, sanitized2);
-    let input1EndIdx = 0;
-    for (let i = 0; i < changes.length; i++) {
-        const change = changes[i];
-        if (change.added === true || change.removed === true) {
-            break;
+function findFirstDifference(newIn: string, oldIn: string): number {
+    const checkLen = Math.min(newIn.length, oldIn.length);
+    for (let i = 0; i < checkLen; i++) {
+        const newCh = newIn[i];
+        const oldCh = oldIn[i];
+        if (newCh !== oldCh) {
+            return i;
         }
-        input1EndIdx += change.value.length;
     }
-    
-    const input1Header = input1.substring(0, input1EndIdx);
-    const lastElemMatch = /.*<[^/].*?>/g.exec(input1Header);
-    if (lastElemMatch === null) {
-        return input1;
-    }
-    const lastElemIdx = lastElemMatch[0].length;
-    
-    const input1Augmented = input1.substring(0, lastElemIdx) + '<a href="#__ELEMENT_CHANGE"></a>' + input1.substring(lastElemIdx);
-    return input1Augmented;
+    return newIn.length;
 }
 
+enum HtmlRegion {
+    TEXT = 'TEXT',
+    TAG = 'TAG',
+}
 
+function determineRegion(input: string, index: number): HtmlRegion {
+    const preTagStart = input.substring(0, index).indexOf('<');
+    const preTagEnd = input.substring(0, index).indexOf('>');
 
-// console.log(
-//     diffAndMark(
-//         '<html><head></head><body><a><b><c></c></b></a></body></html>',
-//         '<html><head></head><body><a><b><c></c><c2></c2></b></a></body></html>'
-//     )
-// );
+    const postTagStart = input.indexOf('<', index);
+    const postTagEnd = input.indexOf('>', index);
 
-// console.log(
-//     diffAndMark(
-//         '<html><head></head><body><a><b><c></c></b></a></body></html>',
-//         '<html><head></head><body><a><b><c><d></d></c></b></a></body></html>'
-//     )
-// );
+    if ((preTagStart !== -1 && preTagEnd === -1)
+            && (postTagStart === -1 && postTagEnd !== -1)) { // inbetween a < and >
+        return HtmlRegion.TAG;
+    } else if ((preTagStart !== -1 && preTagEnd !== -1 && preTagStart < preTagEnd)
+            || (postTagStart !== -1 && postTagEnd != -1 && postTagStart < postTagEnd)) { // inbetween a <...> and <...>
+        return HtmlRegion.TEXT;
+    }
 
-// console.log(
-//     diffAndMark(
-//         '<html><head></head><body><a><b><c><d></d></c></b></a></body></html>',
-//         '<html><head></head><body><a><b><c></c></b></a></body></html>'
-//     )
-// );
+    throw 'Unrecognized';
+}
+
+console.log(determineRegion('<a>test</a>', 0));
+console.log(determineRegion('<a>test</a>', 1));
+console.log(determineRegion('<a>test</a>', 5));
