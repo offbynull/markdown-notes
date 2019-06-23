@@ -1,76 +1,168 @@
-export class NodeMismatch {
-    public readonly oldNode: Node;
-    public readonly newNode: Node;
+import { JSDOM } from "jsdom";
 
-    public constructor(oldNode: Node, newNode: Node) {
-        if (oldNode.nodeType !== newNode.nodeType) {
-            throw 'Types must equal';
-        }
-        switch (oldNode.nodeType) {
-            case oldNode.ELEMENT_NODE:         // Can't use Node.ELEMENT_NODE because Node isn't exposed
-            case oldNode.TEXT_NODE:            // Can't use Node.TEXT_NODE because Node isn't exposed
-            case oldNode.CDATA_SECTION_NODE:   // Can't use Node.CDATA_SECTION_NODE because Node isn't exposed
+export function markChangeInBody(oldInput: JSDOM, newInput: JSDOM, injectionId: string): boolean {
+    const oldBodies = oldInput.window.document.getElementsByTagName('body');
+    const newBodies = newInput.window.document.getElementsByTagName('body');
+    if (oldBodies.length !== 1 || newBodies.length !== 1) {
+        throw `Require exactly 1 body tag -- old=${oldBodies.length} new: ${newBodies.length}`;
+    }
+    return internalMarkBodyChange(oldBodies[0], newBodies[0], injectionId);
+}
+
+function internalMarkBodyChange(oldInput: Node, newInput: Node, injectionId: string): boolean {
+    if (oldInput.nodeType !== newInput.nodeType) {
+        inject(newInput, injectionId, InjectPosition.BEFORE);
+        return true;
+    }
+
+    switch (oldInput.nodeType) {
+        case oldInput.COMMENT_NODE:       // Can't use Node.COMMENT_NODE because Node isn't exposed
+            break; // ignore comments
+        case oldInput.ELEMENT_NODE:       // Can't use Node.ELEMENT_NODE because Node isn't exposed
+            const oldElement = oldInput as HTMLElement;
+            const newElement = newInput as HTMLElement;
+
+            if (oldElement.nodeName !== newElement.nodeName) {
+                inject(newInput, injectionId, InjectPosition.BEFORE);
+                return true;
+            }
+
+            const oldAttrs = oldElement.attributes;
+            const newAttrs = newElement.attributes;
+            if (oldAttrs.length !== newAttrs.length) {
+                inject(newInput, injectionId, InjectPosition.BEFORE);
+                return true;
+            }
+            for (let i = 0; i < oldAttrs.length; i++) {
+                const oldAttr = oldAttrs[i];
+                const newAttr = newAttrs[i];
+                if (oldAttr.name !== newAttr.name || oldAttr.value !== newAttr.value) {
+                    inject(newInput, injectionId, InjectPosition.BEFORE);
+                    return true;
+                }
+            }
+
+            const oldChildren = oldElement.children;
+            const newChildren = newElement.children;
+            const len = Math.min(oldChildren.length, newChildren.length);
+            let oldChild: ChildNode | null = null;
+            let newChild: ChildNode | null = null;
+            for (let i = 0; i < len; i++) {
+                oldChild = oldChildren[i];
+                newChild = newChildren[i];
+                const changedChild = internalMarkBodyChange(oldChild, newChild, injectionId);
+                if (changedChild === true) {
+                    return true;
+                }
+            }
+            if (newChildren.length > oldChildren.length) {
+                const lastNewChild = newChildren[len - 1];
+                inject(lastNewChild, injectionId, InjectPosition.AFTER);
+                return true;
+            } else if (newChildren.length < oldChildren.length) {
+                if (newChildren.length === 0) {
+                    inject(newElement, injectionId, InjectPosition.BEFORE);
+                    return true;
+                } else {
+                    const lastNewChild = newChildren[len - 1];
+                    inject(lastNewChild, injectionId, InjectPosition.AFTER); // or inject before? not sure which is better to do
+                    return true;
+                }
+            } else {
+                // no change
+            }
+            break;
+        case oldInput.TEXT_NODE:          // Can't use Node.TEXT_NODE because Node isn't exposed
+        case oldInput.CDATA_SECTION_NODE: // Can't use Node.CDATA_SECTION_NODE because Node isn't exposed
+            const oldText = oldInput.nodeValue;
+            const newText = oldInput.nodeValue;
+            if (oldText !== newText) {
+                injectInText(oldInput, newInput, injectionId);
+                return true;
+            } 
+            break;
+        default:
+            throw 'Unrecognized child type: ' + oldInput.nodeType; // this should never happen? maybe -- not sure.
+    }
+
+    return false;
+}
+
+enum InjectPosition {
+    BEFORE,
+    AFTER
+}
+
+function inject(node: Node, id: string, position: InjectPosition) {
+    const document = node.ownerDocument;
+    if (document === null) {
+        throw 'Null document';
+    }
+
+    const parent = node.parentElement;
+    if (parent === null) {
+        throw 'Null parent';
+    }
+
+    const injectNode = document.createElement('a');
+    injectNode.id = id;
+    
+    if (node.nodeName === 'body' && node.nodeType === node.ELEMENT_NODE) {
+        // special case -- we can't add the injection before or after a body tag, so add it as the first/last child instead
+        switch (position) {
+            case InjectPosition.BEFORE:
+                node.insertBefore(injectNode, (node as HTMLElement).firstElementChild);
+                break;
+            case InjectPosition.AFTER:
+                parent.insertBefore(injectNode, null);
                 break;
             default:
-                throw 'Unsupported type: ' + oldNode.nodeType;
-        }    
-        this.oldNode = oldNode;
-        this.newNode = newNode;
+                throw 'Unexpected'; // should never happen
+        }
+    } else {
+        switch (position) {
+            case InjectPosition.BEFORE:
+                parent.insertBefore(injectNode, node);
+                break;
+            case InjectPosition.AFTER:
+                parent.insertBefore(injectNode, node.nextSibling);
+                break;
+            default:
+                throw 'Unexpected'; // should never happen
+        }
     }
 }
 
-export function firstDifferenceInNode(oldIn: HTMLElement, newIn: HTMLElement): NodeMismatch | null {
-    if (oldIn.nodeName !== newIn.nodeName) {
-        return new NodeMismatch(oldIn, newIn);
+function injectInText(oldNode: Node, newNode: Node, id: string) {
+    const document = newNode.ownerDocument;
+    if (document === null) {
+        throw 'Null document';
     }
 
-    const oldAttrs = oldIn.attributes;
-    const newAttrs = newIn.attributes;
-    if (oldAttrs.length !== newAttrs.length) {
-        return new NodeMismatch(oldIn, newIn);
-    }
-    for (let i = 0; i < oldAttrs.length; i++) {
-        const oldAttr = oldAttrs[i];
-        const newAttr = newAttrs[i];
-        if (oldAttr.name !== newAttr.name || oldAttr.value !== newAttr.value) {
-            return new NodeMismatch(oldIn, newIn);
-        }
-    }
-    
-    const oldChildren = oldIn.childNodes;
-    const newChildren = newIn.childNodes;
-    if (oldChildren.length !== newChildren.length) {
-        return new NodeMismatch(oldIn, newIn);
-    }
-    for (let i = 0; i < oldChildren.length; i++) {
-        const oldChild = oldChildren[i];
-        const newChild = newChildren[i];
-        if (oldChild.nodeType !== newChild.nodeType) {
-            return new NodeMismatch(oldIn, newIn);
-        }
-        switch (oldChild.nodeType) {
-            case oldChild.COMMENT_NODE:       // Can't use Node.COMMENT_NODE because Node isn't exposed
-                break; // ignore comments
-            case oldChild.ELEMENT_NODE:       // Can't use Node.ELEMENT_NODE because Node isn't exposed
-                const updatedChild = firstDifferenceInNode(oldChild as HTMLElement, newChild as HTMLElement);
-                if (updatedChild !== null) {
-                    return updatedChild;
-                } 
-                break;
-            case oldChild.TEXT_NODE:          // Can't use Node.TEXT_NODE because Node isn't exposed
-            case oldChild.CDATA_SECTION_NODE: // Can't use Node.CDATA_SECTION_NODE because Node isn't exposed
-                const oldText = oldChild.nodeValue;
-                const newText = newChild.nodeValue;
-                if (oldText !== newText) {
-                    return new NodeMismatch(oldChild, newChild);
-                } 
-                break;
-            default:
-                throw 'Unrecognized child type: ' + oldChild.nodeType; // this should never happen? maybe -- not sure.
-        }
+    const parent = newNode.parentElement;
+    if (parent === null) {
+        throw 'Null parent';
     }
 
-    return null;
+    const injectNode = document.createElement('a');
+    injectNode.id = id;
+
+    const oldText = oldNode.nodeValue;
+    const newText = newNode.nodeValue;
+    if (oldText === null || newText === null) {
+        throw 'Text nodes do not have text content'; // this should never happen?
+    }
+    const mismatchIdx = firstDifferenceInText(oldText, newText);
+
+    const newTextStart = newText.substring(0, mismatchIdx);
+    const newTextEnd = newText.substring(mismatchIdx);
+
+    const preInjectNode = document.createTextNode(newTextStart);
+    const postInjectNode = document.createTextNode(newTextEnd);
+    parent.insertBefore(preInjectNode, newNode);
+    parent.insertBefore(injectNode, newNode);
+    parent.insertBefore(postInjectNode, newNode);
+    parent.removeChild(newNode);
 }
 
 export function firstDifferenceInText(oldIn: string, newIn: string): number {
@@ -90,47 +182,13 @@ export function firstDifferenceInText(oldIn: string, newIn: string): number {
     return mismatchIdx;
 }
 
-export function applyDifferenceMarker(mismatch: NodeMismatch, injectionId: string): void {
-    var newNodeDocument = mismatch.newNode.ownerDocument;
-    if (newNodeDocument === null) {
-        throw 'No owning document for new element';
-    }
 
-    const parent = mismatch.newNode.parentNode;
-    if (parent === null) {
-        throw 'Parent cannot be null'; // this should never happen?
-    }
 
-    const injectNode = newNodeDocument.createElement('a');
-    injectNode.id = injectionId;
 
-    // node types between old and new are known to be equal at this point
-    switch (mismatch.newNode.nodeType) {
-        case mismatch.newNode.ELEMENT_NODE: {       // Can't use Node.ELEMENT_NODE because Node isn't exposed
-            parent.insertBefore(injectNode, mismatch.newNode);
-            break;
-        }
-        case mismatch.newNode.TEXT_NODE:            // Can't use Node.TEXT_NODE because Node isn't exposed
-        case mismatch.newNode.CDATA_SECTION_NODE: { // Can't use Node.CDATA_SECTION_NODE because Node isn't exposed
-            const oldText = mismatch.oldNode.nodeValue;
-            const newText = mismatch.newNode.nodeValue;
-            if (oldText === null || newText === null) {
-                throw 'Text nodes do not have text content'; // this should never happen?
-            }
-            const mismatchIdx = firstDifferenceInText(oldText, newText);
-
-            const newTextStart = newText.substring(0, mismatchIdx);
-            const newTextEnd = newText.substring(mismatchIdx);
-
-            const preInjectNode = newNodeDocument.createTextNode(newTextStart);
-            const postInjectNode = newNodeDocument.createTextNode(newTextEnd);
-            parent.insertBefore(preInjectNode, mismatch.newNode);
-            parent.insertBefore(injectNode, mismatch.newNode);
-            parent.insertBefore(postInjectNode, mismatch.newNode);
-            parent.removeChild(mismatch.newNode);
-            break;
-        }
-        default:
-            throw 'Unrecognized child type: ' + mismatch.newNode.nodeType; // this should never happen
-    }
+{
+    const oldDom = new JSDOM('<html><head></head><body><a><b><c></c></b></a></body></html>');
+    const newDom = new JSDOM('<html><head></head><body><a><b></b></a></body></html>');
+    const changed = markChangeInBody(oldDom, newDom, 'changed_here');
+    console.log(changed);
+    console.log(newDom.serialize());
 }
