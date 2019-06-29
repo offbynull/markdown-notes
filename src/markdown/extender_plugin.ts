@@ -213,8 +213,8 @@ export function extender(markdownIt: MarkdownIt, extenderConfig: ExtenderConfig)
                 if (extensionEntries.block.process !== undefined) { // call if handler is a function
                     extensionEntries.block.process(markdownIt, state.tokens, tokenIdx, context);
                 }
-            } else { // otherwise throw error
-                throw 'Unidentified fence extension: ' + info;
+            } else { // if unrecognized, don't try to process it
+                // Do nothing
             }
         }
 
@@ -259,8 +259,8 @@ export function extender(markdownIt: MarkdownIt, extenderConfig: ExtenderConfig)
                     if (extensionEntries.inline.process !== undefined) { // call if handler is a function
                         extensionEntries.inline.process(markdownIt, state.tokens, tokenIdx, context);
                     }
-                } else { // otherwise throw error
-                    throw 'Unidentified fence extension: ' + info;
+                } else { // if unrecognized, don't try to process it
+                    // Do nothing
                 }
             }
         }
