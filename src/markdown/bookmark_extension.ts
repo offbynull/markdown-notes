@@ -58,18 +58,22 @@ export class BookmarkExtension implements Extension {
             content = content.substring('|out'.length).trim();
             showText = true;
         }
-        token.content = content;
 
-        if (bookmarkData.bookmarks.has(content)) {
-            throw 'Bookmark already defined: ' + content;
+        const origText = token.content;
+        const bookmarkId = content.toLowerCase(); // Convert to lower-case for case insensitive matching
+        token.content = bookmarkId;
+        
+
+        if (bookmarkData.bookmarks.has(bookmarkId)) {
+            throw 'Bookmark already defined: ' + bookmarkId;
         }
 
-        bookmarkData.bookmarks.set(content, 'bookmark' + bookmarkData.nextId);
+        bookmarkData.bookmarks.set(bookmarkId, 'bookmark' + bookmarkData.nextId);
         bookmarkData.nextId++;
 
         if (showText === true) {
             const textToken = new Token('text_no_bookmark_reference', '', 0);
-            textToken.content = content;
+            textToken.content = origText;
             tokens.splice(tokenIdx + 1, 0, textToken);
         }
     }
@@ -78,14 +82,32 @@ export class BookmarkExtension implements Extension {
         const bookmarkData: BookmarkData = context.get('bookmark') || new BookmarkData();
         context.set('bookmark', bookmarkData);
 
+        let headerSkipMode = false;
         for (let tokenIdx = 0; tokenIdx < tokens.length; tokenIdx++) {
             const token = tokens[tokenIdx];
 
+            // Don't process when in a heading
+            if (token.type === 'heading_open') {
+                headerSkipMode = true;
+                continue;
+            } else if (token.type === 'heading_close') {
+                headerSkipMode = false;
+                continue;
+            }
+
+            if (headerSkipMode) {
+                continue;
+            }
+
+
+            // Don't process if text was specifically labelled to be not bookmarkable
             if (token.type === 'text_no_bookmark_reference') {
                 token.type = 'text';
                 continue;
             }
 
+            
+            // Process
             if (token.type !== 'text') {
                 if (token.children !== null) {
                     this.postProcess(markdownIt, token.children, context)
@@ -164,14 +186,21 @@ export class BookmarkExtension implements Extension {
     }
 
     private tokenizeToBookmarkLink(markdownIt: MarkdownIt, bookmarkText: string, bookmarkId: string, content: string, tempType: string): Token[] {
+        // We need to lowercase for searching because all bookmark IDs are lowercase. We do this to
+        // support case insensitive bookmarks -- e.g. TEXT and tExT and text should all link to the
+        // same bookmark.
+        const contentLc = content.toLowerCase();
+        
         let oldIdx = 0;
-        let nextIdx = content.indexOf(bookmarkText, oldIdx);
+        let nextIdx = contentLc.indexOf(bookmarkText, oldIdx);
         if (nextIdx === -1) {
             return [];
         }
 
         let replacementTokens: Token[] = [];
         do {
+            const linkText = content.slice(nextIdx, nextIdx + bookmarkText.length);
+
             // The bookmark_link types below don't have a render function because they don't need one.
             // The tag and attr values get moved directly to HTML and apparently markdown-it recognizes
             // the _open/_close suffix (_close will make the tag output as a closing HTML tag).
@@ -187,11 +216,11 @@ export class BookmarkExtension implements Extension {
             ];
             bookmarkTokens[0].content = content.substring(oldIdx, nextIdx);
             bookmarkTokens[1].attrSet('href', '#' + markdownIt.utils.escapeHtml(bookmarkId));
-            bookmarkTokens[2].content = bookmarkText;
+            bookmarkTokens[2].content = linkText;
             replacementTokens = replacementTokens.concat(bookmarkTokens);
 
             oldIdx = nextIdx + bookmarkText.length;
-            nextIdx = content.indexOf(bookmarkText, oldIdx);
+            nextIdx = contentLc.indexOf(bookmarkText, oldIdx);
         } while (nextIdx !== -1);
 
         const remainderText = content.substring(oldIdx);
@@ -213,7 +242,7 @@ export class BookmarkExtension implements Extension {
         
         const bookmarkId = bookmarkData.bookmarks.get(content);
         if (bookmarkId === undefined) {
-            throw 'Undefined bookmark when rendering'; // this should never happen
+            throw 'Undefined bookmark when rendering: ' + content; // this should never happen
         }
         return '<a name="' + markdownIt.utils.escapeHtml(bookmarkId) + '"></a>';
     }
