@@ -18,7 +18,7 @@
 
 import MarkdownIt from 'markdown-it';
 import HighlightJs from 'highlight.js';
-
+import { JSDOM } from 'jsdom';
 import { extender, ExtenderConfig } from './extender_plugin';
 import { TocExtension } from './table_of_contents_extension';
 import { BookmarkExtension, BookmarkReferenceIgnoreExtension } from './bookmark_extension';
@@ -26,8 +26,8 @@ import { DotExtension } from './dot_graph_extension';
 import { NoteExtension } from './note_extension';
 import { MathJaxExtension } from './mathjax_extension';
 import { TitleExtension } from './title_extension';
-import { JSDOM } from 'jsdom';
 import { KatexExtension } from './katex_extension';
+import { PlantUmlExtension } from './plantuml_extension';
 
 export default class Markdown {
     private readonly markdownIt: MarkdownIt;
@@ -50,7 +50,8 @@ export default class Markdown {
         extenderConfig.register(new DotExtension());
         extenderConfig.register(new NoteExtension());
         extenderConfig.register(new MathJaxExtension());
-        extenderConfig.register(new KatexExtension())
+        extenderConfig.register(new KatexExtension());
+        extenderConfig.register(new PlantUmlExtension());
         this.markdownIt.use(extender, extenderConfig);
         // this.markdownIt.use(indexer);
     }

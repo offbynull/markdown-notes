@@ -113,6 +113,44 @@ Block output:
 \frac{a}{b}
 ```
 
+# PlantUML
+
+Add a PlantUML diagram using the plantuml block tag:
+
+````
+```{plantuml}
+@startuml
+class Student {
+  Name
+}
+Student "0..*" - "1..*" Course
+(Student, Course) .. Enrollment
+
+class Enrollment {
+  drop()
+  cancel()
+}
+@enduml
+```
+````
+
+Block output:
+
+```{plantuml}
+@startuml
+class Student {
+  Name
+}
+Student "0..*" - "1..*" Course
+(Student, Course) .. Enrollment
+
+class Enrollment {
+  drop()
+  cancel()
+}
+@enduml
+```
+
 # Standard Markdown
 Normal CommonMark features are supported out of the box.
 

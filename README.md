@@ -6,6 +6,7 @@ Inspired by the lack of simple note taking tools for developers and engineers, M
 
 * Bloat-free and cross-platform -- no built-in editors, UIs, cloud-support, etc..
 * Ingests an extended form of CommonMark-flavoured markdown:
+  * Supports embedding PlantUML diagrams.
   * Supports embedding DOT graphs (viz.js).
   * Supports embedding LaTeX math expressions (MathJax / KaTeX).
   * Supports automatic bookmarking.
@@ -17,7 +18,11 @@ Inspired by the lack of simple note taking tools for developers and engineers, M
 
 ## Usage
 
-To setup MarkdownNotes, clone the repository and run `npm install`.
+To setup MarkdownNotes...
+1. clone the repository
+1. ensure Java is installed (e.g. `sudo apt install openjdk-11-jdk`)
+1. ensure GraphViz is installed (e.g. `sudo apt install graphviz`)
+1. run `npm install`.
 
 To run MarkdownNotes, run `npm start [path]` (where `[path]` is your work directory). A browser window will open to the rendered output of `[path]/input/input.md`. Any changes to any file in `[path]/input` will result in the rendered output being updated (scroll position will be maintained).
 
