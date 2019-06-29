@@ -72,9 +72,15 @@ export class BookmarkExtension implements Extension {
         bookmarkData.nextId++;
 
         if (showText === true) {
-            const textToken = new Token('text_no_bookmark_reference', '', 0);
-            textToken.content = origText;
-            tokens.splice(tokenIdx + 1, 0, textToken);
+            const replacementTextTokens = [
+                new Token('html_inline', '', 0),
+                new Token('text_no_bookmark_reference', '', 0),
+                new Token('html_inline', '', 0)
+            ];
+            replacementTextTokens[0].content = '<strong>';
+            replacementTextTokens[1].content = origText;
+            replacementTextTokens[2].content = '</strong>';
+            tokens.splice(tokenIdx + 1, 0, ... replacementTextTokens);
         }
     }
 
@@ -106,7 +112,7 @@ export class BookmarkExtension implements Extension {
                 continue;
             }
 
-            
+
             // Process
             if (token.type !== 'text') {
                 if (token.children !== null) {
