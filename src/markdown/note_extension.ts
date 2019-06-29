@@ -27,6 +27,7 @@ export class NoteExtension implements Extension {
 
     public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: Map<string, any>): string {
         const token = tokens[tokenIdx];
-        return '<div class="note">' + markdownIt.utils.escapeHtml(token.content) + '</div>';
+        // return '<div class="note">' + markdownIt.utils.escapeHtml(token.content) + '</div>';
+        return '<div style="margin: 2em; background-color: #e0e0e0"><strong>NOTE:</strong> ' + markdownIt.utils.escapeHtml(token.content) + '</div>';
     }
 }
