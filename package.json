@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "start": "echo \"*** Change input/input.md and see outputs in output/output.html\" && npx tsc && node dist/index.js",
+    "start": "npx tsc && node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

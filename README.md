@@ -2,12 +2,12 @@
 
 <p align="center"><img src ="logo.png" alt="MarkdownNotes logo" /></p>
 
-Inspired by the lack of simple note taking tools for developers and engineers, MarkdownNotes is an ultra-simple yet extendable application for taking engineering/development notes in markdown. Why use MarkdownNotes over other note taking tools and markdown implementations?
+Inspired by the lack of simple note taking tools for developers and engineers, MarkdownNotes is an ultra-simple yet extendable application for taking engineering/development notes in markdown. Why use MarkdownNotes over other note taking tools / markdown implementations?
 
 * Bloat-free and cross-platform -- no built-in editors, UIs, cloud-support, etc..
 * Ingests an extended form of CommonMark-flavoured markdown:
   * Supports embedding DOT graphs (viz.js).
-  * Supports embedding LaTeX math expressions (MathJax).
+  * Supports embedding LaTeX math expressions (MathJax / KaTeX).
   * Supports automatic bookmarking.
   * Supports generating table of contents.
   * etc..
@@ -19,9 +19,9 @@ Inspired by the lack of simple note taking tools for developers and engineers, M
 
 To setup MarkdownNotes, clone the repository and run `npm install`.
 
-To run MarkdownNotes, run `npm start`. A browser window will open to the rendered output of [input/input.md](input/input.md), and any changes to [input/input.md](input/input.md) or any other file in [input/](input/) will result in the rendered output being updated (scroll position will be maintained).
+To run MarkdownNotes, run `npm start [path]` (where `[path]` is your work directory). A browser window will open to the rendered output of `[path]/input/input.md`. Any changes to any file in `[path]/input` will result in the rendered output being updated (scroll position will be maintained).
 
-The rendered output can always be accessed at [output/output.html](output/output.html).
+The rendered output is a self-contained HTML that can be accessed at `[path]/output/output.html`. 
 
 ## Syntax
 
@@ -33,7 +33,7 @@ The markdown syntax used by MarkdownNotes is an extended variant of CommonMark. 
 ```
 ````
 
-For a comphensive overview of the built-in extensions, see the default [output/output.html](output/output.html) file and/or [input/input.md](input/input.md) file.
+For a comphensive overview of the built-in extensions, see [example/output/output.html](example/output/output.html) and [example/input/input.md](example/input/input.md).
 
 ## Extending
 
