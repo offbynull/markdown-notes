@@ -193,8 +193,9 @@ export function extender(markdownIt: MarkdownIt, extenderConfig: ExtenderConfig)
         }
         const afterTokenLen = state.tokens.length;
         
-        if (afterTokenLen !== beforeTokenLen + 1) {
-            throw 'Unexpected number of tokens';
+        if (beforeTokenLen >= afterTokenLen) {
+            return true;
+            // throw 'Unexpected number of tokens';
         }
 
         const tokenIdx = beforeTokenLen;
@@ -234,8 +235,9 @@ export function extender(markdownIt: MarkdownIt, extenderConfig: ExtenderConfig)
         }
         const afterTokenLen = state.tokens.length;
         
-        if (!(afterTokenLen > beforeTokenLen)) {
-            throw 'No tokens generated';
+        if (beforeTokenLen >= afterTokenLen) {
+            return true;
+            // throw 'No tokens generated';
         }
 
         for (let tokenIdx = beforeTokenLen; tokenIdx < afterTokenLen; tokenIdx++) {
