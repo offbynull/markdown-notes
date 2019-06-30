@@ -16,6 +16,7 @@
  * License along with this library.
  */
 
+import FileSystem from 'fs';
 import MarkdownIt from 'markdown-it';
 import HighlightJs from 'highlight.js';
 import { JSDOM } from 'jsdom';
@@ -67,18 +68,19 @@ export default class Markdown {
         const headElement = document.getElementsByTagName('head')[0];
         const bodyElement = document.getElementsByTagName('body')[0];
 
+        // Dump CSS files as text blocks -- don't link them directly. The webresourceinliner module doesn't allow you
+        // to reference files in the node_modules folder.
+
         // Apply changes for github styling
-        const githubCssElem = document.createElement('link');
-        githubCssElem.setAttribute('href', 'node_modules/github-markdown-css/github-markdown.css');
-        githubCssElem.setAttribute('rel', 'stylesheet');
+        const githubCssElem = document.createElement('style');
+        githubCssElem.textContent = FileSystem.readFileSync('node_modules/github-markdown-css/github-markdown.css', { encoding: 'utf8' });
         headElement.appendChild(githubCssElem);
 
         bodyElement.classList.add('markdown-body');
 
         // Apply changes to highlight code blocks
-        const highlightJsCssElem = document.createElement('link');
-        highlightJsCssElem.setAttribute('href', 'node_modules/highlight.js/styles/default.css');
-        highlightJsCssElem.setAttribute('rel', 'stylesheet');
+        const highlightJsCssElem = document.createElement('style');
+        highlightJsCssElem.textContent = FileSystem.readFileSync('node_modules/highlight.js/styles/default.css', { encoding: 'utf8' });
         headElement.appendChild(highlightJsCssElem);
 
         return jsDom.serialize();

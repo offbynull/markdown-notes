@@ -77,12 +77,13 @@ inputWatcher.on('change', () => {
     })();
     
     const config: WebResourceInliner.Options = {
-        'fileContent': output,
-        'images': true,
-        'links': true,
-        'scripts': true,
-        'svgs': true,
-        'strict': true
+        fileContent: output,
+        images: true,
+        links: true,
+        scripts: true,
+        svgs: true,
+        strict: true,
+        relativeTo: inputPath
     };
     WebResourceInliner.html(
         config,
