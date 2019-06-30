@@ -7,7 +7,7 @@ Inspired by the lack of simple note taking tools for developers and engineers, M
 * Bloat-free and cross-platform -- no built-in editors, UIs, cloud-support, etc..
 * Ingests an extended form of CommonMark-flavoured markdown:
   * Supports embedding PlantUML diagrams.
-  * Supports embedding DOT graphs (viz.js).
+  * Supports embedding GraphViz dot diagrams.
   * Supports embedding LaTeX math expressions (MathJax / KaTeX).
   * Supports automatic bookmarking.
   * Supports generating table of contents.

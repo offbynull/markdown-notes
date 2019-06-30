@@ -16,30 +16,6 @@ You can automatically link back to any piece of text by using the bm inline tag:
 
 Notice how in the markdown I write out `` `{bm} metagenomics` `` instead of the actual word. The text renders are plain text but anywhere else where the word metagenomics pops up, it automatically links to that bookmark. If you want to avoid having a specific instance link back, use `` `{bm-ri} metagenomics` `` instead of writing it out as plain text.
 
-# DOT Graphs
-
-Generate basic DOT graphs by using dot block tag:
-
-````
-```{dot}
-digraph {
-  a -> b;
-  b -> c;
-  b -> d;
-}
-```
-````
-
-Output:
-
-```{dot}
-digraph {
-  a -> b;
-  b -> c;
-  b -> d;
-}
-```
-
 # Notes
 
 Generate notes by using the note block tag:
@@ -113,7 +89,31 @@ Block output:
 \frac{a}{b}
 ```
 
-# PlantUML
+# GraphViz Diagrams
+
+Generate Graphviz dot diagrams by using dot block tag:
+
+````
+```{dot}
+digraph {
+  a -> b;
+  b -> c;
+  b -> d;
+}
+```
+````
+
+Output:
+
+```{dot}
+digraph {
+  a -> b;
+  b -> c;
+  b -> d;
+}
+```
+
+# PlantUML Diagrams
 
 Add a PlantUML diagram using the plantuml block tag:
 

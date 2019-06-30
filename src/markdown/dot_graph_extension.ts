@@ -16,37 +16,41 @@
  * License along with this library.
  */
 
+import FileSystem from 'fs';
+import ChildProcess from 'child_process';
+import Crypto from 'crypto';
 import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import { Extension, TokenIdentifier, Type } from "./extender_plugin";
 
-// import Viz from 'viz.js';
-import { Module, render } from 'viz.js/full.render.js';
-
-const instance = Module(); // create only once -- if not, node will warn about memory leaks if too many get created
-
 export class DotExtension implements Extension {
+    public constructor() {
+        try {
+            ChildProcess.execSync('dot -V', { stdio: 'ignore' });
+        } catch (err) {
+            throw 'GraphViz check failed -- is it installed?\n\n' + JSON.stringify(err);
+        }
+    }
+
     public readonly tokenIds: ReadonlyArray<TokenIdentifier> = [
-        new TokenIdentifier('dot', Type.BLOCK)
+        new TokenIdentifier('dot', Type.BLOCK),
     ];
 
     public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: Map<string, any>): string {
-        // The following code had to be ripped out of viz.js's internals because the only public interfaces viz.js
-        // exposes are those that return Promises. Even though the promise it returns is resolved immediately (upon
-        // creation), it's impossible to grab the value out of the promise -- there's no other way to get a non-async
-        // interface to viz.js
-        const data = tokens[tokenIdx].content;
-        const output = render(instance, data,
-            {
-                format: 'svg',
-                engine: 'dot',
-                files: [],
-                images: [],
-                yInvert: false,
-                nop: 0
-            }
-        );
+        const token = tokens[tokenIdx];
+        const dotCode = token.content;
 
-        return output;
+        const dotCodeHash = Crypto.createHash('md5').update(dotCode).digest('hex');
+
+        const dotDataDir = `.cache/dot/${dotCodeHash}`;
+        const dotInputFile = dotDataDir + '/diagram.dot';
+        const dotOutputFile = dotDataDir + '/diagram.svg';
+
+        FileSystem.mkdirSync(dotDataDir, { recursive: true });
+        FileSystem.writeFileSync(dotInputFile, dotCode, { encoding: 'utf-8' });
+
+        ChildProcess.execSync(`dot -Tsvg ${dotInputFile} > ${dotOutputFile}`);
+
+        return `<img src="${markdownIt.utils.escapeHtml(dotOutputFile)}" alt="Graphiv Dot Diagram" />`;
     }
 }
