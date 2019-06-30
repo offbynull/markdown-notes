@@ -19,8 +19,9 @@
 import * as BrowserSync from 'browser-sync';
 
 import Markdown from './markdown/markdown';
-import * as WebResourceInliner from 'web-resource-inliner';
-import * as FileSystem from 'fs';
+import WebResourceInliner from 'web-resource-inliner';
+import FileSystem from 'fs';
+import { injectErrorOverlay } from './overlay_injector';
 
 
 process.on('warning', e => console.warn(e.stack));
@@ -65,7 +66,15 @@ inputWatcher.on('change', () => {
 
     // Render input.md to output.html
     const input = inputBuffer.toString('utf8');
-    const output = new Markdown().render(input);
+    const output = (() => {
+        try {
+            return new Markdown().render(input);
+        } catch (err) {
+            const oldOutputBuffer = FileSystem.readFileSync(outputPath + '/output.html', null);
+            const oldOutput = oldOutputBuffer.toString('utf8');
+            return injectErrorOverlay(oldOutput, err.toString());
+        }
+    })();
     
     const config: WebResourceInliner.Options = {
         'fileContent': output,
@@ -96,7 +105,9 @@ inputWatcher.on('change', () => {
 });
 
 // Create a fake output if one does not exist, just so there's something initially to load when we start
-FileSystem.writeFileSync(outputPath + '/output.html', '<html><head></head><body></body></html>');
+if (FileSystem.existsSync(outputPath + '/output.html') === false) {
+    FileSystem.writeFileSync(outputPath + '/output.html', '<html><head></head><body></body></html>');
+}
 bs.init({
     server: outputPath,
     watch: true,
