@@ -46,11 +46,13 @@ export class DotExtension implements Extension {
         const dotInputFile = dotDataDir + '/diagram.dot';
         const dotOutputFile = dotDataDir + '/diagram.svg';
 
-        FileSystem.mkdirSync(dotDataDir, { recursive: true });
-        FileSystem.writeFileSync(dotInputFile, dotCode, { encoding: 'utf-8' });
+        if (FileSystem.existsSync(dotOutputFile) === false) { // only generate if not already exists
+            FileSystem.mkdirSync(dotDataDir, { recursive: true });
+            FileSystem.writeFileSync(dotInputFile, dotCode, { encoding: 'utf-8' });
 
-        ChildProcess.execSync(`dot -Tsvg ${dotInputFile} > ${dotOutputFile}`);
+            ChildProcess.execSync(`dot -Tsvg ${dotInputFile} > ${dotOutputFile}`);
+        }
 
-        return `<img src="${markdownIt.utils.escapeHtml(dotOutputFile)}" alt="Graphiv Dot Diagram" />`;
+        return `<img src="${markdownIt.utils.escapeHtml(dotOutputFile)}" alt="Graphviz Dot Diagram" />`;
     }
 }

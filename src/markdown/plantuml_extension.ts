@@ -55,6 +55,11 @@ export class PlantUmlExtension implements Extension {
         FileSystem.mkdirSync(pumlDataDir, { recursive: true });
         FileSystem.writeFileSync(pumlInputFile, pumlCode, { encoding: 'utf-8' });
 
+        // PlantUML doesn't error if something's wrong with the rendering process (e.g. the graphviz dot executable is missing).
+        // Instead, it'll still generate an image but the image will show an error message instead of a diagram. As such, we
+        // can't skip calling the executable if the image already exists in the cache dir -- the image in the cache dir may have
+        // been rendered incorrectly.
+
         ChildProcess.execSync('java -jar resources/plantuml.1.2019.7.jar -tsvg ' + pumlInputFile);
 
         return `<img src="${markdownIt.utils.escapeHtml(pumlOutputFile)}" alt="PlantUML Diagram" />`;
