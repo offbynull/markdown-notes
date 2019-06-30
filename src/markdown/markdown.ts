@@ -28,6 +28,7 @@ import { MathJaxExtension } from './mathjax_extension';
 import { TitleExtension } from './title_extension';
 import { KatexExtension } from './katex_extension';
 import { PlantUmlExtension } from './plantuml_extension';
+import { CsvExtension } from './csv_extension';
 
 export default class Markdown {
     private readonly markdownIt: MarkdownIt;
@@ -52,6 +53,7 @@ export default class Markdown {
         extenderConfig.register(new MathJaxExtension());
         extenderConfig.register(new KatexExtension());
         extenderConfig.register(new PlantUmlExtension());
+        extenderConfig.register(new CsvExtension());
         this.markdownIt.use(extender, extenderConfig);
         // this.markdownIt.use(indexer);
     }

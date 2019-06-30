@@ -151,6 +151,40 @@ class Enrollment {
 @enduml
 ```
 
+# CSV
+
+Add a table using the CSV block tag:
+
+````
+```{csv}
+!![true]
+Code,Country
+AFG,Afghanistan
+ALB,Albania
+ALG,Algeria
+ASA,American Samoa
+AND,Andorra
+ANG,Angola
+AIA,Anguilla
+ATG,Antigua and Barbuda
+```
+````
+
+Block output:
+
+```{csv}
+!![true]
+Code,Country
+AFG,Afghanistan
+ALB,Albania
+ALG,Algeria
+ASA,American Samoa
+AND,Andorra
+ANG,Angola
+AIA,Anguilla
+ATG,Antigua and Barbuda
+```
+
 # Standard Markdown
 Normal CommonMark features are supported out of the box.
 
