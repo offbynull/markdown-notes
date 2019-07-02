@@ -18,7 +18,7 @@
 
 import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
-import { Extension, TokenIdentifier, Type } from "./extender_plugin";
+import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 
 class TocData {
     public readonly headingAnchors: Map<Token, string> = new Map<Token, string>();
@@ -31,9 +31,9 @@ export class TocExtension implements Extension {
         new TokenIdentifier('__toc_anchor', Type.INLINE)
     ];
 
-    public postProcess(markdownIt: MarkdownIt, tokens: Token[], context: Map<string, any>): void {
-        const tocData: TocData = context.get('toc') || new TocData();
-        context.set('toc', tocData);
+    public postProcess(markdownIt: MarkdownIt, tokens: Token[], context: ExtensionContext): void {
+        const tocData: TocData = context.shared.get('toc') || new TocData();
+        context.shared.set('toc', tocData);
 
         for (let tokenIdx = 0; tokenIdx < tokens.length; tokenIdx++) {
             const token = tokens[tokenIdx];
@@ -58,7 +58,7 @@ export class TocExtension implements Extension {
         }
     }
 
-    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: Map<string, any>): string {
+    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
         const type = tokens[tokenIdx].type;
         switch (type) {
             case 'toc':
@@ -70,15 +70,15 @@ export class TocExtension implements Extension {
         }
     }
 
-    private renderTocAnchor(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: Map<string, any>): string {
+    private renderTocAnchor(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
         const tocAnchorToken = tokens[tokenIdx];
         const tocAnchorId = tocAnchorToken.info;
         return '<a name="' + markdownIt.utils.escapeHtml(tocAnchorId) + '"></a>';
     }
 
-    private renderToc(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: Map<string, any>): string {
-        const tocData: TocData = context.get('toc') || new TocData();
-        context.set('toc', tocData);
+    private renderToc(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
+        const tocData: TocData = context.shared.get('toc') || new TocData();
+        context.shared.set('toc', tocData);
 
         let ret = '';
         let inHeader = false;

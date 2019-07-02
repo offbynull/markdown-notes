@@ -16,9 +16,10 @@
  * License along with this library.
  */
 
+import FileSystemExtra from 'fs-extra';
 import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
-import { Extension, TokenIdentifier, Type } from "./extender_plugin";
+import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 import * as Katex from 'katex';
 import { JSDOM } from 'jsdom';
 
@@ -30,11 +31,11 @@ export class KatexExtension implements Extension {
         new TokenIdentifier('kt', Type.INLINE)
     ];
 
-    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: Map<string, any>): string {
+    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
         const token = tokens[tokenIdx];
         const tex = token.content;
 
-        context.set(KATEX_INSERTED, true);
+        context.shared.set(KATEX_INSERTED, true);
         const html = Katex.renderToString(
             tex,
             {
@@ -45,8 +46,8 @@ export class KatexExtension implements Extension {
         return html;
     }
 
-    public postHtml(dom: JSDOM, context: Map<string, any>): JSDOM {
-        if (!context.has(KATEX_INSERTED)) {
+    public postHtml(dom: JSDOM, context: ExtensionContext): JSDOM {
+        if (!context.shared.has(KATEX_INSERTED)) {
             return dom;
         }
     
@@ -55,8 +56,9 @@ export class KatexExtension implements Extension {
     
         const headElement = document.getElementsByTagName('head')[0];
 
+        const katexHtmlBasePath = context.injectDir('node_modules/katex/dist');
         const linkElem = document.createElement('link');
-        linkElem.setAttribute('href', 'node_modules/katex/dist/katex.min.css');
+        linkElem.setAttribute('href', katexHtmlBasePath + '/katex.min.css');
         linkElem.setAttribute('rel', 'stylesheet');
         headElement.appendChild(linkElem);
 

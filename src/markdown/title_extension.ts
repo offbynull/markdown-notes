@@ -18,7 +18,7 @@
 
 import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
-import { Extension, TokenIdentifier, Type } from "./extender_plugin";
+import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 import { JSDOM } from 'jsdom';
 
 export class TitleExtension implements Extension {
@@ -27,18 +27,18 @@ export class TitleExtension implements Extension {
         new TokenIdentifier('title', Type.INLINE)
     ];
 
-    public process(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: Map<string, any>): void {
-        const existingTitle = context.get('title');
+    public process(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): void {
+        const existingTitle = context.shared.get('title');
         if (existingTitle !== undefined) {
             throw 'Title already set to ' + existingTitle;
         }
 
         const title = tokens[tokenIdx].content;
-        context.set('title', title);
+        context.shared.set('title', title);
     }
 
-    public postHtml(dom: JSDOM, context: Map<string, any>): JSDOM {
-        const title = context.get('title');
+    public postHtml(dom: JSDOM, context: ExtensionContext): JSDOM {
+        const title = context.shared.get('title');
         if (title === undefined) {
             return dom;
         }

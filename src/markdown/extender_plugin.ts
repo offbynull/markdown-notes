@@ -16,6 +16,9 @@
  * License along with this library.
  */
 
+import Crypto from 'crypto'; 
+import Path from 'path';
+import FileSystemExtras from 'fs-extra';
 import MarkdownIt, { RuleBlock, RuleInline } from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import StateCore from 'markdown-it/lib/rules_core/state_core';
@@ -43,12 +46,39 @@ export class TokenIdentifier {
     }
 }
 
+export class ExtensionContext {
+    public readonly realBasePath: string;
+    public readonly htmlBasePath: string;
+    public readonly shared: Map<string, any>;
+
+    public constructor(realBasePath: string, htmlBasePath: string) {
+        this.realBasePath = realBasePath;
+        this.htmlBasePath = htmlBasePath;
+        this.shared = new Map();
+    }
+
+    public injectDir(sourcePath: string): string {
+        const genPath = `.data_${Crypto.pseudoRandomBytes(8).toString('hex')}`;
+        FileSystemExtras.ensureDirSync(this.realBasePath + '/' + genPath);
+        FileSystemExtras.copySync(sourcePath, this.realBasePath + '/' + genPath);
+        return this.htmlBasePath + '/' + genPath;
+    }
+
+    public injectFile(sourcePath: string): string {
+        const filename = Path.basename(sourcePath);
+        const genPath = `.datafile_${Crypto.pseudoRandomBytes(8).toString('hex')}`;
+        FileSystemExtras.ensureDirSync(this.realBasePath + '/' + genPath);
+        FileSystemExtras.copyFileSync(sourcePath, this.realBasePath + '/' + genPath + '/' + filename);
+        return this.htmlBasePath + '/' + genPath + '/' + filename;
+    }
+}
+
 export interface Extension {
     readonly tokenIds: ReadonlyArray<TokenIdentifier>;
-    process?: (markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: Map<string, any>) => void;
-    postProcess?: (markdownIt: MarkdownIt, tokens: Token[], context: Map<string, any>) => void;
-    render?: (markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: Map<string, any>) => string;
-    postHtml?: (dom: JSDOM, context: Map<string, any>) => JSDOM;
+    process?: (markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext) => void;
+    postProcess?: (markdownIt: MarkdownIt, tokens: Token[], context: ExtensionContext) => void;
+    render?: (markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext) => string;
+    postHtml?: (dom: JSDOM, context: ExtensionContext) => JSDOM;
 }
 
 export class NameEntry {
@@ -70,10 +100,14 @@ export class NameEntry {
 }
 
 export class ExtenderConfig {
+    public readonly realBasePath: string;
+    public readonly htmlBasePath: string;
     private readonly exts: Extension[];
     private readonly nameLookup: Map<string, NameEntry>;
 
-    public constructor() {
+    public constructor(realBasePath: string, htmlBasePath: string) {
+        this.realBasePath = realBasePath;
+        this.htmlBasePath = htmlBasePath;
         this.exts = [];
         this.nameLookup = new Map();
     }
@@ -138,7 +172,7 @@ function findRule<S extends StateCore>(markdownIt: MarkdownIt, name: string, rul
     return ret;
 }
 
-function invokePostProcessors(extenderConfig: ExtenderConfig, markdownIt: MarkdownIt, tokens: Token[], context: Map<string, any>): void {
+function invokePostProcessors(extenderConfig: ExtenderConfig, markdownIt: MarkdownIt, tokens: Token[], context: ExtensionContext): void {
     for (const extension of extenderConfig.extensions()) {
         if (extension.postProcess !== undefined) {
             extension.postProcess(markdownIt, tokens, context);
@@ -146,7 +180,7 @@ function invokePostProcessors(extenderConfig: ExtenderConfig, markdownIt: Markdo
     }
 }
 
-function invokePostHtmls(extenderConfig: ExtenderConfig, dom: JSDOM, context: Map<string, any>): JSDOM {
+function invokePostHtmls(extenderConfig: ExtenderConfig, dom: JSDOM, context: ExtensionContext): JSDOM {
     for (const extension of extenderConfig.extensions()) {
         if (extension.postHtml !== undefined) {
             const newDom = extension.postHtml(dom, context);
@@ -158,7 +192,7 @@ function invokePostHtmls(extenderConfig: ExtenderConfig, dom: JSDOM, context: Ma
     return dom;
 }
 
-function addRenderersToMarkdown(extenderConfig: ExtenderConfig, markdownIt: MarkdownIt, context: Map<string, any>) {
+function addRenderersToMarkdown(extenderConfig: ExtenderConfig, markdownIt: MarkdownIt, context: ExtensionContext) {
     for (const name of extenderConfig.names()) {
         const obj = extenderConfig.get(name);
         if (obj === undefined) {
@@ -177,8 +211,7 @@ function addRenderersToMarkdown(extenderConfig: ExtenderConfig, markdownIt: Mark
 }
 
 export function extender(markdownIt: MarkdownIt, extenderConfig: ExtenderConfig): void {
-    const context: Map<string, any> = new Map(); // simple map for sharing data between invocations
-
+    const context = new ExtensionContext(extenderConfig.realBasePath, extenderConfig.htmlBasePath);
 
     // Augment block fence rule to call the extension processor with the matching name.
     const blockRules = markdownIt.block.ruler.getRules('');
@@ -285,6 +318,8 @@ export function extender(markdownIt: MarkdownIt, extenderConfig: ExtenderConfig)
     // Augment md's render output to call our extension post renderers after executing
     const oldMdRender = markdownIt.render;
     markdownIt.render = function(src, env): string {
+        context.shared.clear(); // clear context's shared data
+
         let html = `
         <!DOCTYPE html>
         <html>

@@ -21,7 +21,7 @@ import ChildProcess from 'child_process';
 import Crypto from 'crypto';
 import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
-import { Extension, TokenIdentifier, Type } from "./extender_plugin";
+import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 
 export class PlantUmlExtension implements Extension {
     public constructor() {
@@ -42,7 +42,7 @@ export class PlantUmlExtension implements Extension {
         new TokenIdentifier('plantuml', Type.BLOCK),
     ];
 
-    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: Map<string, any>): string {
+    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
         const token = tokens[tokenIdx];
         const pumlCode = token.content;
 
@@ -62,6 +62,7 @@ export class PlantUmlExtension implements Extension {
 
         ChildProcess.execSync('java -jar resources/plantuml.1.2019.7.jar -tsvg ' + pumlInputFile);
 
-        return `<img src="${markdownIt.utils.escapeHtml(pumlOutputFile)}" alt="PlantUML Diagram" />`;
+        const pumpOutputHtmlPath = context.injectFile(pumlOutputFile);
+        return `<img src="${markdownIt.utils.escapeHtml(pumpOutputHtmlPath)}" alt="PlantUML Diagram" />`;
     }
 }

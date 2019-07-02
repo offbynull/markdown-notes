@@ -21,7 +21,7 @@ import ChildProcess from 'child_process';
 import Crypto from 'crypto';
 import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
-import { Extension, TokenIdentifier, Type } from "./extender_plugin";
+import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 
 export class DotExtension implements Extension {
     public constructor() {
@@ -36,7 +36,7 @@ export class DotExtension implements Extension {
         new TokenIdentifier('dot', Type.BLOCK),
     ];
 
-    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: Map<string, any>): string {
+    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
         const token = tokens[tokenIdx];
         const dotCode = token.content;
 
@@ -53,6 +53,7 @@ export class DotExtension implements Extension {
             ChildProcess.execSync(`dot -Tsvg ${dotInputFile} > ${dotOutputFile}`);
         }
 
-        return `<img src="${markdownIt.utils.escapeHtml(dotOutputFile)}" alt="Graphviz Dot Diagram" />`;
+        const dotOutputHtmlPath = context.injectFile(dotOutputFile);
+        return `<img src="${markdownIt.utils.escapeHtml(dotOutputHtmlPath)}" alt="Graphviz Dot Diagram" />`;
     }
 }

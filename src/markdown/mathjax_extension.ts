@@ -18,7 +18,7 @@
 
 import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
-import { Extension, TokenIdentifier, Type } from "./extender_plugin";
+import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 import { JSDOM } from 'jsdom';
 
 const MATHJAX_INSERTED = 'mathjax_inserted';
@@ -29,11 +29,11 @@ export class MathJaxExtension implements Extension {
         new TokenIdentifier('mj', Type.INLINE)
     ];
 
-    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: Map<string, any>): string {
+    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
         const token = tokens[tokenIdx];
         let tex = token.content;
 
-        context.set(MATHJAX_INSERTED, true);
+        context.shared.set(MATHJAX_INSERTED, true);
         if (token.block === true) {
             tex = tex.replace(/\$\$/g, '\\$\\$'); // escape boundary markers that appear in text ($$ -> \$\$)
             tex = '$$' + tex + '$$'; // add boundary markers to front and end
@@ -45,8 +45,8 @@ export class MathJaxExtension implements Extension {
         }
     }
 
-    public postHtml(dom: JSDOM, context: Map<string, any>): JSDOM {
-        if (!context.has(MATHJAX_INSERTED)) {
+    public postHtml(dom: JSDOM, context: ExtensionContext): JSDOM {
+        if (!context.shared.has(MATHJAX_INSERTED)) {
             return dom;
         }
     
@@ -83,9 +83,10 @@ export class MathJaxExtension implements Extension {
         // This isn't using normal MathJax, but the MathJax single-file bundle provided at https://github.com/pkra/MathJax-single-file. It
         // was installed as a Node module using npm install --save pkra/MathJax-single-file#12.0.0 (npm defaults to accessing github
         // whenever this syntax is used).
+        const mathjaxHtmlPath = context.injectDir('node_modules/mathjax-single-file/dist/TeXSVGTeX/');
         const mjScriptElem = document.createElement('script');
         mjScriptElem.setAttribute('type', 'text/javascript');
-        mjScriptElem.setAttribute('src', 'node_modules/mathjax-single-file/dist/TeXSVGTeX/MathJax.js'); // using SVG because TeXCommonHTMLTeX accesses cdn for fonts (NOT embedded?)
+        mjScriptElem.setAttribute('src', mathjaxHtmlPath + '/MathJax.js');
         headElement.appendChild(mjScriptElem);
 
 

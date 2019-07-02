@@ -21,7 +21,9 @@ import * as BrowserSync from 'browser-sync';
 import Markdown from './markdown/markdown';
 import WebResourceInliner from 'web-resource-inliner';
 import FileSystem from 'fs';
-import { injectErrorOverlay } from './overlay_injector';
+import FileSystemExtra from 'fs-extra';
+import Crypto from 'crypto';
+import { injectErrorOverlay } from './html_utils';
 
 
 process.on('warning', e => console.warn(e.stack));
@@ -33,6 +35,7 @@ if (path === undefined) {
 }
 const inputPath = path + '/input';
 const outputPath = path + '/output';
+const tempRenderPath = '.cache/render';
 
 if (FileSystem.existsSync(path) === false) {
     FileSystem.mkdirSync(path);
@@ -61,14 +64,17 @@ const inputWatcher = bs.watch(
     }
 );
 inputWatcher.on('change', () => {
-    const inputFileSize = FileSystem.statSync(inputPath + '/input.md').size;
-    const inputBuffer = FileSystem.readFileSync(inputPath + '/input.md', null);
+    FileSystemExtra.removeSync(tempRenderPath);
+    FileSystemExtra.ensureDirSync(tempRenderPath);
+    FileSystemExtra.copySync(inputPath, tempRenderPath);
 
     // Render input.md to output.html
+    const inputFileSize = FileSystem.statSync(tempRenderPath + '/input.md').size;
+    const inputBuffer = FileSystem.readFileSync(tempRenderPath + '/input.md', null);
     const input = inputBuffer.toString('utf8');
     const output = (() => {
         try {
-            return new Markdown().render(input);
+            return new Markdown('', tempRenderPath).render(input);
         } catch (err) {
             const oldOutputBuffer = FileSystem.readFileSync(outputPath + '/output.html', null);
             const oldOutput = oldOutputBuffer.toString('utf8');
@@ -83,7 +89,7 @@ inputWatcher.on('change', () => {
         scripts: true,
         svgs: true,
         strict: true,
-        relativeTo: inputPath
+        relativeTo: tempRenderPath
     };
     WebResourceInliner.html(
         config,

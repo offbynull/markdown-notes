@@ -18,7 +18,7 @@
 
 import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
-import { Extension, TokenIdentifier, Type } from './extender_plugin';
+import { Extension, TokenIdentifier, Type, ExtensionContext } from './extender_plugin';
 
 class BookmarkData {
     public readonly bookmarks: Map<string, string> = new Map<string, string>();
@@ -44,9 +44,9 @@ export class BookmarkExtension implements Extension {
         new TokenIdentifier('bm', Type.INLINE)
     ];
 
-    public process(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: Map<string, any>): void {
-        const bookmarkData: BookmarkData = context.get('bookmark') || new BookmarkData();
-        context.set('bookmark', bookmarkData);
+    public process(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): void {
+        const bookmarkData: BookmarkData = context.shared.get('bookmark') || new BookmarkData();
+        context.shared.set('bookmark', bookmarkData);
 
         const token = tokens[tokenIdx];
         let content = token.content;
@@ -84,9 +84,9 @@ export class BookmarkExtension implements Extension {
         }
     }
 
-    public postProcess(markdownIt: MarkdownIt, tokens: Token[], context: Map<string, any>): void {
-        const bookmarkData: BookmarkData = context.get('bookmark') || new BookmarkData();
-        context.set('bookmark', bookmarkData);
+    public postProcess(markdownIt: MarkdownIt, tokens: Token[], context: ExtensionContext): void {
+        const bookmarkData: BookmarkData = context.shared.get('bookmark') || new BookmarkData();
+        context.shared.set('bookmark', bookmarkData);
 
         let headerSkipMode = false;
         for (let tokenIdx = 0; tokenIdx < tokens.length; tokenIdx++) {
@@ -239,9 +239,9 @@ export class BookmarkExtension implements Extension {
         return replacementTokens;
     }
     
-    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: Map<string, any>): string {
-        const bookmarkData: BookmarkData = context.get('bookmark') || new BookmarkData();
-        context.set('bookmark', bookmarkData);
+    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
+        const bookmarkData: BookmarkData = context.shared.get('bookmark') || new BookmarkData();
+        context.shared.set('bookmark', bookmarkData);
 
         const token = tokens[tokenIdx];
         const content = token.content;

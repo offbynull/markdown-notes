@@ -16,7 +16,8 @@
  * License along with this library.
  */
 
-import FileSystem from 'fs';
+import Crypto from 'crypto';
+import FileSystemExtras from 'fs-extra';
 import MarkdownIt from 'markdown-it';
 import HighlightJs from 'highlight.js';
 import { JSDOM } from 'jsdom';
@@ -33,8 +34,10 @@ import { CsvExtension } from './csv_extension';
 
 export default class Markdown {
     private readonly markdownIt: MarkdownIt;
+    private readonly htmlBasePath: string;
+    private readonly realBasePath: string;
 
-    public constructor() {
+    public constructor(htmlBasePath: string, realBasePath: string) {
         this.markdownIt = new MarkdownIt('commonmark', {
             highlight: (str, lang) => { // This just applies highlight.js classes -- CSS for classes applied in another area
                 if (lang && HighlightJs.getLanguage(lang)) {
@@ -44,7 +47,10 @@ export default class Markdown {
             }
         });
 
-        const extenderConfig: ExtenderConfig = new ExtenderConfig();
+        this.htmlBasePath = htmlBasePath;
+        this.realBasePath = realBasePath;
+
+        const extenderConfig: ExtenderConfig = new ExtenderConfig(realBasePath, htmlBasePath);
         extenderConfig.register(new TitleExtension());
         extenderConfig.register(new BookmarkExtension());
         extenderConfig.register(new BookmarkReferenceIgnoreExtension());
@@ -68,21 +74,34 @@ export default class Markdown {
         const headElement = document.getElementsByTagName('head')[0];
         const bodyElement = document.getElementsByTagName('body')[0];
 
-        // Dump CSS files as text blocks -- don't link them directly. The webresourceinliner module doesn't allow you
-        // to reference files in the node_modules folder.
 
         // Apply changes for github styling
-        const githubCssElem = document.createElement('style');
-        githubCssElem.textContent = FileSystem.readFileSync('node_modules/github-markdown-css/github-markdown.css', { encoding: 'utf8' });
+        const githubMarkdownGenPath = `.temp_githib_css${Crypto.pseudoRandomBytes(8).toString('hex')}`;
+        FileSystemExtras.ensureDirSync(this.realBasePath + '/' + githubMarkdownGenPath);
+        FileSystemExtras.copySync('node_modules/github-markdown-css', this.realBasePath + '/' + githubMarkdownGenPath);
+        const githubMarkdownHtmlPath = this.htmlBasePath + '/' + githubMarkdownGenPath;
+
+        const githubCssElem = document.createElement('link');
+        githubCssElem.setAttribute('href', githubMarkdownHtmlPath + '/github-markdown.css');
+        githubCssElem.setAttribute('rel', 'stylesheet');
         headElement.appendChild(githubCssElem);
 
         bodyElement.classList.add('markdown-body');
 
+
         // Apply changes to highlight code blocks
-        const highlightJsCssElem = document.createElement('style');
-        highlightJsCssElem.textContent = FileSystem.readFileSync('node_modules/highlight.js/styles/default.css', { encoding: 'utf8' });
+        const highlightJsGenPath = `.temp_highlightjs_css${Crypto.pseudoRandomBytes(8).toString('hex')}`;
+        FileSystemExtras.ensureDirSync(this.realBasePath + '/' + highlightJsGenPath);
+        FileSystemExtras.copySync('node_modules/highlight.js/styles', this.realBasePath + '/' + highlightJsGenPath);
+        const highlightJsHtmlPath = this.htmlBasePath + '/' + highlightJsGenPath;
+
+        const highlightJsCssElem = document.createElement('link');
+        highlightJsCssElem.setAttribute('href', highlightJsHtmlPath + '/default.css');
+        highlightJsCssElem.setAttribute('rel', 'stylesheet');
         headElement.appendChild(highlightJsCssElem);
 
+
+        // Dump to string
         return jsDom.serialize();
     }
 }

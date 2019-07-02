@@ -19,7 +19,7 @@
 import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import CsvParse from 'csv-parse/lib/sync';
-import { Extension, TokenIdentifier, Type } from "./extender_plugin";
+import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 
 interface CsvExtensionConfig {
     firstLineHeader?: boolean;
@@ -35,7 +35,7 @@ export class CsvExtension implements Extension {
         new TokenIdentifier('csv', Type.BLOCK)
     ];
 
-    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: Map<string, any>): string {
+    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
         const token = tokens[tokenIdx];
         let content = token.content.trim();
         const lines = content.split(/[\r\n]/g);
