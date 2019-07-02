@@ -1,6 +1,27 @@
-import { JSDOM } from "jsdom";
+import WebResourceInliner from 'web-resource-inliner';
+import { JSDOM } from 'jsdom';
 
-export function injectErrorOverlay(html: string, message: string): string {
+export function inlineHtml(html: string, htmlResourcePath: string, callback: (output: string) => void) {
+    WebResourceInliner.html(
+        {
+            fileContent: html,
+            images: true,
+            links: true,
+            scripts: true,
+            svgs: true,
+            strict: true,
+            relativeTo: htmlResourcePath
+        },
+        (error, result) => {
+            if (error) {
+                throw error;
+            }
+            callback(result);
+        }
+    );
+}
+
+export function injectHtmlErrorOverlay(html: string, message: string): string {
     const dom = new JSDOM(html);
     const body = dom.window.document.getElementsByTagName('body')[0];
 

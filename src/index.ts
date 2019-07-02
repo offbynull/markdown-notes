@@ -19,11 +19,9 @@
 import * as BrowserSync from 'browser-sync';
 
 import Markdown from './markdown/markdown';
-import WebResourceInliner from 'web-resource-inliner';
 import FileSystem from 'fs';
 import FileSystemExtra from 'fs-extra';
-import Crypto from 'crypto';
-import { injectErrorOverlay } from './html_utils';
+import { injectHtmlErrorOverlay, inlineHtml as inlineHtml } from './html_utils';
 
 
 process.on('warning', e => console.warn(e.stack));
@@ -64,6 +62,7 @@ const inputWatcher = bs.watch(
     }
 );
 inputWatcher.on('change', () => {
+    // Clean temp render path
     FileSystemExtra.removeSync(tempRenderPath);
     FileSystemExtra.ensureDirSync(tempRenderPath);
     FileSystemExtra.copySync(inputPath, tempRenderPath);
@@ -78,26 +77,13 @@ inputWatcher.on('change', () => {
         } catch (err) {
             const oldOutputBuffer = FileSystem.readFileSync(outputPath + '/output.html', null);
             const oldOutput = oldOutputBuffer.toString('utf8');
-            return injectErrorOverlay(oldOutput, err.toString());
+            return injectHtmlErrorOverlay(oldOutput, err.toString());
         }
     })();
     
-    const config: WebResourceInliner.Options = {
-        fileContent: output,
-        images: true,
-        links: true,
-        scripts: true,
-        svgs: true,
-        strict: true,
-        relativeTo: tempRenderPath
-    };
-    WebResourceInliner.html(
-        config,
-        (error, result) => {
-            if (error) {
-                console.error(error);
-                return;
-            }
+    // Inline rendered file
+    inlineHtml(output, tempRenderPath,
+        (result) => {
             const outputBuffer = Buffer.from(result, 'utf8');
             FileSystem.writeFileSync(outputPath + '/output.html', outputBuffer.toString('utf8'));
             const outputFileSize = FileSystem.statSync(outputPath + '/output.html').size;
@@ -126,7 +112,7 @@ bs.init({
     startPath: 'output.html',
     // injectChanges: false,
     // ghostMode: false,
-    reloadDelay: 500,
+    reloadDelay: 0, // no point in artificially waiting before reloading?
     reloadOnRestart: true,
     // WORKAROUND FOR BUG -- https://github.com/BrowserSync/browser-sync/issues/1038
     // The embedded mathjax script has a <body> tag in it which triggers this bug. This same bug exists in competing tools (e.g.
