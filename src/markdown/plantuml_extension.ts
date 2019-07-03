@@ -63,6 +63,6 @@ export class PlantUmlExtension implements Extension {
         ChildProcess.execSync('java -jar resources/plantuml.1.2019.7.jar -tsvg ' + pumlInputFile);
 
         const pumpOutputHtmlPath = context.injectFile(pumlOutputFile);
-        return `<img src="${markdownIt.utils.escapeHtml(pumpOutputHtmlPath)}" alt="PlantUML Diagram" />`;
+        return `<p><img src="${markdownIt.utils.escapeHtml(pumpOutputHtmlPath)}" alt="PlantUML Diagram" /></p>`;
     }
 }

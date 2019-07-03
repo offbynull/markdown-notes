@@ -54,6 +54,6 @@ export class DotExtension implements Extension {
         }
 
         const dotOutputHtmlPath = context.injectFile(dotOutputFile);
-        return `<img src="${markdownIt.utils.escapeHtml(dotOutputHtmlPath)}" alt="Graphviz Dot Diagram" />`;
+        return `<p><img src="${markdownIt.utils.escapeHtml(dotOutputHtmlPath)}" alt="Graphviz Dot Diagram" /></p>`;
     }
 }
