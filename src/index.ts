@@ -77,37 +77,45 @@ inputWatcher.on('change', () => {
     FileSystemExtra.copySync(inputPath, tempRenderPath);
 
     // Render input.md to output.html
-    const inputFileSize = FileSystem.statSync(tempRenderPath + '/input.md').size;
-    const inputBuffer = FileSystem.readFileSync(tempRenderPath + '/input.md', null);
-    const input = inputBuffer.toString('utf8');
-    let markdownGenerationError = false;
-    const output = (() => {
+    const mdInput = FileSystem.readFileSync(tempRenderPath + '/input.md', { encoding: 'utf8'});
+    const mdOutput = (() => {
         try {
-            return new Markdown('', tempRenderPath).render(input);
+            return new Markdown('', tempRenderPath).render(mdInput);
         } catch (err) {
-            markdownGenerationError = true;
-            return injectHtmlErrorOverlay(lastSuccessfulOutput, err.toString());
+            FileSystem.writeFileSync(
+                outputPath + '/output.html',
+                injectHtmlErrorOverlay(lastSuccessfulOutput, err.toString()),
+                { encoding: 'utf8' }
+            );
+            bs.reload('output.html');
+            return undefined;
         }
     })();
+    if (mdOutput === undefined) {
+        return;
+    }
     
     // Inline rendered file
-    inlineHtml(output, tempRenderPath,
-        (result) => {
-            if (markdownGenerationError === false) {
-                lastSuccessfulOutput = result;
+    try {
+        inlineHtml(mdOutput, tempRenderPath,
+            (inlineOutput) => {
+                FileSystem.writeFileSync(
+                    outputPath + '/output.html',
+                    inlineOutput,
+                    { encoding: 'utf8' }
+                );
+                bs.reload('output.html');                                  // ask the browser to reload
             }
-
-            const outputBuffer = Buffer.from(result, 'utf8');
-            FileSystem.writeFileSync(outputPath + '/output.html', outputBuffer.toString('utf8'));
-            const outputFileSize = FileSystem.statSync(outputPath + '/output.html').size;
-            
-            console.log('input_filesize:' + inputFileSize
-                + ' input_readsize:' + inputBuffer.byteLength
-                + ' output_writesize: ' + outputBuffer.byteLength
-                + ' output_filesize: ' + outputFileSize);
-            bs.reload('output.html');                                  // ask the browser to reload
-        }
-    );
+        );
+    } catch (err) {
+        FileSystem.writeFileSync(
+            outputPath + '/output.html',
+            injectHtmlErrorOverlay(lastSuccessfulOutput, err.toString()),
+            { encoding: 'utf8' }
+        );
+        bs.reload('output.html');
+        return;
+    }
 });
 
 bs.init({
