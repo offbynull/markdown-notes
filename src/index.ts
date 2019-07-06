@@ -61,6 +61,15 @@ const inputWatcher = bs.watch(
         }
     }
 );
+
+// Store the last SUCCESSFUL output -- if there was an error, this variable won't get overwritten (but the actual file output will)
+let lastSuccessfulOutput = '<html><head></head><body></body></html>';
+
+// Create a fake output if one does not exist, just so there's something initially to load when we start
+if (FileSystem.existsSync(outputPath + '/output.html') === false) {
+    FileSystem.writeFileSync(outputPath + '/output.html', lastSuccessfulOutput);
+}
+
 inputWatcher.on('change', () => {
     // Clean temp render path
     FileSystemExtra.removeSync(tempRenderPath);
@@ -71,19 +80,23 @@ inputWatcher.on('change', () => {
     const inputFileSize = FileSystem.statSync(tempRenderPath + '/input.md').size;
     const inputBuffer = FileSystem.readFileSync(tempRenderPath + '/input.md', null);
     const input = inputBuffer.toString('utf8');
+    let markdownGenerationError = false;
     const output = (() => {
         try {
             return new Markdown('', tempRenderPath).render(input);
         } catch (err) {
-            const oldOutputBuffer = FileSystem.readFileSync(outputPath + '/output.html', null);
-            const oldOutput = oldOutputBuffer.toString('utf8');
-            return injectHtmlErrorOverlay(oldOutput, err.toString());
+            markdownGenerationError = true;
+            return injectHtmlErrorOverlay(lastSuccessfulOutput, err.toString());
         }
     })();
     
     // Inline rendered file
     inlineHtml(output, tempRenderPath,
         (result) => {
+            if (markdownGenerationError === false) {
+                lastSuccessfulOutput = result;
+            }
+
             const outputBuffer = Buffer.from(result, 'utf8');
             FileSystem.writeFileSync(outputPath + '/output.html', outputBuffer.toString('utf8'));
             const outputFileSize = FileSystem.statSync(outputPath + '/output.html').size;
@@ -97,10 +110,6 @@ inputWatcher.on('change', () => {
     );
 });
 
-// Create a fake output if one does not exist, just so there's something initially to load when we start
-if (FileSystem.existsSync(outputPath + '/output.html') === false) {
-    FileSystem.writeFileSync(outputPath + '/output.html', '<html><head></head><body></body></html>');
-}
 bs.init({
     server: outputPath,
     watch: true,
