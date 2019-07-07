@@ -24,6 +24,7 @@ To setup MarkdownNotes...
 1. clone the repository
 1. ensure Java is installed (e.g. `sudo apt install openjdk-11-jdk`)
 1. ensure GraphViz is installed (e.g. `sudo apt install graphviz`)
+1. ensure GnuPlot is installed (e.g. `sudo apt install gnuplot`)
 1. run `npm install`.
 
 To run MarkdownNotes, run `npm start [path]` (where `[path]` is your work directory). A browser window will open to the rendered output of `[path]/input/input.md`. Any changes to any file in `[path]/input` will result in the rendered output being updated (scroll position will be maintained).
