@@ -100,6 +100,7 @@ inputWatcher.on('change', () => {
     try {
         inlineHtml(mdOutput, tempRenderPath,
             (inlineOutput) => {
+                lastSuccessfulOutput = inlineOutput;
                 FileSystem.writeFileSync(
                     outputPath + '/output.html',
                     inlineOutput,
