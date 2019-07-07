@@ -33,7 +33,8 @@ if (path === undefined) {
 }
 const inputPath = path + '/input';
 const outputPath = path + '/output';
-const tempRenderPath = '.cache/render';
+const cachePath = process.cwd() + '/.cache';
+const tempRenderPath = cachePath + '/render';
 
 if (FileSystem.existsSync(path) === false) {
     FileSystem.mkdirSync(path);
@@ -80,7 +81,7 @@ inputWatcher.on('change', () => {
     const mdInput = FileSystem.readFileSync(tempRenderPath + '/input.md', { encoding: 'utf8'});
     const mdOutput = (() => {
         try {
-            return new Markdown('', tempRenderPath).render(mdInput);
+            return new Markdown(cachePath, inputPath, '', tempRenderPath).render(mdInput);
         } catch (err) {
             FileSystem.writeFileSync(
                 outputPath + '/output.html',

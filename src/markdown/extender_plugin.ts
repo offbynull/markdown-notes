@@ -47,11 +47,15 @@ export class TokenIdentifier {
 }
 
 export class ExtensionContext {
+    public readonly realCachePath: string;
+    public readonly realInputPath: string;
     public readonly realBasePath: string;
     public readonly htmlBasePath: string;
     public readonly shared: Map<string, any>;
 
-    public constructor(realBasePath: string, htmlBasePath: string) {
+    public constructor(realCachePath: string, inputPath: string, realBasePath: string, htmlBasePath: string) {
+        this.realCachePath = realCachePath;
+        this.realInputPath = inputPath;
         this.realBasePath = realBasePath;
         this.htmlBasePath = htmlBasePath;
         this.shared = new Map();
@@ -100,12 +104,16 @@ export class NameEntry {
 }
 
 export class ExtenderConfig {
+    public readonly realCachePath: string;
+    public readonly realInputPath: string;
     public readonly realBasePath: string;
     public readonly htmlBasePath: string;
     private readonly exts: Extension[];
     private readonly nameLookup: Map<string, NameEntry>;
 
-    public constructor(realBasePath: string, htmlBasePath: string) {
+    public constructor(realCachePath: string, realInputPath: string, realBasePath: string, htmlBasePath: string) {
+        this.realCachePath = realCachePath;
+        this.realInputPath = realInputPath;
         this.realBasePath = realBasePath;
         this.htmlBasePath = htmlBasePath;
         this.exts = [];
@@ -211,7 +219,11 @@ function addRenderersToMarkdown(extenderConfig: ExtenderConfig, markdownIt: Mark
 }
 
 export function extender(markdownIt: MarkdownIt, extenderConfig: ExtenderConfig): void {
-    const context = new ExtensionContext(extenderConfig.realBasePath, extenderConfig.htmlBasePath);
+    const context = new ExtensionContext(
+        extenderConfig.realCachePath,
+        extenderConfig.realInputPath,
+        extenderConfig.realBasePath,
+        extenderConfig.htmlBasePath);
 
     // Augment block fence rule to call the extension processor with the matching name.
     const blockRules = markdownIt.block.ruler.getRules('');

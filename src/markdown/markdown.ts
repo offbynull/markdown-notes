@@ -31,13 +31,14 @@ import { TitleExtension } from './title_extension';
 import { KatexExtension } from './katex_extension';
 import { PlantUmlExtension } from './plantuml_extension';
 import { CsvExtension } from './csv_extension';
+import { GnuPlotExtension } from './gnuplot_graph_extension';
 
 export default class Markdown {
     private readonly markdownIt: MarkdownIt;
     private readonly htmlBasePath: string;
     private readonly realBasePath: string;
 
-    public constructor(htmlBasePath: string, realBasePath: string) {
+    public constructor(realCachePath: string, realInputPath: string, htmlBasePath: string, realBasePath: string) {
         this.markdownIt = new MarkdownIt('commonmark', {
             highlight: (str, lang) => { // This just applies highlight.js classes -- CSS for classes applied in another area
                 if (lang && HighlightJs.getLanguage(lang)) {
@@ -50,7 +51,7 @@ export default class Markdown {
         this.htmlBasePath = htmlBasePath;
         this.realBasePath = realBasePath;
 
-        const extenderConfig: ExtenderConfig = new ExtenderConfig(realBasePath, htmlBasePath);
+        const extenderConfig: ExtenderConfig = new ExtenderConfig(realCachePath, realInputPath, realBasePath, htmlBasePath);
         extenderConfig.register(new TitleExtension());
         extenderConfig.register(new BookmarkExtension());
         extenderConfig.register(new BookmarkReferenceIgnoreExtension());
@@ -61,6 +62,7 @@ export default class Markdown {
         extenderConfig.register(new KatexExtension());
         extenderConfig.register(new PlantUmlExtension());
         extenderConfig.register(new CsvExtension());
+        extenderConfig.register(new GnuPlotExtension())
         this.markdownIt.use(extender, extenderConfig);
         // this.markdownIt.use(indexer);
     }

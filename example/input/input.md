@@ -185,6 +185,40 @@ AIA,Anguilla
 ATG,Antigua and Barbuda
 ```
 
+# GnuPlot Plots
+
+Add a Gnuplot plot using the gnuplot block tag:
+
+````
+```{gnuplot}
+set terminal svg size 300,300
+
+a = 0.9
+f(x) = a * sin(x)
+g(x) = a * cos(x)
+# Plot
+plot f(x) title 'sin(x)' with lines linestyle 1, \
+     g(x) notitle with lines linestyle 2
+```
+````
+
+```{note}
+The terminal must be set to svg. No other terminals are supported.
+```
+
+Block output:
+
+```{gnuplot}
+set terminal svg size 300,300
+
+a = 0.9
+f(x) = a * sin(x)
+g(x) = a * cos(x)
+# Plot
+plot f(x) title 'sin(x)' with lines linestyle 1, \
+     g(x) notitle with lines linestyle 2
+```
+
 # Standard Markdown
 Normal CommonMark features are supported out of the box.
 
