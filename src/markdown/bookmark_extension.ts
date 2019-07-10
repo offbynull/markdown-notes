@@ -19,29 +19,42 @@
 import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import { Extension, TokenIdentifier, Type, ExtensionContext } from './extender_plugin';
+import { groupify, parseRegexLiteral } from '../utils/regex';
+import { breakOnSlashes } from '../utils/parse_helpers';
 
-const SPLITTER = /(?<!:):(?!:)/;
+abstract class BookmarkEntry {
+    public readonly origRegex: string; // original regex
+    protected constructor(origRegex: string) {
+        this.origRegex = origRegex;
+    }
+}
 
-class BookmarkEntry {
+class NormalBookmarkEntry extends BookmarkEntry {
     public readonly anchorId: string;
-    public readonly beforeRegex: RegExp;
-    public readonly afterRegex: RegExp;
+    public readonly label: string;
+    public constructor(origRegex: string, label: string, anchorId: string) {
+        super(origRegex);
+        this.label = label;
+        this.anchorId = anchorId;
+    }
+}
 
-    public constructor(anchor: string, bookmarkPrevCharRegex: RegExp, bookmarkNextCharRegex: RegExp) {
-        this.anchorId = anchor;
-        this.beforeRegex = bookmarkPrevCharRegex;
-        this.afterRegex = bookmarkNextCharRegex;
+class ErrorBookmarkEntry extends BookmarkEntry {
+    public readonly errorText: string;
+    public constructor(origRegex: string, errorMessage: string) {
+        super(origRegex);
+        this.errorText = errorMessage;
     }
 }
 
 class BookmarkData {
-    public readonly bookmarks: Map<string, BookmarkEntry> = new Map<string, BookmarkEntry>();
-    public nextId: number = 0;
+    public readonly scanner = new BookmarkScannerList<BookmarkEntry>(); // bookmark regex to entry
+    public readonly lookup = new Map<string, BookmarkEntry>(); // anchor id to entry
+    public nextId = 0;
 }
 
 export class BookmarkReferenceIgnoreExtension implements Extension {
     public readonly tokenIds: ReadonlyArray<TokenIdentifier> = [
-        new TokenIdentifier('bookmark-ref-ignore', Type.INLINE),
         new TokenIdentifier('bm-ri', Type.INLINE)
     ];
 
@@ -54,81 +67,63 @@ export class BookmarkReferenceIgnoreExtension implements Extension {
 
 export class BookmarkExtension implements Extension {
     public readonly tokenIds: ReadonlyArray<TokenIdentifier> = [
-        new TokenIdentifier('bookmark', Type.INLINE),
-        new TokenIdentifier('bm', Type.INLINE)
+        new TokenIdentifier('bm', Type.INLINE),
+        new TokenIdentifier('bm-a', Type.INLINE),
+        new TokenIdentifier('bm-e', Type.INLINE)
     ];
 
     public process(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): void {
         const bookmarkData: BookmarkData = context.shared.get('bookmark') || new BookmarkData();
         context.shared.set('bookmark', bookmarkData);
 
-        const booleanParseFunc = ((input: string) => {
-            switch (input) {
-                case 'true': return true;
-                case 'false': return false; 
-                default: throw 'Bookmark parameter 1 must be true or false: ' + content;
-            }
-        });
-
-        const token = tokens[tokenIdx];
-        let content = token.content;
-        const splitContent = content.split(SPLITTER);
-        const params = (() => {
-            switch (splitContent.length) {
-                case 1: // id
-                    return {
-                        origText: splitContent[0],
-                        showText: true,
-                        prevRegex: /.*/ms,
-                        nextRegex: /.*/ms
-                    }
-                case 2: // id, no_out
-                    return {
-                        origText: splitContent[0],
-                        showText: booleanParseFunc(splitContent[1]),
-                        prevRegex: /.*/ms,
-                        nextRegex: /.*/ms
-                    }
-                case 4: // id, no_out, start_word, end_word
-                    return {
-                        origText: splitContent[0],
-                        showText: booleanParseFunc(splitContent[1]),
-                        prevRegex: new RegExp(splitContent[2], 'ms'),
-                        nextRegex: new RegExp(splitContent[3], 'ms')
-                    }
-                default:
-                    throw 'Unrecognized number of parameters: ' + content;
-            }
-        })();
-        
-
-        const searchText = params.origText.toLowerCase();
-        if (bookmarkData.bookmarks.has(searchText)) {
-            throw 'Bookmark already defined: ' + searchText;
-        }
-        token.content = searchText;
-
-        bookmarkData.bookmarks.set(
-            searchText,
-            new BookmarkEntry(
-                'bookmark' + bookmarkData.nextId,
-                params.prevRegex,
-                params.nextRegex
-            )
-        );
+        const anchorId = "BOOKMARK" + bookmarkData.nextId;
         bookmarkData.nextId++;
 
-        if (params.showText === true) {
-            const replacementTextTokens = [
-                new Token('html_inline', '', 0),
-                new Token('text_no_bookmark_reference', '', 0),
-                new Token('html_inline', '', 0)
-            ];
-            replacementTextTokens[0].content = '<strong>';
-            replacementTextTokens[1].content = params.origText;
-            replacementTextTokens[2].content = '</strong>';
-            tokens.splice(tokenIdx + 1, 0, ... replacementTextTokens);
+        const token = tokens[tokenIdx];
+        switch (token.type) {
+            case 'bm': {
+                const label = token.content;
+                const regex = '(' + token.content + ')';
+                const flags = 'i';
+                
+                const entry = new NormalBookmarkEntry(regex, label, anchorId);
+                bookmarkData.lookup.set(anchorId, entry);
+                bookmarkData.scanner.add(regex, flags, entry);
+                break;
+            }
+            case 'bm-a': {
+                const broken = breakOnSlashes(token.content);
+                if (broken.length !== 3) {
+                    throw 'Advanced bookmark tags require exactly 3 parameters separated by slashes: label/regex/regex_flags';
+                }
+                const label = broken[0];
+                const regex = broken[1];
+                const flags = broken[2];
+
+                const entry = new NormalBookmarkEntry(regex, label, anchorId);
+                bookmarkData.lookup.set(anchorId, entry);
+                bookmarkData.scanner.add(regex, flags, entry);
+                break;
+            }
+            case 'bm-e': {
+                const broken = breakOnSlashes(token.content);
+                if (broken.length !== 3) {
+                    throw 'Error bookmark tags require exactly 3 parameters separated by slashes: error_text/regex/regex_flags';
+                }
+                const errorText = broken[0];
+                const regex = broken[1];
+                const flags = broken[2];
+
+                const entry = new ErrorBookmarkEntry(regex, errorText);
+                bookmarkData.lookup.set(anchorId, entry);
+                bookmarkData.scanner.add(regex, flags, entry);
+                break;
+            }
+            default:
+                throw 'This should never happen';
         }
+
+        token.content = anchorId;
     }
 
     public postProcess(markdownIt: MarkdownIt, tokens: Token[], context: ExtensionContext): void {
@@ -168,138 +163,61 @@ export class BookmarkExtension implements Extension {
                 continue;
             }
 
-            // Sort bookmarks by bookmark text size. We want the bookmarks with the longest texts first to avoid conflicts once
-            // we start searching. For example if we had the following bookmark texts...
-            //     ['This', 'This is a Train', 'Train']
-            // ... and we wanted to search the following string for them ...
-            //     'Hello! This is a Train!!'
-            // We would always first find the substring 'This is a Train' instead of just 'This' or 'Train'.
-            const bookmarks = bookmarkData.bookmarks;
-            const sortedBookmarks = Array.from(bookmarks);
-            sortedBookmarks.sort((a, b) => b[0].length - a[0].length)
-
             // Scan the token and recursively break it up based on the bookmarks identified
-            const newTokens: Token[] = [ token ];
-            for (let newTokenIdx = 0; newTokenIdx < newTokens.length; newTokenIdx++) {
-                const newToken = newTokens[newTokenIdx];
-
-                // We only care about text tokens -- if it isn't text, skip it.
-                if (newToken.type !== 'text') {
-                    continue;
+            let content = token.content;
+            let replacementTokens: Token[] = [];                
+            while (true) {
+                const scanResult = bookmarkData.scanner.scan(content);
+                if (scanResult === null) {
+                    const lastToken = (() => {
+                        if (replacementTokens.length === 0) { // if nothing was modified, so just keep the original token (we want to be as pure as possible)
+                            return token
+                        } else { // if something was modified, add the remaining content as a new token
+                            const finalToken = new Token('text', '', 0);
+                            finalToken.content = content;
+                            return finalToken;
+                        }
+                    })();
+                    replacementTokens.push(lastToken);
+                    break;
                 }
 
-                // Go through each bookmark -- if the text token contains the bookmark text then break it up such that
-                // the bookmark text is a link to the bookmark id. Note that the generated tokens will contain text tokens
-                // themselves, specifically a text token that contains the matched bookmark text. For example...
-                //     'This is my bookmark!!!'
-                // ...would get tokenized as...
-                //     text: 'this is my '
-                //     link_open: href=#bookmarkId
-                //     text: 'bookmark'
-                //     link_close:
-                //     text: '!!!'
-                // The problem with this is that if we're going to re-scan over these generated tokens later on (because
-                // even though we've generated tokens and replaced the original token based on the matched bookmark text,
-                // there still may be references to other bookmark texts in our newly generated tokens). We don't want to
-                // match again on the original substring we broke out (infinite loop), so that specific token has its type
-                // set to a temporary value of 'BOOKMARK_TEXT_REPLACEME'...
-                //     text: 'this is my '
-                //     link_open: href=#bookmarkId
-                //     BOOKMARK_TEXT_REPLACEME: 'bookmark' <-- NOT SET TO text TYPE BECAUSE WE DON'T WANT ANYMORE MATCHES
-                //     link_close:
-                //     text: '!!!'
-                // The type will be reverted back to a normal 'text' type once the entire process completes.
-                let replacementTokens: Token[] = [];
-                for (const [bookmarkText, bookmarkEntry] of sortedBookmarks) {
-                    replacementTokens = this.tokenizeToBookmarkLink(markdownIt, bookmarkText, bookmarkEntry, newToken.content, 'BOOKMARK_TEXT_REPLACEME');
-                    if (replacementTokens.length !== 0) {
-                        break; // bookmark was found, stop searching
-                    }
+                const startMatchIdx = scanResult.capture.index;
+                const endMatchIdx = scanResult.capture.index + scanResult.capture.match.length;
+
+                const preText = content.substring(0, startMatchIdx);
+                const matchText = scanResult.capture.captureMatch;
+                const postText = content.substring(endMatchIdx);
+
+                const bookmarkEntry = scanResult.data;
+                if (bookmarkEntry instanceof ErrorBookmarkEntry == true) {
+                    throw bookmarkEntry.origRegex
+                        + ' bookmarked and requires disambiguation: '
+                        + (bookmarkEntry as ErrorBookmarkEntry).errorText;
+                } else if (bookmarkEntry instanceof NormalBookmarkEntry === false) {
+                    throw 'Not a normal bookmark entry'; // this should never happen
                 }
 
-                if (replacementTokens.length !== 0) { // if there were replacement tokens produced, then replace the token
-                    // Replace the token and then move the index back so we can re-scan the from the newly generated
-                    // tokens. More bookmarks may match on the the same text.
-                    newTokens.splice(newTokenIdx, 1, ...replacementTokens); 
-                    newTokenIdx--;
-                }
-            }
+                const normalBookmarkEntry = bookmarkEntry as NormalBookmarkEntry;
 
-            // Now that the scan's complete, we can correct the types (there is no chance of an infinite loop at this point)
-            for (const newToken of newTokens) {
-                if (newToken.type === 'BOOKMARK_TEXT_REPLACEME') {
-                    newToken.type = 'text';
-                }
+                const bookmarkTokens = [
+                    new Token('text', '', 0), // pre text
+                    new Token('bookmark_link_open', 'a', 1),
+                    new Token('text', '', 0), // link text
+                    new Token('bookmark_link_close', 'a', -1)
+                ];
+                bookmarkTokens[0].content = preText;
+                bookmarkTokens[1].attrSet('href', '#' + markdownIt.utils.escapeHtml(normalBookmarkEntry.anchorId));
+                bookmarkTokens[2].content = matchText;
+
+                replacementTokens = replacementTokens.concat(bookmarkTokens);
+                content = postText;
             }
 
             // Replace in full tokens
-            tokens.splice(tokenIdx, 1, ...newTokens); // Replace old token with new tokens 
-            tokenIdx += newTokens.length - 1;         // Adjust the index to account for the change
+            tokens.splice(tokenIdx, 1, ...replacementTokens); // Replace old token with new tokens 
+            tokenIdx += replacementTokens.length - 1;         // Adjust the index to account for the change
         }
-    }
-
-    private tokenizeToBookmarkLink(markdownIt: MarkdownIt, bookmarkText: string, bookmarkEntry: BookmarkEntry, content: string, tempType: string): Token[] {
-        // We need to lowercase for searching because all bookmark IDs are lowercase. We do this to
-        // support case insensitive bookmarks -- e.g. TEXT and tExT and text should all link to the
-        // same bookmark.
-        const contentLc = content.toLowerCase();
-        
-        let oldIdx = 0;
-        let replacementTokens: Token[] = [];
-        while (true) {
-            let nextIdx = contentLc.indexOf(bookmarkText, oldIdx);
-            if (nextIdx === -1) {
-                break;
-            }
-
-            // Characters before the bookmark must match the prev regex.
-            // Characters after the bookmark must match the next regex.
-            const prevText = contentLc.substring(oldIdx, nextIdx);
-            const nextText = contentLc.substring(nextIdx + bookmarkText.length);
-            if (bookmarkText.toLowerCase() == 'ph') {
-                console.log(bookmarkEntry.beforeRegex + '  ' + bookmarkEntry.afterRegex)
-                console.log(prevText + '        ' + nextText + '       ' + bookmarkEntry.beforeRegex.test(prevText) + ' ' + bookmarkEntry.afterRegex.test(nextText));
-            }
-            if (bookmarkEntry.beforeRegex.test(prevText) === false
-                    || bookmarkEntry.afterRegex.test(nextText) === false) {
-                oldIdx = nextIdx + bookmarkText.length;
-                continue;
-            }
-            
-            const linkText = content.slice(nextIdx, nextIdx + bookmarkText.length);
-
-            // The bookmark_link types below don't have a render function because they don't need one.
-            // The tag and attr values get moved directly to HTML and apparently markdown-it recognizes
-            // the _open/_close suffix (_close will make the tag output as a closing HTML tag).
-            //
-            // Notice the token type for the broken out text is BOOKMARK_TEXT_REPLACEME. We need to
-            // assign a temporary type to the broken out text because that generated token will
-            // likely get re-scanned
-            const bookmarkTokens = [
-                new Token('text', '', 0), // pre text
-                new Token('bookmark_link_open', 'a', 1),
-                new Token(tempType, '', 0), // link text
-                new Token('bookmark_link_close', 'a', -1)
-            ];
-            bookmarkTokens[0].content = content.substring(oldIdx, nextIdx);
-            bookmarkTokens[1].attrSet('href', '#' + markdownIt.utils.escapeHtml(bookmarkEntry.anchorId));
-            bookmarkTokens[2].content = linkText;
-            replacementTokens = replacementTokens.concat(bookmarkTokens);
-
-            oldIdx = nextIdx + bookmarkText.length;
-        }
-
-        if (replacementTokens.length === 0) {
-            return [];
-        }
-
-        const remainderText = content.substring(oldIdx);
-        if (remainderText.length !== 0) {
-            const remainderTextToken = new Token('text', '', 0)
-            remainderTextToken.content = remainderText;
-            replacementTokens.push(remainderTextToken);
-        }
-        return replacementTokens;
     }
     
     public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
@@ -307,13 +225,164 @@ export class BookmarkExtension implements Extension {
         context.shared.set('bookmark', bookmarkData);
 
         const token = tokens[tokenIdx];
-        const content = token.content;
 
-        const bookmarkEntry = bookmarkData.bookmarks.get(content);
+        const anchorId = token.content;
+
+        const bookmarkEntry = bookmarkData.lookup.get(anchorId);
         if (bookmarkEntry === undefined) {
-            throw 'Undefined bookmark when rendering: ' + content; // this should never happen
+            throw 'Undefined bookmark when rendering: ' + anchorId; // this should never happen
+        } else if (bookmarkEntry instanceof NormalBookmarkEntry === true) {
+            const normalBookmarkEntry = bookmarkEntry as NormalBookmarkEntry;
+            const label = normalBookmarkEntry.label;
+            return `<a name="${markdownIt.utils.escapeHtml(anchorId)}"></a><strong>${markdownIt.utils.escapeHtml(label)}</strong>`;
+        } else if (bookmarkEntry instanceof ErrorBookmarkEntry === true) {
+            return ''; // error bookmark tags don't get rendered
+        } else {
+            throw 'Unrecognized bookmark type: ' + anchorId; // this should never happen
         }
-        const anchorId = bookmarkEntry.anchorId;
-        return '<a name="' + markdownIt.utils.escapeHtml(anchorId) + '"></a>';
+        
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//
+// Bookmark scanning logic -- visible for testing.
+//
+
+
+export interface BookmarkCapture {
+    index: number,
+    match: string,
+    captureIndex: number,
+    captureMatch: string
+};
+
+export class BookmarkScanner {
+    private readonly regexp: RegExp;
+    private readonly groupMappings: ReadonlyArray<number>;
+    
+    static create(regex: string, flags: string) {
+        const groupifiedRegex = groupify(regex);
+        
+        const group1Exists = groupifiedRegex.groupMappings.filter(m => m === 1).length === 1;
+        const extraGroupsExist = groupifiedRegex.groupMappings.filter(m => m !== -1 && m !== 0 && m !== 1).length > 0;
+        if (group1Exists === false || extraGroupsExist === true) {
+            throw 'Bookmark regex must contain exactly 1 explicit capture group (not more or less): ' + regex;
+        }
+
+        return new BookmarkScanner(
+            new RegExp(groupifiedRegex.regex, flags),
+            groupifiedRegex.groupMappings
+        );
+    }
+    static createFromLiteral(regexLiteral: string) {
+        const parsedRegexLiteral = parseRegexLiteral(regexLiteral);
+    
+        return BookmarkScanner.create(parsedRegexLiteral.regex, parsedRegexLiteral.flags);
+    }
+
+    private constructor(regexp: RegExp, groupMappings: number[]) {
+        this.regexp = regexp;
+        this.groupMappings = groupMappings;
+    }
+
+    public scan(text: string): BookmarkCapture | null {
+        this.regexp.lastIndex = 0;
+        const execRes = this.regexp.exec(text);
+        if (execRes === null) {
+            return null;
+        }
+
+        let nextStartIdx = execRes.index;
+        for (let i = 1; i < this.groupMappings.length; i++) {
+            const groupMapping = this.groupMappings[i];
+            const groupText = execRes[i];
+            if (groupMapping === 1) {
+                return {
+                    index: execRes.index,
+                    match: execRes[0],
+                    captureIndex: nextStartIdx,
+                    captureMatch: groupText
+                };
+            }
+
+            nextStartIdx += groupText.length;
+        }
+
+        throw 'This should never happen'; // we have have at least capture group 1
+    }
+}
+
+interface ListEntry<T> {
+    scanner: BookmarkScanner;
+    data: T;
+}
+
+export interface ListScanResult<T> {
+    capture: BookmarkCapture;
+    data: T;
+}
+
+export class BookmarkScannerList<T> {
+    private readonly entries: ListEntry<T>[] = [];
+
+    public add(regex: string, flags: string, data: T) {
+        const scanner = BookmarkScanner.create(regex, flags);
+        this.entries.push({ scanner: scanner, data: data });
+    }
+
+    public addLiteral(regexLiteral: string, data: T) {
+        const scanner = BookmarkScanner.createFromLiteral(regexLiteral);
+        this.entries.push({ scanner: scanner, data: data });
+    }
+
+    public scan(text: string): ListScanResult<T> | null {
+        const matches: ListScanResult<T>[] = [];
+        for (const entry of this.entries) {
+            const match = entry.scanner.scan(text);
+            if (match !== null) {
+                matches.push({
+                    capture: match,
+                    data: entry.data
+                });
+            }
+        }
+
+        if (matches.length === 0) {
+            return null;
+        }
+
+        let filterMatches = matches.slice().sort((a, b) => a.capture.captureIndex < b.capture.captureIndex ? -1 : 1);
+        const earliestMatchIdx = filterMatches[0].capture.captureIndex;
+        filterMatches = filterMatches.filter(m => m.capture.captureIndex === earliestMatchIdx);
+
+        filterMatches = filterMatches.slice().sort((a, b) => a.capture.captureMatch > b.capture.captureMatch ? -1 : 1);
+        const longestMatchIdx = filterMatches[0].capture.captureMatch.length;
+        filterMatches = filterMatches.filter(m => m.capture.captureMatch.length === longestMatchIdx);
+
+        if (filterMatches.length !== 1) {
+            throw 'Conflicting regex matches: ' + JSON.stringify(filterMatches);
+        }
+
+        return filterMatches[0];
     }
 }

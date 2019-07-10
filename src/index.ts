@@ -26,11 +26,17 @@ import { injectHtmlErrorOverlay, inlineHtml as inlineHtml } from './html_utils';
 
 process.on('warning', e => console.warn(e.stack));
 
-const path = process.argv[2];
-if (path === undefined) {
-    console.error('Missing work directory argument');
-    process.exit(1);
-}
+const path = (() => { 
+    let path = process.argv[2];
+    if (path === undefined) {
+        console.error('Missing work directory argument');
+        process.exit(1);
+    }
+    while (path.length > 1 && path.endsWith('/') === true) { // trim off trailing slashes because they screw up file watching
+        path = path.slice(0, -1);
+    }
+    return path;
+})();
 const inputPath = path + '/input';
 const outputPath = path + '/output';
 const cachePath = process.cwd() + '/.cache';
