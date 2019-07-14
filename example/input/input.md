@@ -12,21 +12,23 @@ Output:
 
 # Bookmarks
 
-You can automatically link back to any piece of text by using the...
-* bm inline tag (`` `{bm} LITERAL` ``), where matches are made using basic case-insensitive text search.
-* bm-a inline tag (`` `{bm-a} LABEL/REGEX/REGEX_FLAGS` ``), where matches are made using the regex specified. The regex must have exactly 1 capture group, where the text captured by that group is what gets rendered and gets linked.
+You can automatically link back to any piece of text by using the bm inline tag:
+* `` `{bm} LITERAL` ``, where matches are made using basic case-insensitive text search.
+* `` `{bm} LABEL/REGEX/REGEX_FLAGS` ``, where matches are made using the regex specified. The regex must have exactly 1 capture group, where the text captured by that group is what gets rendered and gets linked.
+
+The tag can take in either 1 argument or 3 arguments, where forward-slashes (`/`) are used to delimit arguments. If required, use back-slash to escape the delimiter (e.g. `\/`).
 
 Usage examples:
 * `` `{bm} coke zero` `` -- `{bm} coke zero` will be the reference for coke zero, cOkE zErO, and coke zeros.
-* `` `{bm-a} this text/\b(dog)s?\b/i` `` -- `{bm-a} this text/\b(dog)s?\b/i` will be the reference for DOG and dogs but not doggy, doggo, or ddog.
-* `` `{bm-a} this text/(carp\w+s?)/` `` -- `{bm-a} this text/(carp\w+s?)/` will be the reference for carps, carpenter, and carpenters, but not carp.
-* `` `{bm-a} this text/hello\s+(world)/i` `` -- `{bm-a} this text/hello\s+(world)/i` will be the reference for hello world. Even though the word hello was specified and matched on, it won't be included in the output because it isn't in the capture group.
+* `` `{bm} this text/\b(dog)s?\b/i` `` -- `{bm} this text/\b(dog)s?\b/i` will be the reference for DOG and dogs but not doggy, doggo, or ddog.
+* `` `{bm} this text/(carp\w+s?)/` `` -- `{bm} this text/(carp\w+s?)/` will be the reference for carps, carpenter, and carpenters, but not carp.
+* `` `{bm} this text/hello\s+(world)/i` `` -- `{bm} this text/hello\s+(world)/i` will be the reference for hello world. Even though the word hello was specified and matched on, it won't be included in the output because it isn't in the capture group.
 
-In certain cases, multiple bookmarks may match a certain piece of text. To resolve this, the bookmark with the longest match is the one that gets linked to. For example, if the bookmarks *Samsung Galaxy* and *Samsung Galaxy Smartphone* matched on the text *Samsung Galaxy Smartphone Holder*, the second bookmark would get chosen because it matched a longer piece of text.
+In certain cases, multiple bookmarks may match a certain piece of text. To resolve this, the bookmark with the longest piece of text captured by the capture group is the one that gets linked to. For example, if the bookmarks *Samsung (Galaxy)* and *Samsung (Galaxy Smartphone)* matched on the text *Samsung Galaxy Smartphone Holder*, the second bookmark would get chosen because capture group 1 returns a longer piece of text.
 
-If the length of the matches are equal, an error is thrown and you'll need to find a way to disambiguate. 2 options are available:
+If the length of the captured text between the matches are equal, an error is thrown and you'll need to find a way to disambiguate. 2 options are available:
 1. You can explicitly prevent a piece of text from being matched to any bookmark by wrapping it in a bm-r inline tag (`` `{bm-ri} TEXT` ``). For example, coke zero should link to the example above but `{bm-ri} coke zero` won't. 
-1. You can use the bm-e inline tag (`` `{bm-e} ERROR_TEXT/REGEX/REGEX_FLAGS` ``) to generate an error telling the user that they need to disambiguate. For example, you may want to create a bookmark for the word *base*, but in 2 different contexts: *base* as in pH scale and *base* as in nitrogenous base. You can use the bm-e tag to catch any instances of *base* and throw an error notify the user that they need to provide a more specialized version (e.g. `` `{bm-e} Base is too ambigiuous. Use either base_pH or base_nucleotide/\b(base)\b/i` ``), which you can target using bm-a tags (e.g. `` `{bm-a} base/\b(base)_nucleotide?\b/i` `` -- this will match *base_nucleotide* but only output *base*).
+1. You can use the bm-ambiguous inline tag (`` `{bm-ambiguous} ERROR_TEXT/REGEX/REGEX_FLAGS` ``) to generate an error telling the user that they need to disambiguate. For example, you may want to create a bookmark for the word *base*, but in 2 different contexts: *base* as in pH scale and *base* as in nitrogenous base. You can use the bm-ambiguous tag to catch any instances of *base* and throw an error notify the user that they need to provide a more specialized version (e.g. `` `{bm-ambiguous} Base is too ambiguous. Use either base_pH or base_nucleotide/\b(base)\b/i` ``), which you can target using normal bm tags (e.g. `` `{bm} base/\b(base)_nucleotide?\b/i` `` -- this will match *base_nucleotide* but only output *base*).
 
 # Notes
 
