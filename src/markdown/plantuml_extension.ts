@@ -48,9 +48,11 @@ export class PlantUmlExtension implements Extension {
 
         const pumlCodeHash = Crypto.createHash('md5').update(pumlCode).digest('hex');
 
-        const pumlDataDir = `.cache/puml/${pumlCodeHash}`;
+        const pumlDataDir = context.realCachePath + `/puml/${pumlCodeHash}`;
         const pumlInputFile = pumlDataDir + '/diagram.puml';
         const pumlOutputFile = pumlDataDir + '/diagram.svg';
+
+        const jarPath = FileSystem.realpathSync('resources/plantuml.1.2019.7.jar');
 
         FileSystem.mkdirSync(pumlDataDir, { recursive: true });
         FileSystem.writeFileSync(pumlInputFile, pumlCode, { encoding: 'utf-8' });
@@ -59,8 +61,16 @@ export class PlantUmlExtension implements Extension {
         // Instead, it'll still generate an image but the image will show an error message instead of a diagram. As such, we
         // can't skip calling the executable if the image already exists in the cache dir -- the image in the cache dir may have
         // been rendered incorrectly.
-
-        ChildProcess.execSync('java -jar resources/plantuml.1.2019.7.jar -tsvg ' + pumlInputFile);
+        const ret = ChildProcess.spawnSync('java', [ '-jar', jarPath, '-tsvg',  pumlInputFile], { cwd: context.realInputPath });
+        if (ret.status !== 0) {
+            // Using default encoding for stdout and stderr because can't find a way to get actual system encoding
+            throw 'Error executing dot: '
+                + JSON.stringify({
+                    errorCode: ret.status,
+                    stderr: ret.stderr.toString(),
+                    stdout: ret.stdout.toString()
+                }, null, 2); 
+        }
 
         const pumpOutputHtmlPath = context.injectFile(pumlOutputFile);
         return `<p><img src="${markdownIt.utils.escapeHtml(pumpOutputHtmlPath)}" alt="PlantUML Diagram" /></p>`;

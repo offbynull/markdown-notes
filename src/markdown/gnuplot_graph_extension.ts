@@ -73,8 +73,17 @@ export class GnuPlotExtension implements Extension {
         FileSystem.mkdirSync(gnuplotDataDir, { recursive: true });
         FileSystem.writeFileSync(gnuplotInputFile, gnuplotCode, { encoding: 'utf-8' });
 
-        const svgData = ChildProcess.execSync(`gnuplot ${gnuplotInputFile}`, { cwd: context.realInputPath });
-        FileSystem.writeFileSync(gnuplotOutputFile, svgData, { encoding: 'utf8' });
+        const ret = ChildProcess.spawnSync('gnuplot', [ gnuplotInputFile ], { cwd: context.realInputPath });
+        if (ret.status !== 0) {
+            // Using default encoding for stdout and stderr because can't find a way to get actual system encoding
+            throw 'Error executing dot: '
+                + JSON.stringify({
+                    errorCode: ret.status,
+                    stderr: ret.stderr.toString(),
+                    stdout: ret.stdout.toString()
+                }, null, 2); 
+        }
+        FileSystem.writeFileSync(gnuplotOutputFile, ret.stdout);
         // }
 
         const gnuplotOutputHtmlPath = context.injectFile(gnuplotOutputFile);

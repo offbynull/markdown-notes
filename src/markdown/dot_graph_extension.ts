@@ -42,7 +42,7 @@ export class DotExtension implements Extension {
 
         const dotCodeHash = Crypto.createHash('md5').update(dotCode).digest('hex');
 
-        const dotDataDir = `.cache/dot/${dotCodeHash}`;
+        const dotDataDir = context.realCachePath + `/dot/${dotCodeHash}`;
         const dotInputFile = dotDataDir + '/diagram.dot';
         const dotOutputFile = dotDataDir + '/diagram.svg';
 
@@ -50,7 +50,17 @@ export class DotExtension implements Extension {
             FileSystem.mkdirSync(dotDataDir, { recursive: true });
             FileSystem.writeFileSync(dotInputFile, dotCode, { encoding: 'utf-8' });
 
-            ChildProcess.execSync(`dot -Tsvg ${dotInputFile} > ${dotOutputFile}`);
+            const ret = ChildProcess.spawnSync('dot', [ '-Tsvg', dotInputFile], { cwd: context.realInputPath });
+            if (ret.status !== 0) {
+                // Using default encoding for stdout and stderr because can't find a way to get actual system encoding
+                throw 'Error executing dot: '
+                    + JSON.stringify({
+                        errorCode: ret.status,
+                        stderr: ret.stderr.toString(),
+                        stdout: ret.stdout.toString()
+                    }, null, 2); 
+            }
+            FileSystem.writeFileSync(dotOutputFile, ret.stdout);
         }
 
         const dotOutputHtmlPath = context.injectFile(dotOutputFile);
