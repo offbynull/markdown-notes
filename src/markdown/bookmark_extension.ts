@@ -238,6 +238,7 @@ export interface BookmarkRegexCapture {
 };
 
 export class BookmarkRegexScanner {
+    private readonly originalRegex: string;
     private readonly regexp: RegExp;
     private readonly groupMappings: ReadonlyArray<number>;
     
@@ -251,17 +252,20 @@ export class BookmarkRegexScanner {
         }
 
         return new BookmarkRegexScanner(
+            regex,
             new RegExp(groupifiedRegex.regex, flags),
             groupifiedRegex.groupMappings
         );
     }
+
     static createFromLiteral(regexLiteral: string) {
         const parsedRegexLiteral = parseRegexLiteral(regexLiteral);
     
         return BookmarkRegexScanner.create(parsedRegexLiteral.regex, parsedRegexLiteral.flags);
     }
 
-    private constructor(regexp: RegExp, groupMappings: number[]) {
+    private constructor(originalRegex: string, regexp: RegExp, groupMappings: number[]) {
+        this.originalRegex = originalRegex;
         this.regexp = regexp;
         this.groupMappings = groupMappings;
     }
@@ -278,6 +282,10 @@ export class BookmarkRegexScanner {
             const groupMapping = this.groupMappings[i];
             const groupText = execRes[i];
             if (groupMapping === 1) {
+                if (groupText.length === 0) {
+                    throw 'Bookmark regex must capture at least 1 character (it captured nothing): ' + this.originalRegex;
+                }
+                
                 return {
                     index: execRes.index,
                     match: execRes[0],
