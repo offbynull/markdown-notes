@@ -16,22 +16,17 @@
  * License along with this library.
  */
 
-import FileSystem from 'fs';
-import ChildProcess from 'child_process';
+import FileSystem from 'fs-extra';
+import Path from 'path';
 import Crypto from 'crypto';
 import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
+import * as Buildah from '../buildah/buildah';
+
+const CONTAINER_PATH = './.cache/containers/gnuplot.tar.gz';
 
 export class GnuPlotExtension implements Extension {
-    public constructor() {
-        try {
-            ChildProcess.execSync('gnuplot -V', { stdio: 'ignore' });
-        } catch (err) {
-            throw 'GnuPlot check failed -- is it installed?\n\n' + JSON.stringify(err);
-        }
-    }
-
     public readonly tokenIds: ReadonlyArray<TokenIdentifier> = [
         new TokenIdentifier('gnuplot', Type.BLOCK),
     ];
@@ -47,46 +42,80 @@ export class GnuPlotExtension implements Extension {
             if (terminalMatch !== null){
                 const svgTerminal = terminalMatch[1].toLowerCase().startsWith('svg');
                 if (svgTerminal === false) {
-                    throw 'Gnuplot extension only allows SVG terminal output';
+                    throw 'GnuPlot extension only allows SVG terminal output';
                 }
                 foundSvgTerminal = true;
             }
 
             const outputMatch = gnuplotCodeLine.match(/^set\s+output\s+.*$/gi);
             if (outputMatch !== null) {
-                throw 'Gnuplot extension does not allow explicitly setting output';
+                throw 'GnuPlot extension does not allow explicitly setting output';
             }
         }
 
         if (foundSvgTerminal === false) {
-            throw 'Gnuplot extension requires: set terminal svg ...';
+            throw 'GnuPlot extension requires: set terminal svg ...';
         }
+
+        // TODO: Scan script for CSVs used (https://stackoverflow.com/questions/48885697/gnuplot-graph-csv),
+        //         copy those CSVs into container for launch,
+        //         and add CSV hashes to gnuplotCodeHash
+
+        GnuPlotExtension.initializeGnuPlot();
 
         const gnuplotCodeHash = Crypto.createHash('md5').update(gnuplotCode).digest('hex');
-
         const gnuplotDataDir = context.realCachePath + `/gnuplot/${gnuplotCodeHash}`;
-        const gnuplotInputFile = gnuplotDataDir + '/plot.plt';
         const gnuplotOutputFile = gnuplotDataDir + '/plot.svg';
 
-        // Because gnuplot can reference files for data, there's no point trying to cache this based on the contents of the plot script
-        // if (FileSystem.existsSync(gnuplotOutputFile) === false) { // only generate if not already exists
-        FileSystem.mkdirSync(gnuplotDataDir, { recursive: true });
-        FileSystem.writeFileSync(gnuplotInputFile, gnuplotCode, { encoding: 'utf-8' });
-
-        const ret = ChildProcess.spawnSync('gnuplot', [ gnuplotInputFile ], { cwd: context.realInputPath });
-        if (ret.status !== 0) {
-            // Using default encoding for stdout and stderr because can't find a way to get actual system encoding
-            throw 'Error executing dot: '
-                + JSON.stringify({
-                    errorCode: ret.status,
-                    stderr: ret.stderr.toString(),
-                    stdout: ret.stdout.toString()
-                }, null, 2); 
+        if (FileSystem.existsSync(gnuplotOutputFile) === false) { // only generate if not already exists
+            const svgData = GnuPlotExtension.launchGnuPlot(gnuplotCode);
+            FileSystem.mkdirpSync(gnuplotDataDir);
+            FileSystem.writeFileSync(gnuplotOutputFile, svgData);
         }
-        FileSystem.writeFileSync(gnuplotOutputFile, ret.stdout);
-        // }
 
         const gnuplotOutputHtmlPath = context.injectFile(gnuplotOutputFile);
-        return `<p><img src="${markdownIt.utils.escapeHtml(gnuplotOutputHtmlPath)}" alt="Gnuplot plot" /></p>`;
+        return `<p><img src="${markdownIt.utils.escapeHtml(gnuplotOutputHtmlPath)}" alt="GnuPlot plot" /></p>`;
+    }
+
+
+
+
+    private static initializeGnuPlot() {
+        const envFile = CONTAINER_PATH;
+        if (FileSystem.existsSync(envFile) === true) {
+            return;
+        }
+
+        console.log('Initializing GnuPlot container');
+
+        const envDir = Path.dirname(envFile);
+        FileSystem.mkdirpSync(envDir);
+        
+        // create container
+        Buildah.createContainer(
+            'FROM alpine:3.10\n'
+            + 'RUN apk add --no-cache gnuplot\n'
+            + 'RUN mkdir -p /opt\n',
+            [], // files req for dockerscript above (if any), will get copied to dockerfile folder before running
+            'container',
+            envFile
+        );
+    }
+    
+    private static launchGnuPlot(codeInput: string) {
+        console.log('Launching GnuPlot container');
+
+        const tmpPath = FileSystem.mkdtempSync('/tmp/launchcontainer');
+        FileSystem.mkdirpSync(tmpPath + '/input');
+        FileSystem.mkdirpSync(tmpPath + '/output');
+        FileSystem.writeFileSync(tmpPath + '/input/plot.plt', codeInput);
+        FileSystem.writeFileSync(tmpPath + '/input/script.sh',
+            'gnuplot /data/input/plot.plt > /data/output/plot.svg\n'
+        );
+    
+        Buildah.launchContainer(CONTAINER_PATH, 'container', tmpPath + '/input', tmpPath + '/output', ['sh', '/data/input/script.sh']);
+        const svgOutput = FileSystem.readFileSync(tmpPath + '/output/plot.svg', { encoding: 'utf8' });
+        
+        return svgOutput;
     }
 }

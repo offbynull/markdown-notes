@@ -16,28 +16,17 @@
  * License along with this library.
  */
 
-import FileSystem from 'fs';
-import ChildProcess from 'child_process';
+import FileSystem from 'fs-extra';
 import Crypto from 'crypto';
+import Path from 'path';
 import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
+import * as Buildah from '../buildah/buildah';
+
+const CONTAINER_PATH = './.cache/containers/plantuml.tar.gz';
 
 export class PlantUmlExtension implements Extension {
-    public constructor() {
-        try {
-            ChildProcess.execSync('dot -V', { stdio: 'ignore' });
-        } catch (err) {
-            throw 'GraphViz check failed -- is it installed?\n\n' + JSON.stringify(err);
-        }
-
-        try {
-            ChildProcess.execSync('java --version', { stdio: 'ignore' });
-        } catch (err) {
-            throw 'Java check failed -- is it installed?\n\n' + JSON.stringify(err);
-        }
-    }
-
     public readonly tokenIds: ReadonlyArray<TokenIdentifier> = [
         new TokenIdentifier('plantuml', Type.BLOCK),
     ];
@@ -46,33 +35,69 @@ export class PlantUmlExtension implements Extension {
         const token = tokens[tokenIdx];
         const pumlCode = token.content;
 
-        const pumlCodeHash = Crypto.createHash('md5').update(pumlCode).digest('hex');
+        PlantUmlExtension.initializePlantUml();
 
+        const pumlCodeHash = Crypto.createHash('md5').update(pumlCode).digest('hex');
         const pumlDataDir = context.realCachePath + `/puml/${pumlCodeHash}`;
-        const pumlInputFile = pumlDataDir + '/diagram.puml';
         const pumlOutputFile = pumlDataDir + '/diagram.svg';
 
-        const jarPath = FileSystem.realpathSync('resources/plantuml.1.2019.7.jar');
-
-        FileSystem.mkdirSync(pumlDataDir, { recursive: true });
-        FileSystem.writeFileSync(pumlInputFile, pumlCode, { encoding: 'utf-8' });
-
-        // PlantUML doesn't error if something's wrong with the rendering process (e.g. the graphviz dot executable is missing).
-        // Instead, it'll still generate an image but the image will show an error message instead of a diagram. As such, we
-        // can't skip calling the executable if the image already exists in the cache dir -- the image in the cache dir may have
-        // been rendered incorrectly.
-        const ret = ChildProcess.spawnSync('java', [ '-jar', jarPath, '-tsvg',  pumlInputFile], { cwd: context.realInputPath });
-        if (ret.status !== 0) {
-            // Using default encoding for stdout and stderr because can't find a way to get actual system encoding
-            throw 'Error executing dot: '
-                + JSON.stringify({
-                    errorCode: ret.status,
-                    stderr: ret.stderr.toString(),
-                    stdout: ret.stdout.toString()
-                }, null, 2); 
+        if (FileSystem.existsSync(pumlOutputFile) === false) { // only generate if not already exists
+            const svgData = PlantUmlExtension.launchPlantUml(pumlCode);
+            FileSystem.mkdirpSync(pumlDataDir);
+            FileSystem.writeFileSync(pumlOutputFile, svgData);
         }
 
         const pumpOutputHtmlPath = context.injectFile(pumlOutputFile);
         return `<p><img src="${markdownIt.utils.escapeHtml(pumpOutputHtmlPath)}" alt="PlantUML Diagram" /></p>`;
+    }
+
+
+
+
+
+    private static initializePlantUml() {
+        const envFile = CONTAINER_PATH;
+        if (FileSystem.existsSync(envFile) === true) {
+            return;
+        }
+
+        console.log('Initializing PlantUML container');
+
+        const envDir = Path.dirname(envFile);
+        FileSystem.mkdirpSync(envDir);
+        
+        // create container
+        Buildah.createContainer(
+            'FROM alpine:3.10\n'
+            + 'RUN apk add --no-cache openjdk11-jre\n'          // jre-headless won't work -- it fails when running plantuml (regardless of if the -Djava.awt.headless=true is present)
+            + 'RUN apk add --no-cache fontconfig ttf-dejavu\n'  // without these packages, plantuml fails with font related exception
+            + 'RUN apk add --no-cache graphviz\n'               // without these packages, plantuml fails on some graphs (dot required)
+            + 'RUN apk add --no-cache wget\n'                   // install temporarily so we can download plantuml
+            + 'RUN mkdir -p /opt\n'
+            + 'WORKDIR /opt\n'
+            + 'RUN wget https://repo1.maven.org/maven2/net/sourceforge/plantuml/plantuml/1.2019.8/plantuml-1.2019.8.jar\n'
+            + 'RUN apk del --no-cache wget\n',
+            [], // files req for dockerscript above -- e.g, specify [ 'resources/plantuml.1.2019.7.jar' ] and add 'COPY plantuml.1.2019.7.jar /opt/\n' in dockerfile above
+            'container',
+            envFile
+        );
+    }
+    
+    private static launchPlantUml(codeInput: string) {
+        console.log('Launching PlantUML container');
+
+        const tmpPath = FileSystem.mkdtempSync('/tmp/launchcontainer');
+        FileSystem.mkdirpSync(tmpPath + '/input');
+        FileSystem.mkdirpSync(tmpPath + '/output');
+        FileSystem.writeFileSync(tmpPath + '/input/diagram.puml', codeInput);
+        FileSystem.writeFileSync(tmpPath + '/input/script.sh',
+            'java -Djava.awt.headless=true -jar /opt/plantuml-1.2019.8.jar -tsvg /data/input/diagram.puml\n'
+            + 'mv /data/input/diagram.svg /data/output\n'
+        );
+    
+        Buildah.launchContainer(CONTAINER_PATH, 'container', tmpPath + '/input', tmpPath + '/output', ['sh', '/data/input/script.sh']);
+        const svgOutput = FileSystem.readFileSync(tmpPath + '/output/diagram.svg', { encoding: 'utf8' });
+        
+        return svgOutput;
     }
 }
