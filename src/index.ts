@@ -18,10 +18,12 @@
 
 import * as BrowserSync from 'browser-sync';
 
-import Markdown from './markdown/markdown';
 import FileSystem from 'fs';
-import FileSystemExtra from 'fs-extra';
+import Process from 'process';
+import ChildProcess from 'child_process';
 import { injectHtmlErrorOverlay, inlineHtml as inlineHtml } from './html_utils';
+import { killProcessHierarchy } from './utils/process_utils';
+import { Buffer } from 'buffer';
 
 
 process.on('warning', e => console.warn(e.stack));
@@ -39,8 +41,6 @@ const path = (() => {
 })();
 const inputPath = path + '/input';
 const outputPath = path + '/output';
-const cachePath = process.cwd() + '/.cache';
-const tempRenderPath = cachePath + '/render';
 
 if (FileSystem.existsSync(path) === false) {
     FileSystem.mkdirSync(path);
@@ -77,53 +77,59 @@ if (FileSystem.existsSync(outputPath + '/output.html') === false) {
     FileSystem.writeFileSync(outputPath + '/output.html', lastSuccessfulOutput);
 }
 
-inputWatcher.on('change', () => {
-    // Clean temp render path
-    FileSystemExtra.removeSync(tempRenderPath);
-    FileSystemExtra.ensureDirSync(tempRenderPath);
-    FileSystemExtra.copySync(inputPath, tempRenderPath);
+let activeChildProc: undefined | ChildProcess.ChildProcess;
 
-    // Render input.md to output.html
-    const mdInput = FileSystem.readFileSync(tempRenderPath + '/input.md', { encoding: 'utf8'});
-    const mdOutput = (() => {
-        try {
-            return new Markdown(cachePath, inputPath, '', tempRenderPath).render(mdInput);
-        } catch (err) {
-            FileSystem.writeFileSync(
-                outputPath + '/output.html',
-                injectHtmlErrorOverlay(lastSuccessfulOutput, err.toString()),
-                { encoding: 'utf8' }
-            );
-            bs.reload('output.html');
-            return undefined;
-        }
-    })();
-    if (mdOutput === undefined) {
-        return;
+inputWatcher.on('change', () => {
+    if (activeChildProc !== undefined) {
+        console.log('Render process killed');
+        activeChildProc.kill('SIGKILL');
+        killProcessHierarchy('' + activeChildProc.pid);
     }
-    
-    // Inline rendered file
-    try {
-        inlineHtml(mdOutput, tempRenderPath,
-            (inlineOutput) => {
-                lastSuccessfulOutput = inlineOutput;
+
+    console.log('Render process started');
+
+    FileSystem.writeFileSync(
+        outputPath + '/output.html',
+        injectHtmlErrorOverlay(lastSuccessfulOutput, 'Rendering...', 'rgba(0,0,0,0.5)'),
+        { encoding: 'utf8' }
+    );
+
+    activeChildProc = ChildProcess.fork('dist/render', [ inputPath ]);
+    let stdoutBuffer = Buffer.alloc(0);
+    if (activeChildProc.stdout !== null) {
+        activeChildProc.stdout.on('data', (data) => { stdoutBuffer = Buffer.concat([stdoutBuffer, data]); });
+    }
+    let stderrBuffer = Buffer.alloc(0);
+    if (activeChildProc.stderr !== null) {
+        activeChildProc.stderr.on('data', (data) => { stderrBuffer = Buffer.concat([stderrBuffer, data]); });
+    }
+    activeChildProc.on('message', (m) => {
+        activeChildProc = undefined;
+        const type = m['type'] as string;
+        switch (type) {
+            case 'output': {
+                lastSuccessfulOutput = m['data'];
                 FileSystem.writeFileSync(
                     outputPath + '/output.html',
-                    inlineOutput,
+                    lastSuccessfulOutput,
                     { encoding: 'utf8' }
                 );
-                bs.reload('output.html');                                  // ask the browser to reload
+                break;
             }
-        );
-    } catch (err) {
-        FileSystem.writeFileSync(
-            outputPath + '/output.html',
-            injectHtmlErrorOverlay(lastSuccessfulOutput, err.toString()),
-            { encoding: 'utf8' }
-        );
+            case 'error': {
+                FileSystem.writeFileSync(
+                    outputPath + '/output.html',
+                    injectHtmlErrorOverlay(lastSuccessfulOutput, stderrBuffer.toString()),
+                    { encoding: 'utf8' }
+                );
+                break;
+            }
+            default:
+                throw 'Bad type: ' + type;
+        }
+        console.log('Render process completed');
         bs.reload('output.html');
-        return;
-    }
+    });
 });
 
 bs.init({
@@ -150,3 +156,18 @@ bs.init({
     }
 });
 inputWatcher.emit('change'); // Trigger fake change to replace the placeholder with real data and reload
+
+
+//
+// Kill all child processes on cleanup -- https://stackoverflow.com/a/49392671
+//
+['exit', 'SIGINT', 'SIGUSR1', 'SIGUSR2', 'uncaughtException', 'SIGTERM'].forEach(eventType => {
+    Process.on(eventType as any, () => {
+        console.log(`Performing cleanup (${eventType})...`);
+        if (activeChildProc !== undefined) {
+            activeChildProc.kill('SIGKILL');
+            killProcessHierarchy('' + activeChildProc.pid);
+        }
+        Process.exit(1);
+    });
+});

@@ -60,7 +60,11 @@ function killChildrenRecursive(processHierarchy: ProcessHierarchy) {
     processHierarchy.children.forEach(c => killChildrenRecursive(c));
     // kill process
     const pidAsNum = Number.parseInt(processHierarchy.pid);
-    Process.kill(pidAsNum, 'SIGKILL');
+    try {
+        Process.kill(pidAsNum, 'SIGKILL');
+    } catch (e) {
+        // ignore -- will throw an exception if pid exit before we get to killing it
+    }
 
     // ensure that any new child processes get killed (child processed started inbetween the time we were killing children and killing the parent process)
     const newChildren = getProcessHierarchy(processHierarchy.pid).children;

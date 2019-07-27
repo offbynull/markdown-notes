@@ -23,7 +23,7 @@ import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 import * as Buildah from '../buildah/buildah';
-import { targzDirectory } from '../utils/compress_utils';
+import { targzDir } from '../utils/file_utils';
 
 const CONTAINER_NAME = 'plantuml';
 
@@ -84,8 +84,8 @@ export class PlantUmlExtension implements Extension {
 
 
         // backup container
-        const backupFile = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env_initial.tar.gz');
-        targzDirectory(envDir, backupFile);
+        const backupFile = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env_backup.tar.gz');
+        targzDir(envDir, backupFile);
     }
     
     private static launchPlantUml(cacheDir: string, codeInput: string) {
