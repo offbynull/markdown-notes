@@ -23,8 +23,9 @@ import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 import * as Buildah from '../buildah/buildah';
+import { targzDirectory } from '../utils/compress_utils';
 
-const CONTAINER_PATH = './.cache/containers/plantuml.tar.gz';
+const CONTAINER_NAME = 'plantuml';
 
 export class PlantUmlExtension implements Extension {
     public readonly tokenIds: ReadonlyArray<TokenIdentifier> = [
@@ -35,14 +36,14 @@ export class PlantUmlExtension implements Extension {
         const token = tokens[tokenIdx];
         const pumlCode = token.content;
 
-        PlantUmlExtension.initializePlantUml();
+        PlantUmlExtension.initializePlantUml(context.realCachePath);
 
         const pumlCodeHash = Crypto.createHash('md5').update(pumlCode).digest('hex');
         const pumlDataDir = context.realCachePath + `/puml/${pumlCodeHash}`;
         const pumlOutputFile = pumlDataDir + '/diagram.svg';
 
         if (FileSystem.existsSync(pumlOutputFile) === false) { // only generate if not already exists
-            const svgData = PlantUmlExtension.launchPlantUml(pumlCode);
+            const svgData = PlantUmlExtension.launchPlantUml(context.realCachePath, pumlCode);
             FileSystem.mkdirpSync(pumlDataDir);
             FileSystem.writeFileSync(pumlOutputFile, svgData);
         }
@@ -55,19 +56,20 @@ export class PlantUmlExtension implements Extension {
 
 
 
-    private static initializePlantUml() {
-        const envFile = CONTAINER_PATH;
-        if (FileSystem.existsSync(envFile) === true) {
+    private static initializePlantUml(cacheDir: string) {
+        const envDir = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env');
+        if (Buildah.existsContainer(envDir, CONTAINER_NAME)) {
             return;
         }
 
         console.log('Initializing PlantUML container');
 
-        const envDir = Path.dirname(envFile);
         FileSystem.mkdirpSync(envDir);
         
         // create container
         Buildah.createContainer(
+            envDir,
+            CONTAINER_NAME,
             'FROM alpine:3.10\n'
             + 'RUN apk add --no-cache openjdk11-jre\n'          // jre-headless won't work -- it fails when running plantuml (regardless of if the -Djava.awt.headless=true is present)
             + 'RUN apk add --no-cache fontconfig ttf-dejavu\n'  // without these packages, plantuml fails with font related exception
@@ -78,24 +80,29 @@ export class PlantUmlExtension implements Extension {
             + 'RUN wget https://repo1.maven.org/maven2/net/sourceforge/plantuml/plantuml/1.2019.8/plantuml-1.2019.8.jar\n'
             + 'RUN apk del --no-cache wget\n',
             [], // files req for dockerscript above -- e.g, specify [ 'resources/plantuml.1.2019.7.jar' ] and add 'COPY plantuml.1.2019.7.jar /opt/\n' in dockerfile above
-            'container',
-            envFile
         );
+
+
+        // backup container
+        const backupFile = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env_initial.tar.gz');
+        targzDirectory(envDir, backupFile);
     }
     
-    private static launchPlantUml(codeInput: string) {
+    private static launchPlantUml(cacheDir: string, codeInput: string) {
         console.log('Launching PlantUML container');
 
-        const tmpPath = FileSystem.mkdtempSync('/tmp/launchcontainer');
+        const envDir = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env');
+
+        const tmpPath = FileSystem.mkdtempSync('/tmp/data');
         FileSystem.mkdirpSync(tmpPath + '/input');
         FileSystem.mkdirpSync(tmpPath + '/output');
         FileSystem.writeFileSync(tmpPath + '/input/diagram.puml', codeInput);
         FileSystem.writeFileSync(tmpPath + '/input/script.sh',
-            'java -Djava.awt.headless=true -jar /opt/plantuml-1.2019.8.jar -tsvg /data/input/diagram.puml\n'
-            + 'mv /data/input/diagram.svg /data/output\n'
+            'java -Djava.awt.headless=true -jar /opt/plantuml-1.2019.8.jar -tsvg /input/diagram.puml\n'
+            + 'mv /input/diagram.svg /output\n'
         );
     
-        Buildah.launchContainer(CONTAINER_PATH, 'container', tmpPath + '/input', tmpPath + '/output', ['sh', '/data/input/script.sh']);
+        Buildah.launchContainer(envDir, CONTAINER_NAME, tmpPath + '/input', tmpPath + '/output', ['sh', '/input/script.sh']);
         const svgOutput = FileSystem.readFileSync(tmpPath + '/output/diagram.svg', { encoding: 'utf8' });
         
         return svgOutput;

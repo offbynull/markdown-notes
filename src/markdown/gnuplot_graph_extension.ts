@@ -23,8 +23,9 @@ import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 import * as Buildah from '../buildah/buildah';
+import { targzDirectory } from '../utils/compress_utils';
 
-const CONTAINER_PATH = './.cache/containers/gnuplot.tar.gz';
+const CONTAINER_NAME = 'gnuplot';
 
 export class GnuPlotExtension implements Extension {
     public readonly tokenIds: ReadonlyArray<TokenIdentifier> = [
@@ -61,14 +62,14 @@ export class GnuPlotExtension implements Extension {
         //         copy those CSVs into container for launch,
         //         and add CSV hashes to gnuplotCodeHash
 
-        GnuPlotExtension.initializeGnuPlot();
+        GnuPlotExtension.initializeGnuPlot(context.realCachePath);
 
         const gnuplotCodeHash = Crypto.createHash('md5').update(gnuplotCode).digest('hex');
         const gnuplotDataDir = context.realCachePath + `/gnuplot/${gnuplotCodeHash}`;
         const gnuplotOutputFile = gnuplotDataDir + '/plot.svg';
 
         if (FileSystem.existsSync(gnuplotOutputFile) === false) { // only generate if not already exists
-            const svgData = GnuPlotExtension.launchGnuPlot(gnuplotCode);
+            const svgData = GnuPlotExtension.launchGnuPlot(context.realCachePath, gnuplotCode);
             FileSystem.mkdirpSync(gnuplotDataDir);
             FileSystem.writeFileSync(gnuplotOutputFile, svgData);
         }
@@ -80,40 +81,46 @@ export class GnuPlotExtension implements Extension {
 
 
 
-    private static initializeGnuPlot() {
-        const envFile = CONTAINER_PATH;
-        if (FileSystem.existsSync(envFile) === true) {
+    private static initializeGnuPlot(cacheDir: string) {
+        const envDir = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env');
+        if (Buildah.existsContainer(envDir, CONTAINER_NAME)) {
             return;
         }
 
         console.log('Initializing GnuPlot container');
 
-        const envDir = Path.dirname(envFile);
         FileSystem.mkdirpSync(envDir);
         
         // create container
         Buildah.createContainer(
+            envDir,
+            CONTAINER_NAME,
             'FROM alpine:3.10\n'
             + 'RUN apk add --no-cache gnuplot\n'
             + 'RUN mkdir -p /opt\n',
-            [], // files req for dockerscript above (if any), will get copied to dockerfile folder before running
-            'container',
-            envFile
+            [] // files req for dockerscript above (if any), will get copied to dockerfile folder before running
         );
+
+
+        // backup container
+        const backupFile = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env_initial.tar.gz');
+        targzDirectory(envDir, backupFile);
     }
     
-    private static launchGnuPlot(codeInput: string) {
+    private static launchGnuPlot(cacheDir: string, codeInput: string) {
         console.log('Launching GnuPlot container');
 
-        const tmpPath = FileSystem.mkdtempSync('/tmp/launchcontainer');
+        const envDir = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env');
+
+        const tmpPath = FileSystem.mkdtempSync('/tmp/data');
         FileSystem.mkdirpSync(tmpPath + '/input');
         FileSystem.mkdirpSync(tmpPath + '/output');
         FileSystem.writeFileSync(tmpPath + '/input/plot.plt', codeInput);
         FileSystem.writeFileSync(tmpPath + '/input/script.sh',
-            'gnuplot /data/input/plot.plt > /data/output/plot.svg\n'
+            'gnuplot /input/plot.plt > /output/plot.svg\n'
         );
     
-        Buildah.launchContainer(CONTAINER_PATH, 'container', tmpPath + '/input', tmpPath + '/output', ['sh', '/data/input/script.sh']);
+        Buildah.launchContainer(envDir, CONTAINER_NAME, tmpPath + '/input', tmpPath + '/output', ['sh', '/input/script.sh']);
         const svgOutput = FileSystem.readFileSync(tmpPath + '/output/plot.svg', { encoding: 'utf8' });
         
         return svgOutput;

@@ -23,8 +23,9 @@ import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 import * as Buildah from '../buildah/buildah';
+import { targzDirectory } from '../utils/compress_utils';
 
-const CONTAINER_PATH = './.cache/containers/dot.tar.gz';
+const CONTAINER_NAME = 'dot';
 
 export class DotExtension implements Extension {
     public readonly tokenIds: ReadonlyArray<TokenIdentifier> = [
@@ -35,14 +36,14 @@ export class DotExtension implements Extension {
         const token = tokens[tokenIdx];
         const dotCode = token.content;
 
-        DotExtension.initializeDot();
+        DotExtension.initializeDot(context.realCachePath);
 
         const dotCodeHash = Crypto.createHash('md5').update(dotCode).digest('hex');
         const dotDataDir = context.realCachePath + `/dot/${dotCodeHash}`;
         const dotOutputFile = dotDataDir + '/diagram.svg';
 
         if (FileSystem.existsSync(dotOutputFile) === false) { // only generate if not already exists
-            const svgData = DotExtension.launchDot(dotCode);
+            const svgData = DotExtension.launchDot(context.realCachePath, dotCode);
             FileSystem.mkdirpSync(dotDataDir);
             FileSystem.writeFileSync(dotOutputFile, svgData);
         }
@@ -54,40 +55,46 @@ export class DotExtension implements Extension {
 
 
 
-    private static initializeDot() {
-        const envFile = CONTAINER_PATH;
-        if (FileSystem.existsSync(envFile) === true) {
+    private static initializeDot(cacheDir: string) {
+        const envDir = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env');
+        if (Buildah.existsContainer(envDir, CONTAINER_NAME)) {
             return;
         }
 
         console.log('Initializing Dot container');
 
-        const envDir = Path.dirname(envFile);
         FileSystem.mkdirpSync(envDir);
         
         // create container
         Buildah.createContainer(
+            envDir,
+            CONTAINER_NAME,
             'FROM alpine:3.10\n'
             + 'RUN apk add --no-cache graphviz\n'
             + 'RUN mkdir -p /opt\n',
-            [], // files req for dockerscript above (if any), will get copied to dockerfile folder before running
-            'container',
-            envFile
+            []  // files req for dockerscript above (if any), will get copied to dockerfile folder before running
         );
+
+
+        // backup container
+        const backupFile = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env_initial.tar.gz');
+        targzDirectory(envDir, backupFile);
     }
     
-    private static launchDot(codeInput: string) {
+    private static launchDot(cacheDir: string, codeInput: string) {
         console.log('Launching Dot container');
 
-        const tmpPath = FileSystem.mkdtempSync('/tmp/launchcontainer');
+        const envDir = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env');
+
+        const tmpPath = FileSystem.mkdtempSync('/tmp/data');
         FileSystem.mkdirpSync(tmpPath + '/input');
         FileSystem.mkdirpSync(tmpPath + '/output');
         FileSystem.writeFileSync(tmpPath + '/input/diagram.dot', codeInput);
         FileSystem.writeFileSync(tmpPath + '/input/script.sh',
-            'dot -Tsvg /data/input/diagram.dot > /data/output/diagram.svg\n'
+            'dot -Tsvg /input/diagram.dot > /output/diagram.svg\n'
         );
     
-        Buildah.launchContainer(CONTAINER_PATH, 'container', tmpPath + '/input', tmpPath + '/output', ['sh', '/data/input/script.sh']);
+        Buildah.launchContainer(envDir, CONTAINER_NAME, tmpPath + '/input', tmpPath + '/output', ['sh', '/input/script.sh']);
         const svgOutput = FileSystem.readFileSync(tmpPath + '/output/diagram.svg', { encoding: 'utf8' });
         
         return svgOutput;

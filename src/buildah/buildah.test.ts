@@ -6,86 +6,52 @@ test('must check version', () => {
 });
 
 test('must create and run container', () => {
-    const tempPath = FileSystem.mkdtempSync('/tmp/containertest');
+    const envPath = FileSystem.mkdtempSync('/tmp/container');
+    const dataPath = FileSystem.mkdtempSync('/tmp/container_data');
 
     // create container
-    const tempEnvFile = tempPath + '/container.tar.gz';
-    Buildah.createContainer('FROM alpine:3.7', [], 'container', tempEnvFile);
+    Buildah.createContainer(envPath, 'testcontainer', 'FROM alpine:3.7', []);
 
     // run container
     try {
-        FileSystem.mkdirpSync(tempPath + '/input');
-        FileSystem.mkdirpSync(tempPath + '/output');
-        FileSystem.writeFileSync(tempPath + '/input/script.sh', 'echo hello world! > /data/output/out.txt', { encoding: 'utf8' });
+        FileSystem.mkdirpSync(dataPath + '/input');
+        FileSystem.mkdirpSync(dataPath + '/output');
+        FileSystem.writeFileSync(dataPath + '/input/script.sh', 'echo hello world! > /output/out.txt', { encoding: 'utf8' });
 
-        Buildah.launchContainer(tempEnvFile, 'container', tempPath + '/input', tempPath + '/output', ['sh', '/data/input/script.sh']);
-        const output = FileSystem.readFileSync(tempPath + '/output/out.txt', { encoding: 'utf8' });
+        Buildah.launchContainer(envPath, 'testcontainer', dataPath + '/input', dataPath + '/output', ['sh', '/input/script.sh']);
+        const output = FileSystem.readFileSync(dataPath + '/output/out.txt', { encoding: 'utf8' });
         expect(output).toBe('hello world!\n');
     } finally {
-        FileSystem.removeSync(tempPath);
-    }
-});
-
-
-test('must create and run container, but subsequent launches should happen much faster', () => {
-    const tempPath = FileSystem.mkdtempSync('/tmp/containertest');
-    const cacheDir = FileSystem.mkdtempSync('/tmp/containertestcache');
-
-    // create container
-    const tempEnvFile = tempPath + '/container.tar.gz';
-    Buildah.createContainer('FROM alpine:3.7', [], 'container', tempEnvFile);
-
-    // run container
-    try {
-        FileSystem.mkdirpSync(tempPath + '/input');
-        FileSystem.mkdirpSync(tempPath + '/output');
-        FileSystem.writeFileSync(tempPath + '/input/script.sh', 'echo hello world! > /data/output/out.txt', { encoding: 'utf8' });
-
-        // initial run should be slow
-        const run1Start = new Date().getTime();
-        Buildah.launchContainer(tempEnvFile, 'container', tempPath + '/input', tempPath + '/output', ['sh', '/data/input/script.sh'], { cacheDir : cacheDir });
-        const run1End = new Date().getTime();
-        const output1 = FileSystem.readFileSync(tempPath + '/output/out.txt', { encoding: 'utf8' });
-        expect(output1).toBe('hello world!\n');
-
-        // subsequen run should be much faster because it won't actually run -- it returns the first runs cached result
-        const run2Start = new Date().getTime();
-        Buildah.launchContainer(tempEnvFile, 'container', tempPath + '/input', tempPath + '/output', ['sh', '/data/input/script.sh'], { cacheDir : cacheDir });
-        const run2End = new Date().getTime();
-        const output2 = FileSystem.readFileSync(tempPath + '/output/out.txt', { encoding: 'utf8' });
-        expect(output2).toBe('hello world!\n');
-
-        // check
-        const run1Length = run1End - run1Start;
-        const run2Length = run2End - run2Start;
-        expect(run2Length).toBeLessThan(run1Length);
-    } finally {
-        FileSystem.removeSync(tempPath);
+        FileSystem.removeSync(envPath);
     }
 });
 
 
 // test('generate plantuml container', () => {
-//     const tempPath = FileSystem.mkdtempSync('/tmp/containertest');
+//     const envPath = FileSystem.mkdtempSync('/tmp/container');
+//     const dataPath = FileSystem.mkdtempSync('/tmp/container_data');
     
 //     // create container
-//     const tempEnvFile = tempPath + '/container.tar.gz';
 //     Buildah.createContainer(
+//         envPath,
+//         'testcontainer',
 //         'FROM alpine:3.10\n'
 //         + 'RUN apk add --no-cache openjdk11-jre\n'          // jre-headless won't work -- it fails when running plantuml (regardless of if the -Djava.awt.headless=true is present)
 //         + 'RUN apk add --no-cache fontconfig ttf-dejavu\n'  // without these packages, plantuml fails with font related exception
+//         + 'RUN apk add --no-cache graphviz\n'               // without these packages, plantuml fails on some graphs (dot required)
+//         + 'RUN apk add --no-cache wget\n'                   // install temporarily so we can download plantuml
 //         + 'RUN mkdir -p /opt\n'
-//         + 'COPY plantuml.1.2019.7.jar /opt/\n',
-//         [ 'resources/plantuml.1.2019.7.jar' ],
-//         'container',
-//         tempEnvFile
+//         + 'WORKDIR /opt\n'
+//         + 'RUN wget https://repo1.maven.org/maven2/net/sourceforge/plantuml/plantuml/1.2019.8/plantuml-1.2019.8.jar\n'
+//         + 'RUN apk del --no-cache wget\n',
+//         []
 //     );
 
 //     // run container
-//     FileSystem.mkdirpSync(tempPath + '/input');
-//     FileSystem.mkdirpSync(tempPath + '/output');
+//     FileSystem.mkdirpSync(dataPath + '/input');
+//     FileSystem.mkdirpSync(dataPath + '/output');
 //     FileSystem.writeFileSync(
-//         tempPath + '/input/diagram.puml',
+//         dataPath + '/input/diagram.puml',
 //         '@startuml\n'
 //         + 'Alice -> Bob: Authentication Request\n'
 //         + 'Bob --> Alice: Authentication Response\n'
@@ -95,14 +61,12 @@ test('must create and run container, but subsequent launches should happen much 
 //         + '@enduml\n'
 //     );
 //     FileSystem.writeFileSync(
-//         tempPath + '/input/script.sh',
-//         'java -Djava.awt.headless=true -jar /opt/plantuml.1.2019.7.jar -tsvg /data/input/diagram.puml\n'
-//         + 'mv /data/input/diagram.svg /data/output\n'
+//         dataPath + '/input/script.sh',
+//         'java -Djava.awt.headless=true -jar /opt/plantuml-1.2019.8.jar -tsvg /input/diagram.puml\n'
+//         + 'mv /input/diagram.svg /output\n'
 //     );
 
-//     Buildah.launchContainer(tempEnvFile, 'container', tempPath + '/input', tempPath + '/output', ['sh', '/data/input/script.sh']);
-//     const output = FileSystem.readFileSync(tempPath + '/output/diagram.svg', { encoding: 'utf8' });
+//     Buildah.launchContainer(envPath, 'testcontainer', dataPath + '/input', dataPath + '/output', ['sh', '/input/script.sh']);
+//     const output = FileSystem.readFileSync(dataPath + '/output/diagram.svg', { encoding: 'utf8' });
 //     console.log(output);
-
-//     FileSystem.copySync(tempEnvFile, 'resources/plantuml_container.tar.gz');
 // });

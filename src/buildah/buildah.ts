@@ -19,8 +19,6 @@
 import FileSystem from 'fs-extra';
 import Path from 'path';
 import ChildProcess from 'child_process';
-import Tar from 'tar';
-import HashUtils from '../utils/hash_utils';
 
 const VERSION_REGEX = /buildah version ([^\s]+).*/i;
 export function buildahVersionCheck() {
@@ -45,68 +43,51 @@ export function buildahVersionCheck() {
 
 
 
-export function createContainer(dockerScript: string, dockerScriptDataFiles: string[], containerName: string, environmentArchiveFile: string) {
-    // Make sure params are valid
-    if (containerName.length === 0) {
-        throw new Error('Empty container name');
+export function createContainer(environmentDir: string, containerName: string, dockerScript: string, dockerScriptDataFiles: string[]) {
+    createEnvIfNotExists(environmentDir);
+    if (existsContainer(environmentDir, containerName)) {
+        return;
     }
 
 
-    const workDir = FileSystem.mkdtempSync('/tmp/buildah');
-
-
     // Place in docker file and related files
-    const dockerFile = workDir + '/Dockerfile';
+    const dockerFile = environmentDir + '/Dockerfile';
     FileSystem.writeFileSync(dockerFile, dockerScript, { encoding: 'utf8' });
 
     for (const srcPath of dockerScriptDataFiles) {
         const filename = Path.basename(srcPath);
-        const dstPath = Path.resolve(workDir, filename);
+        const dstPath = Path.resolve(environmentDir, filename);
         FileSystem.copySync(srcPath, dstPath, { errorOnExist: true, recursive: true });
     }
 
 
-    // Create temp environment dir, write out docker file, and build image + container
-    const confDir = workDir + '/conf';
-    FileSystem.mkdirpSync(confDir);
-    const confFile = confDir + '/registries.conf';
-    FileSystem.writeFileSync(
-        confFile,
-        `
-        [registries.search]
-        registries = ['docker.io', 'registry.fedoraproject.org', 'quay.io', 'registry.access.redhat.com', 'registry.centos.org']
-        
-        [registries.insecure]
-        registries = []
-
-        [registries.block]
-        registries = []
-        `,
-        { encoding: 'utf8' }
-    );
-    
-
-    execBuildah(workDir, ['--network=host', 'build-using-dockerfile', '-t', 'image', '-f', 'Dockerfile', '.']);
-    execBuildah(workDir, ['--name', 'container', 'from', 'localhost/image']);
+    // Run
+    const imageName = containerName + '_image';
+    execBuildah(environmentDir, ['--network=host', 'build-using-dockerfile', '-t', imageName, '-f', 'Dockerfile', '.']);
+    execBuildah(environmentDir, ['--name', containerName, 'from', 'localhost/' + imageName]);
 
 
     // Remove docker file and related files (so they won't be included in the final package)
     FileSystem.remove(dockerFile);
     for (const srcFile of dockerScriptDataFiles) {
         const filename = Path.basename(srcFile);
-        const dstPath = Path.resolve(workDir, filename);
+        const dstPath = Path.resolve(environmentDir, filename);
         FileSystem.removeSync(dstPath);
     }
+}
 
 
-    // Archive work dir and write out to environment file path
-    const filesToTar = FileSystem.readdirSync(workDir);
-    Tar.create({
-        gzip: true,
-        sync: true,
-        cwd: workDir,
-        file: environmentArchiveFile 
-    }, filesToTar);
+
+
+
+
+export function existsContainer(environmentDir: string, containerName: string) {
+    createEnvIfNotExists(environmentDir);
+
+
+    const stdout = execBuildah(environmentDir, ['containers', '--noheading', '--notruncate', '--format', '{{.ContainerName}}']).stdout.toString('utf8');
+    const containerNames = stdout.split(/[\r\n]+/);
+    return containerNames.indexOf(containerName) !== -1;
 }
 
 
@@ -117,35 +98,11 @@ export function createContainer(dockerScript: string, dockerScriptDataFiles: str
 
 export interface LaunchContainerConfiguration {
     timeout?: number;
-    cacheDir?: string;
 }
 
-export function launchContainer(environmentArchiveFile: string, containerName: string, inputDir: string, outputDir: string, command: string[], config?: LaunchContainerConfiguration) {
+export function launchContainer(environmentDir: string, containerName: string, inputDir: string, outputDir: string, command: string[], config?: LaunchContainerConfiguration) {
+    createEnvIfNotExists(environmentDir);
     const timeout = config === undefined ? undefined : config.timeout;
-    const cacheDir = config === undefined ? undefined : config.cacheDir;
-    const containerCacheDir = (() => {
-        if (cacheDir === undefined) {
-            return undefined;
-        } else {
-            const containerNameHash = HashUtils.md5(containerName);
-            const commandHash = HashUtils.md5Array(command);
-            const inputDirDataHash = HashUtils.md5Path(inputDir);
-            
-            const finalHash = HashUtils.md5(containerNameHash + commandHash + inputDirDataHash);  
-            return Path.resolve(cacheDir, finalHash);
-        }
-    })();
-
-
-    // If launch was cached, return cached output
-    if (containerCacheDir !== undefined) {
-        if (FileSystem.existsSync(containerCacheDir) && FileSystem.statSync(containerCacheDir).isDirectory()) {
-            FileSystem.copySync(containerCacheDir, outputDir);
-            return;
-        } else {
-            FileSystem.removeSync(containerCacheDir); // remove just incase
-        }
-    }
 
 
     // Make sure params are valid
@@ -155,56 +112,57 @@ export function launchContainer(environmentArchiveFile: string, containerName: s
 
     inputDir = Path.resolve(inputDir); // to absolute path
     outputDir = Path.resolve(outputDir); // to absolute path
-    FileSystem.ensureFileSync(environmentArchiveFile);
 
+    FileSystem.ensureDirSync(environmentDir);
 
-    // Dump out environment into temp dir and ensure everything is valid
-    const workDir = FileSystem.mkdtempSync('/tmp/buildah');
-    Tar.extract({
-        sync: true,
-        cwd: workDir,
-        file: environmentArchiveFile 
-    });
-
-    const stdout = execBuildah(workDir, ['containers', '--noheading', '--notruncate', '--format', '{{.ContainerName}}']).stdout.toString('utf8');
-    const containerNames = stdout.split(/[\r\n]+/);
-
-    if (containerNames.indexOf(containerName) === -1) {
-        throw new Error('Container not found: ' + containerName);
-    }
-
-
-    // Set up temp dir for input and output data
-    const dataDir = FileSystem.mkdtempSync('/tmp/data');
-    const dataInputDir = dataDir + '/input';
-    const dataOutputDir = dataDir + '/output';
-
-    FileSystem.mkdirpSync(dataInputDir);
-    FileSystem.mkdirpSync(dataOutputDir);
-    FileSystem.copySync(inputDir, dataInputDir);
 
     // sanity check, should never happen
-    if (dataInputDir.includes(':')) {
+    if (inputDir.includes(':')) {
         throw new Error('Input folder path cannot colon'); // this is fixed the --mount tag in later versions (not yet deployed), see https://github.com/containers/buildah/issues/1597
     }
 
     // sanity check, should never happen
-    if (dataOutputDir.includes(':')) {
+    if (outputDir.includes(':')) {
         throw new Error('Output folder path cannot colon'); // this is fixed the --mount tag in later versions (not yet deployed), see https://github.com/containers/buildah/issues/1597
     }
 
 
     // Execute container and move output data back
-    execBuildah(workDir, [/*'--network=host', */'--volume', dataDir + ':/data:z', 'run', containerName].concat(command), timeout);
-    FileSystem.copySync(dataOutputDir, outputDir);
+    execBuildah(environmentDir, [/*'--network=host', */'--volume', inputDir + ':/input:z', '--volume', outputDir + ':/output:z', 'run', containerName].concat(command), timeout);
+}
 
 
-    // Cache this launch's output
-    if (containerCacheDir !== undefined) {
-        FileSystem.mkdirpSync(containerCacheDir);
-        FileSystem.copySync(outputDir, containerCacheDir);
+
+
+
+
+
+
+
+
+
+function createEnvIfNotExists(environmentDir: string) {
+    const confDir = Path.resolve(environmentDir, 'conf');
+    const confFile = Path.resolve(confDir, 'registries.conf');
+    if (FileSystem.existsSync(confFile) === false) {
+        FileSystem.mkdirpSync(confDir);
+        FileSystem.writeFileSync(
+            confFile,
+            `
+            [registries.search]
+            registries = ['docker.io', 'registry.fedoraproject.org', 'quay.io', 'registry.access.redhat.com', 'registry.centos.org']
+            
+            [registries.insecure]
+            registries = []
+
+            [registries.block]
+            registries = []
+            `,
+            { encoding: 'utf8' }
+        );
     }
 }
+
 
 
 
