@@ -21,11 +21,12 @@ Inspired by the lack of simple note taking tools for developers and engineers, M
 ## Usage
 
 To setup MarkdownNotes...
-1. clone the repository
-1. ensure Java is installed (e.g. `sudo apt install openjdk-11-jdk`)
-1. ensure GraphViz is installed (e.g. `sudo apt install graphviz`)
-1. ensure GnuPlot is installed (e.g. `sudo apt install gnuplot`)
+1. clone the repository.
+1. ensure [buildah](https://github.com/containers/buildah/blob/master/install.md) is installed.
+1. ensure [NodeJS](https://nodejs.org) is installed.
 1. run `npm install`.
+
+  **WARNING**: You may have issues installing buildah on Ubuntu 18+. If the projectatomic PPA doesn't register with Ubuntu, you'll need to tell Ubuntu to reference the PPA as if it were an older version of Ubuntu. Open the *Software & Updates* application, go to the *Other Updates* tab, and edit the *projectatomic* entry such that the *distribution* points to an earlier release of Ubuntu (e.g. bionic). Once that's done, try performing the installation instructions again.
 
 To run MarkdownNotes, run `npm start [path]` (where `[path]` is your work directory). A browser window will open to the rendered output of `[path]/input/input.md`. Any changes to any file in `[path]/input` will result in the rendered output being updated (scroll position will be maintained).
 
