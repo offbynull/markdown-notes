@@ -32,6 +32,7 @@ import { KatexExtension } from './katex_extension';
 import { PlantUmlExtension } from './plantuml_extension';
 import { CsvExtension } from './csv_extension';
 import { GnuPlotExtension } from './gnuplot_graph_extension';
+import { CondaExtension } from './conda_extension';
 
 export default class Markdown {
     private readonly markdownIt: MarkdownIt;
@@ -62,7 +63,8 @@ export default class Markdown {
         extenderConfig.register(new KatexExtension());
         extenderConfig.register(new PlantUmlExtension());
         extenderConfig.register(new CsvExtension());
-        extenderConfig.register(new GnuPlotExtension())
+        extenderConfig.register(new GnuPlotExtension());
+        extenderConfig.register(new CondaExtension());
         this.markdownIt.use(extender, extenderConfig);
         // this.markdownIt.use(indexer);
     }

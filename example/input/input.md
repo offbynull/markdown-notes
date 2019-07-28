@@ -233,7 +233,58 @@ plot f(x) title 'sin(x)' with lines linestyle 1, \
      g(x) notitle with lines linestyle 2
 ```
 
+# Conda (Python)
+
+Add an image or text generated via Python (miniconda) using the conda block tag:
+
+````
+```{conda}
+dependencies:
+  - python=3.4
+----
+f = open("/output/text.txt","w+")
+f.write("hello world!")
+f.close()
+```
+
+```{conda}
+dependencies:
+  - python=3.7
+  - matplotlib=3.1
+----
+import matplotlib.pyplot as plt
+plt.plot([1, 2, 3, 4])
+plt.ylabel('some numbers')
+plt.savefig("/output/out.svg", format="svg")
+```
+````
+
+Block output:
+
+```{conda}
+dependencies:
+  - python=3.4
+----
+f = open("/output/text.txt","w+")
+f.write("hello world!")
+f.close()
+```
+
+```{conda}
+dependencies:
+  - python=3.7
+  - matplotlib=3.1
+----
+import matplotlib.pyplot as plt
+plt.plot([1, 2, 3, 4])
+plt.ylabel('some numbers')
+plt.savefig("/output/out.svg", format="svg")
+```
+
+The Miniconda environment YAML and Python source code are separated by `----`. The output produced by the Python script must be a single file written to the `/output` directory. That file must end in either `.txt`, `.svg`, `.png`, `.gif`, `.jpg`, or `.jpeg` -- the extension defines how the file gets displayed in the final markup.
+
 # Standard Markdown
+
 Normal CommonMark features are supported out of the box.
 
 Block Code: 

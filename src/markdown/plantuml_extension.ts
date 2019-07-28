@@ -23,7 +23,6 @@ import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 import * as Buildah from '../buildah/buildah';
-import { targzDir } from '../utils/file_utils';
 
 const CONTAINER_NAME = 'plantuml';
 
@@ -79,13 +78,8 @@ export class PlantUmlExtension implements Extension {
             + 'WORKDIR /opt\n'
             + 'RUN wget https://repo1.maven.org/maven2/net/sourceforge/plantuml/plantuml/1.2019.8/plantuml-1.2019.8.jar\n'
             + 'RUN apk del --no-cache wget\n',
-            [], // files req for dockerscript above -- e.g, specify [ 'resources/plantuml.1.2019.7.jar' ] and add 'COPY plantuml.1.2019.7.jar /opt/\n' in dockerfile above
+            [], // loc of files req for dockerscript above -- e.g, specify [ '../resources/plantuml.1.2019.7.jar' ] and add 'COPY plantuml.1.2019.7.jar /opt/\n' in dockerfile above
         );
-
-
-        // backup container
-        const backupFile = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env_backup.tar.gz');
-        targzDir(envDir, backupFile);
     }
     
     private static launchPlantUml(cacheDir: string, codeInput: string) {

@@ -128,7 +128,7 @@ export function launchContainer(environmentDir: string, containerName: string, i
 
 
     // Execute container and move output data back
-    execBuildah(environmentDir, [/*'--network=host', */'--volume', inputDir + ':/input:z', '--volume', outputDir + ':/output:z', 'run', containerName].concat(command), timeout);
+    execBuildah(environmentDir, ['--network=host', '--volume', inputDir + ':/input:z', '--volume', outputDir + ':/output:z', 'run', containerName].concat(command), timeout);
 }
 
 
