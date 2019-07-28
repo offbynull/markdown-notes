@@ -9,8 +9,8 @@ Inspired by the lack of simple note taking tools for developers and engineers, M
   * Supports embedding PlantUML diagrams.
   * Supports embedding GraphViz dot diagrams.
   * Supports embedding LaTeX math expressions (MathJax / KaTeX).
-  * Supports embedding Gnuplot plots.
   * Supports embedding CSVs as tables.
+  * Supports embedding diagrams generated via Python.
   * Supports automatic bookmarking.
   * Supports generating table of contents.
   * etc..
