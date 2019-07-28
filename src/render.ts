@@ -2,7 +2,8 @@ import * as FileSystem from 'fs-extra';
 import * as Process from 'process';
 import * as Path from 'path';
 import Markdown from './markdown/markdown';
-import { inlineHtml } from './html_utils';
+import { inlineHtml } from './utils/html_utils';
+import { r } from 'tar';
 
 if (Process.argv.length !== 3) {
     throw 'Invalid arguments: ' + JSON.stringify(Process.argv);
@@ -30,9 +31,18 @@ try {
     });
 } catch (e) {
     if (Process.send !== undefined) {
+        const errorText = (() => {
+            if (typeof e === 'string') {
+                return e;
+            } else if (typeof e['toString'] == 'function') {
+                return e.toString() as string;
+            } else {
+                return JSON.stringify(e);
+            }
+        })();
         Process.send({
             type: 'error',
-            data: e
+            data: errorText
         });
     }
     throw e;

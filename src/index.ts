@@ -21,7 +21,7 @@ import * as BrowserSync from 'browser-sync';
 import FileSystem from 'fs';
 import Process from 'process';
 import ChildProcess from 'child_process';
-import { injectHtmlErrorOverlay, inlineHtml as inlineHtml } from './html_utils';
+import { injectHtmlErrorOverlay, inlineHtml as inlineHtml } from './utils/html_utils';
 import { killProcessHierarchy } from './utils/process_utils';
 import { Buffer } from 'buffer';
 
@@ -117,9 +117,10 @@ inputWatcher.on('change', () => {
                 break;
             }
             case 'error': {
+                const errorText = m['data'];
                 FileSystem.writeFileSync(
                     outputPath + '/output.html',
-                    injectHtmlErrorOverlay(lastSuccessfulOutput, stderrBuffer.toString()),
+                    injectHtmlErrorOverlay(lastSuccessfulOutput, errorText),
                     { encoding: 'utf8' }
                 );
                 break;

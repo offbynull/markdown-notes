@@ -23,7 +23,6 @@ import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 import * as Buildah from '../buildah/buildah';
-import { targzDir } from '../utils/file_utils';
 
 const CONTAINER_NAME = 'gnuplot';
 
@@ -100,11 +99,6 @@ export class GnuPlotExtension implements Extension {
             + 'RUN mkdir -p /opt\n',
             [] // files req for dockerscript above (if any), will get copied to dockerfile folder before running
         );
-
-
-        // backup container
-        const backupFile = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env_backup.tar.gz');
-        targzDir(envDir, backupFile);
     }
     
     private static launchGnuPlot(cacheDir: string, codeInput: string) {
