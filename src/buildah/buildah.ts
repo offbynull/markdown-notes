@@ -98,11 +98,32 @@ export function existsContainer(environmentDir: string, containerName: string) {
 
 export interface LaunchContainerConfiguration {
     timeout?: number;
+    volumeMappings?: LaunchVolumeMapping[];
 }
 
-export function launchContainer(environmentDir: string, containerName: string, inputDir: string, outputDir: string, command: string[], config?: LaunchContainerConfiguration) {
+export class LaunchVolumeMapping {
+    public readonly hostPath: string;
+    public readonly guestPath: string;
+    public readonly mode: 'r' | 'rw';
+
+    public constructor(hostPath: string, guestPath: string, mode: 'r' | 'rw') {
+        this.hostPath = Path.resolve(hostPath);
+        this.guestPath = Path.resolve(guestPath);
+        this.mode = mode;
+
+        if (hostPath.includes(':')) {
+            throw new Error(`Host path cannot colon: ${this.hostPath}`); // this is fixed in the --mount tag in later versions (not yet deployed), see https://github.com/containers/buildah/issues/1597
+        }
+        if (guestPath.includes(':')) {
+            throw new Error(`Guest path cannot colon: ${this.guestPath}`); // this is fixed in the --mount tag in later versions (not yet deployed), see https://github.com/containers/buildah/issues/1597
+        }
+    }
+}
+
+export function launchContainer(environmentDir: string, containerName: string, command: string[], config?: LaunchContainerConfiguration) {
     createEnvIfNotExists(environmentDir);
     const timeout = config === undefined ? undefined : config.timeout;
+    const volumeMappings = config === undefined ? undefined : config.volumeMappings;
 
 
     // Make sure params are valid
@@ -110,25 +131,30 @@ export function launchContainer(environmentDir: string, containerName: string, i
         throw new Error('Empty command');
     }
 
-    inputDir = Path.resolve(inputDir); // to absolute path
-    outputDir = Path.resolve(outputDir); // to absolute path
-
     FileSystem.ensureDirSync(environmentDir);
 
-
-    // sanity check, should never happen
-    if (inputDir.includes(':')) {
-        throw new Error('Input folder path cannot colon'); // this is fixed the --mount tag in later versions (not yet deployed), see https://github.com/containers/buildah/issues/1597
+    const args: string[] = [];
+    args.push('--network=host');
+    if (volumeMappings !== undefined) {
+        for (const volumeMapping of volumeMappings) {
+            const volMode = (() => {
+                switch (volumeMapping.mode) {
+                    case 'r':
+                        return 'ro';
+                    case 'rw':
+                        return 'Z';
+                    default:
+                        throw new Error(); // this should never happen
+                }
+            })();
+            args.push('--volume', volumeMapping.hostPath + ':' + volumeMapping.guestPath + ':' + volMode);
+        }
     }
-
-    // sanity check, should never happen
-    if (outputDir.includes(':')) {
-        throw new Error('Output folder path cannot colon'); // this is fixed the --mount tag in later versions (not yet deployed), see https://github.com/containers/buildah/issues/1597
-    }
-
+    args.push('run', containerName);
+    args.push(... command);
 
     // Execute container and move output data back
-    execBuildah(environmentDir, ['--network=host', '--volume', inputDir + ':/input:z', '--volume', outputDir + ':/output:z', 'run', containerName].concat(command), timeout);
+    execBuildah(environmentDir, args, timeout);
 }
 
 

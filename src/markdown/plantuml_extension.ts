@@ -42,7 +42,7 @@ export class PlantUmlExtension implements Extension {
         const pumlOutputFile = pumlDataDir + '/diagram.svg';
 
         if (FileSystem.existsSync(pumlOutputFile) === false) { // only generate if not already exists
-            const svgData = PlantUmlExtension.launchPlantUml(context.realCachePath, pumlCode);
+            const svgData = PlantUmlExtension.launchPlantUml(context.realCachePath, context.realInputPath, pumlCode);
             FileSystem.mkdirpSync(pumlDataDir);
             FileSystem.writeFileSync(pumlOutputFile, svgData);
         }
@@ -82,7 +82,7 @@ export class PlantUmlExtension implements Extension {
         );
     }
     
-    private static launchPlantUml(cacheDir: string, codeInput: string) {
+    private static launchPlantUml(cacheDir: string, realInputDir: string, codeInput: string) {
         console.log('Launching PlantUML container');
 
         const envDir = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env');
@@ -96,7 +96,14 @@ export class PlantUmlExtension implements Extension {
             + 'mv /input/diagram.svg /output\n'
         );
     
-        Buildah.launchContainer(envDir, CONTAINER_NAME, tmpPath + '/input', tmpPath + '/output', ['sh', '/input/script.sh']);
+        Buildah.launchContainer(envDir, CONTAINER_NAME, ['sh', '/input/script.sh'],
+        {
+            volumeMappings: [
+                new Buildah.LaunchVolumeMapping(tmpPath + '/input', '/input', 'rw'),
+                new Buildah.LaunchVolumeMapping(tmpPath + '/output', '/output', 'rw'),
+                new Buildah.LaunchVolumeMapping(realInputDir, '/files', 'r')
+            ]
+        });
         const svgOutput = FileSystem.readFileSync(tmpPath + '/output/diagram.svg', { encoding: 'utf8' });
         
         return svgOutput;

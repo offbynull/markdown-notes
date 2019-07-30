@@ -18,7 +18,14 @@ test('must create and run container', () => {
         FileSystem.mkdirpSync(dataPath + '/output');
         FileSystem.writeFileSync(dataPath + '/input/script.sh', 'echo hello world! > /output/out.txt', { encoding: 'utf8' });
 
-        Buildah.launchContainer(envPath, 'testcontainer', dataPath + '/input', dataPath + '/output', ['sh', '/input/script.sh']);
+        Buildah.launchContainer(envPath, 'testcontainer', ['sh', '/input/script.sh'],
+            {
+                volumeMappings: [
+                    new Buildah.LaunchVolumeMapping(dataPath + '/input', '/input', 'rw'),
+                    new Buildah.LaunchVolumeMapping(dataPath + '/output', '/output', 'rw')
+                ]
+            }
+        );
         const output = FileSystem.readFileSync(dataPath + '/output/out.txt', { encoding: 'utf8' });
         expect(output).toBe('hello world!\n');
     } finally {

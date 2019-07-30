@@ -42,7 +42,7 @@ export class DotExtension implements Extension {
         const dotOutputFile = dotDataDir + '/diagram.svg';
 
         if (FileSystem.existsSync(dotOutputFile) === false) { // only generate if not already exists
-            const svgData = DotExtension.launchDot(context.realCachePath, dotCode);
+            const svgData = DotExtension.launchDot(context.realCachePath, context.realInputPath, dotCode);
             FileSystem.mkdirpSync(dotDataDir);
             FileSystem.writeFileSync(dotOutputFile, svgData);
         }
@@ -75,7 +75,7 @@ export class DotExtension implements Extension {
         );
     }
     
-    private static launchDot(cacheDir: string, codeInput: string) {
+    private static launchDot(cacheDir: string, realInputDir: string, codeInput: string) {
         console.log('Launching Dot container');
 
         const envDir = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env');
@@ -88,7 +88,14 @@ export class DotExtension implements Extension {
             'dot -Tsvg /input/diagram.dot > /output/diagram.svg\n'
         );
     
-        Buildah.launchContainer(envDir, CONTAINER_NAME, tmpPath + '/input', tmpPath + '/output', ['sh', '/input/script.sh']);
+        Buildah.launchContainer(envDir, CONTAINER_NAME, ['sh', '/input/script.sh'],
+            {
+                volumeMappings: [
+                    new Buildah.LaunchVolumeMapping(tmpPath + '/input', '/input', 'rw'),
+                    new Buildah.LaunchVolumeMapping(tmpPath + '/output', '/output', 'rw'),
+                    new Buildah.LaunchVolumeMapping(realInputDir, '/files', 'r')
+                ]
+            });
         const svgOutput = FileSystem.readFileSync(tmpPath + '/output/diagram.svg', { encoding: 'utf8' });
         
         return svgOutput;

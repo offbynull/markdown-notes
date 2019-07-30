@@ -62,7 +62,7 @@ export class CondaExtension implements Extension {
                 throw new Error('Needs to split into exactly 2 segments, but split to ' + splitCode.length);
             }
 
-            const outputFile = CondaExtension.launchConda(context.realCachePath, splitCode[0], splitCode[1]);
+            const outputFile = CondaExtension.launchConda(context.realCachePath, context.realInputPath, splitCode[0], splitCode[1]);
 
             const outputFileName = Path.basename(outputFile);
             const dstFile = Path.resolve(condaDataDir, outputFileName);
@@ -113,7 +113,7 @@ export class CondaExtension implements Extension {
         );
     }
     
-    private static launchConda(cacheDir: string, environmentYaml: string, code: string) {
+    private static launchConda(cacheDir: string, realInputDir: string, environmentYaml: string, code: string) {
         console.log('Launching Miniconda container');
 
         const envDir = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env');
@@ -134,7 +134,14 @@ export class CondaExtension implements Extension {
             `
         );
 
-        Buildah.launchContainer(envDir, CONTAINER_NAME, inputPath, outputPath, ['bash', '/input/script.sh']);
+        Buildah.launchContainer(envDir, CONTAINER_NAME, ['bash', '/input/script.sh'],
+        {
+            volumeMappings: [
+                new Buildah.LaunchVolumeMapping(inputPath, '/input', 'rw'),
+                new Buildah.LaunchVolumeMapping(outputPath, '/output', 'rw'),
+                new Buildah.LaunchVolumeMapping(realInputDir, '/files', 'r')
+            ]
+        });
 
         const outputFiles = FileSystem.readdirSync(outputPath);
         if (outputFiles.length !== 1) {
