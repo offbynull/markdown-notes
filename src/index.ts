@@ -79,6 +79,41 @@ if (FileSystem.existsSync(outputPath + '/output.html') === false) {
 
 let activeChildProc: undefined | ChildProcess.ChildProcess;
 
+function writeCompletedOutput(outputHtml: string) {
+    FileSystem.writeFileSync(
+        outputPath + '/output.html',
+        outputHtml,
+        { encoding: 'utf8' }
+    );
+    bs.reload('output.html');
+}
+
+function writeRenderingOutput(outputHtml: string, stdout: Buffer, stderr: Buffer) {
+    FileSystem.writeFileSync(
+        outputPath + '/output.html',
+        injectHtmlErrorOverlay(
+            outputHtml,
+            'Rendering...\n-----stdout-----\n' + stdout.toString().replace(/[\r\n]+$/, '') + '\n-----stderr-----\n' + stderr.toString().replace(/[\r\n]+$/, ''),
+            'rgba(0,0,0,0.5)'
+        ),
+        { encoding: 'utf8' }
+    );
+    bs.reload('output.html');
+}
+
+function writeErrorOutput(outputHtml: string, errorText: Buffer) {
+    FileSystem.writeFileSync(
+        outputPath + '/output.html',
+        injectHtmlErrorOverlay(
+            outputHtml,
+            'Error...\n' + errorText,
+            'rgba(255,0,0,0.5)'
+        ),
+        { encoding: 'utf8' }
+    );
+    bs.reload('output.html');
+}
+
 inputWatcher.on('change', () => {
     if (activeChildProc !== undefined) {
         console.log('Render process killed');
@@ -88,20 +123,21 @@ inputWatcher.on('change', () => {
 
     console.log('Render process started');
 
-    FileSystem.writeFileSync(
-        outputPath + '/output.html',
-        injectHtmlErrorOverlay(lastSuccessfulOutput, 'Rendering...', 'rgba(0,0,0,0.5)'),
-        { encoding: 'utf8' }
-    );
-
-    activeChildProc = ChildProcess.fork('dist/render', [ inputPath ]);
+    activeChildProc = ChildProcess.fork('dist/render', [ inputPath ], { silent: true }); // 'silent' allows reading in stdout/stderr 
     let stdoutBuffer = Buffer.alloc(0);
-    if (activeChildProc.stdout !== null) {
-        activeChildProc.stdout.on('data', (data) => { stdoutBuffer = Buffer.concat([stdoutBuffer, data]); });
-    }
     let stderrBuffer = Buffer.alloc(0);
+    writeRenderingOutput(lastSuccessfulOutput, stdoutBuffer, stderrBuffer);
+    if (activeChildProc.stdout !== null) {
+        activeChildProc.stdout.on('data', (data) => {
+            stdoutBuffer = Buffer.concat([stdoutBuffer, data]);
+            writeRenderingOutput(lastSuccessfulOutput, stdoutBuffer, stderrBuffer);
+        });
+    }
     if (activeChildProc.stderr !== null) {
-        activeChildProc.stderr.on('data', (data) => { stderrBuffer = Buffer.concat([stderrBuffer, data]); });
+        activeChildProc.stderr.on('data', (data) => {
+            stderrBuffer = Buffer.concat([stderrBuffer, data]);
+            writeRenderingOutput(lastSuccessfulOutput, stdoutBuffer, stderrBuffer);
+        });
     }
     activeChildProc.on('message', (m) => {
         activeChildProc = undefined;
@@ -109,27 +145,18 @@ inputWatcher.on('change', () => {
         switch (type) {
             case 'output': {
                 lastSuccessfulOutput = m['data'];
-                FileSystem.writeFileSync(
-                    outputPath + '/output.html',
-                    lastSuccessfulOutput,
-                    { encoding: 'utf8' }
-                );
+                writeCompletedOutput(lastSuccessfulOutput);
                 break;
             }
             case 'error': {
                 const errorText = m['data'];
-                FileSystem.writeFileSync(
-                    outputPath + '/output.html',
-                    injectHtmlErrorOverlay(lastSuccessfulOutput, errorText),
-                    { encoding: 'utf8' }
-                );
+                writeErrorOutput(lastSuccessfulOutput, errorText);
                 break;
             }
             default:
                 throw 'Bad type: ' + type;
         }
         console.log('Render process completed');
-        bs.reload('output.html');
     });
 });
 

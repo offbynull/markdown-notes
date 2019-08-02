@@ -21,7 +21,7 @@ export function inlineHtml(html: string, htmlResourcePath: string, callback: (ou
     );
 }
 
-export function injectHtmlErrorOverlay(html: string, message: string, backgroundColor: string = 'rgba(255,0,0,0.5)'): string {
+export function injectHtmlErrorOverlay(html: string, message: string, backgroundColor: string): string {
     const dom = new JSDOM(html);
     const body = dom.window.document.getElementsByTagName('body')[0];
 
