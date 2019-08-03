@@ -31,7 +31,9 @@ import { TitleExtension } from './title_extension';
 import { KatexExtension } from './katex_extension';
 import { PlantUmlExtension } from './plantuml_extension';
 import { CsvExtension } from './csv_extension';
-import { CondaExtension } from './conda_extension';
+import { PythonExtension } from './python_extension';
+import { JavaExtension } from './java_extension';
+import { NodeExtension } from './node_extension';
 
 export default class Markdown {
     private readonly markdownIt: MarkdownIt;
@@ -62,7 +64,9 @@ export default class Markdown {
         extenderConfig.register(new KatexExtension());
         extenderConfig.register(new PlantUmlExtension());
         extenderConfig.register(new CsvExtension());
-        extenderConfig.register(new CondaExtension());
+        extenderConfig.register(new PythonExtension());
+        extenderConfig.register(new JavaExtension());
+        extenderConfig.register(new NodeExtension());
         this.markdownIt.use(extender, extenderConfig);
         // this.markdownIt.use(indexer);
     }
