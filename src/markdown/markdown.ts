@@ -77,6 +77,13 @@ export default class Markdown {
         const bodyElement = document.getElementsByTagName('body')[0];
 
 
+        // Apply meta tags
+        const metaViewportElem = document.createElement('meta');
+        metaViewportElem.setAttribute('name', 'viewport');
+        metaViewportElem.setAttribute('content', 'width=device-width,initial-scale=1');
+        headElement.appendChild(metaViewportElem);
+
+
         // Apply changes for github styling
         const githubMarkdownGenPath = `.temp_githib_css${Crypto.pseudoRandomBytes(8).toString('hex')}`;
         FileSystemExtras.ensureDirSync(this.realBasePath + '/' + githubMarkdownGenPath);
