@@ -23,84 +23,92 @@ import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 import * as Buildah from '../buildah/buildah';
+import { outputFileToHtml } from './output_utils';
 
-const CONTAINER_NAME = 'conda';
+const CONTAINER_NAME = 'node';
 
-export class CondaExtension implements Extension {
+const DEFAULT_PACKAGE_JSON =
+    `
+    {
+        "scripts": {
+        "start": "node code.js"
+        },
+        "dependencies": {
+        },
+        "devDependencies": {
+        }
+    }
+    `;
+
+export class NodeExtension implements Extension {
     public readonly tokenIds: ReadonlyArray<TokenIdentifier> = [
-        new TokenIdentifier('conda', Type.BLOCK),
+        new TokenIdentifier('node', Type.BLOCK)
     ];
 
     public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
         const token = tokens[tokenIdx];
-        const condaCode = token.content;
+        const nodeCode = token.content;
 
-        CondaExtension.initializeConda(context.realCachePath);
+        NodeExtension.initializeNode(context.realCachePath);
 
-        const condaCodeHash = Crypto.createHash('md5').update(condaCode).digest('hex');
-        const condaDataDir = Path.resolve(context.realCachePath, 'conda', condaCodeHash);
+        const nodeCodeHash = Crypto.createHash('md5').update(nodeCode).digest('hex');
+        const nodeDataDir = Path.resolve(context.realCachePath, 'node', nodeCodeHash);
 
-        FileSystem.mkdirpSync(condaDataDir);
-        let condaOutputFile = (() => {
-            const entries = FileSystem.readdirSync(condaDataDir);
+        FileSystem.mkdirpSync(nodeDataDir);
+        let nodeOutputFile = (() => {
+            const entries = FileSystem.readdirSync(nodeDataDir);
             if (entries.length === 0) {
                 return undefined;
             } else if (entries.length === 1) {
-                return Path.resolve(condaDataDir, entries[0]);
+                return Path.resolve(nodeDataDir, entries[0]);
             }
 
             const fullEntries = JSON.stringify(
-                entries.map(e => Path.resolve(condaDataDir, e))
+                entries.map(e => Path.resolve(nodeDataDir, e))
             );
             throw new Error('Too many cached files detected ' + fullEntries);
         })();
 
 
-        if (condaOutputFile === undefined) {
-            const splitCode = condaCode.split(/^----$/gm);
-            if (splitCode.length !== 2) {
-                throw new Error('Needs to split into exactly 2 segments, but split to ' + splitCode.length);
-            }
+        if (nodeOutputFile === undefined) {
+            const splitCode = (() => {
+                const split = nodeCode.split(/^----$/gm);
+                switch (split.length) {
+                    case 1:
+                        return { project: DEFAULT_PACKAGE_JSON, code: split[0] };
+                    case 2:
+                        return { project: split[0], code: split[1] };
+                    default:
+                        throw new Error('Split into unrecognized number of segments: ' + split.length);
+                }
+            })();
 
-            const outputFile = CondaExtension.launchConda(context.realCachePath, context.realInputPath, splitCode[0], splitCode[1]);
+            const outputFile = NodeExtension.launchNode(context.realCachePath, context.realInputPath, splitCode.project, splitCode.code);
 
             const outputFileName = Path.basename(outputFile);
-            const dstFile = Path.resolve(condaDataDir, outputFileName);
+            const dstFile = Path.resolve(nodeDataDir, outputFileName);
 
-            FileSystem.mkdirpSync(condaDataDir);
+            FileSystem.mkdirpSync(nodeDataDir);
             FileSystem.copyFileSync(outputFile, dstFile);
 
-            condaOutputFile = dstFile;
+            nodeOutputFile = dstFile;
         }
 
 
-        if (condaOutputFile.toLowerCase().endsWith('.txt')) {
-            const data = FileSystem.readFileSync(condaOutputFile, { encoding: 'utf8' });
-            return `<pre>${markdownIt.utils.escapeHtml(data)}</pre>`;
-        } else if (condaOutputFile.toLowerCase().endsWith('.svg')
-            || condaOutputFile.toLowerCase().endsWith('.png')
-            || condaOutputFile.toLowerCase().endsWith('.gif')
-            || condaOutputFile.toLowerCase().endsWith('.jpg')
-            || condaOutputFile.toLowerCase().endsWith('.jpeg')) {
-            const imageHtmlPath = context.injectFile(condaOutputFile);
-            return `<p><img src="${markdownIt.utils.escapeHtml(imageHtmlPath)}" alt="Generated image" /></p>`;
-        } else {
-            FileSystem.removeSync(condaDataDir);
-            throw new Error('Generated python output file contains unknown extension: ' + condaOutputFile.length + ' outputs\n');
-        }
+        return outputFileToHtml(nodeOutputFile, markdownIt, context);
     }
 
 
 
 
 
-    private static initializeConda(cacheDir: string) {
+    private static initializeNode(cacheDir: string) {
         const envDir = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env');
         if (Buildah.existsContainer(envDir, CONTAINER_NAME)) {
             return;
         }
 
-        console.log('Initializing Miniconda container (may take several minutes)');
+        console.log('Initializing Node container (may take several minutes)');
 
         FileSystem.mkdirpSync(envDir);
         
@@ -108,29 +116,33 @@ export class CondaExtension implements Extension {
         Buildah.createContainer(
             envDir,
             CONTAINER_NAME,
-            'FROM continuumio/miniconda3:4.6.14\n',
+            'FROM node:8.16-buster\n',
             [], // loc of files req for dockerscript above -- e.g, specify [ '../resources/plantuml.1.2019.7.jar' ] and add 'COPY plantuml.1.2019.7.jar /opt/\n' in dockerfile above
         );
     }
     
-    private static launchConda(cacheDir: string, realInputDir: string, environmentYaml: string, code: string) {
-        console.log('Launching Miniconda container');
+    private static launchNode(cacheDir: string, realInputDir: string, packageJson: string, code: string) {
+        console.log('Launching Node container');
 
         const envDir = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env');
 
-        const condaEnvNameOverride = Crypto.createHash('md5').update(environmentYaml).digest('hex');
+        const containerWorkDir = Path.resolve('opt', Crypto.createHash('md5').update(packageJson).digest('hex'));
 
         const tmpPath = FileSystem.mkdtempSync('/tmp/data');
         const inputPath = Path.resolve(tmpPath, 'input');
         const outputPath = Path.resolve(tmpPath, 'output');
         FileSystem.mkdirpSync(inputPath);
         FileSystem.mkdirpSync(outputPath);
-        FileSystem.writeFileSync(Path.resolve(inputPath, 'environment.yml'), environmentYaml);
-        FileSystem.writeFileSync(Path.resolve(inputPath, 'code.py'), code);
+        FileSystem.writeFileSync(Path.resolve(inputPath, 'package.json'), packageJson);
+        FileSystem.writeFileSync(Path.resolve(inputPath, 'code.js'), code);
         FileSystem.writeFileSync(Path.resolve(inputPath, 'script.sh'),
             `
-            conda env create -f /input/environment.yml -n ${condaEnvNameOverride} --force
-            conda run -n ${condaEnvNameOverride} python /input/code.py
+            mkdir -p ${containerWorkDir} 
+            rm ${containerWorkDir}/package.json
+            rm ${containerWorkDir}/code.js
+            cp /input/package.json ${containerWorkDir} 
+            cp /input/code.js ${containerWorkDir}
+            cd ${containerWorkDir} && npm install && npm start
             `
         );
 

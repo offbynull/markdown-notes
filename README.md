@@ -6,13 +6,12 @@ Inspired by the lack of simple note taking tools for developers and engineers, M
 
 * Bloat-free and cross-platform -- no built-in editors, UIs, cloud-support, etc..
 * Ingests an extended form of CommonMark-flavoured markdown:
-  * Supports embedding PlantUML diagrams.
-  * Supports embedding GraphViz dot diagrams.
-  * Supports embedding LaTeX math expressions (MathJax / KaTeX).
-  * Supports embedding CSVs as tables.
-  * Supports embedding diagrams generated via Python.
+  * Supports automatic table of contents generation.
   * Supports automatic bookmarking.
-  * Supports generating table of contents.
+  * Supports diagramming languages: GraphViz and PlantUML.
+  * Supports programming languages: Python, Node, and Java.
+  * Supports math typesetting: MathJax and KaTeX.
+  * Supports CSV tables.
   * etc..
 * Generates a single-file HTML output -- everything needed is embedded. 
 * Provides a simple API for extending markdown -- write new markdown extensions as you need them.
@@ -28,9 +27,9 @@ To setup MarkdownNotes...
 
   **WARNING**: You may have issues installing buildah on Ubuntu 18+. If the projectatomic PPA doesn't register with Ubuntu, you'll need to tell Ubuntu to reference the PPA as if it were an older version of Ubuntu. Open the *Software & Updates* application, go to the *Other Updates* tab, and edit the *projectatomic* entry such that the *distribution* points to an earlier release of Ubuntu (e.g. bionic). Once that's done, try performing the installation instructions again.
 
-To run MarkdownNotes, run `npm start [path]` (where `[path]` is your work directory). A browser window will open to the rendered output of `[path]/input/input.md`. Any changes to any file in `[path]/input` will result in the rendered output being updated (scroll position will be maintained).
+To run MarkdownNotes, run `npm start -- [path]` (where `[path]` is your work directory). A browser window will open to the rendered output of `[path]/input/input.md`. Any changes to any file in `[path]/input` will result in the rendered output being updated (scroll position will be maintained).
 
-The rendered output is a self-contained HTML that can be accessed at `[path]/output/output.html`. 
+The rendered output is a self-contained HTML file located at `[path]/output/output.html`. 
 
 ## Syntax
 
@@ -42,7 +41,7 @@ The markdown syntax used by MarkdownNotes is an extended variant of CommonMark. 
 ```
 ````
 
-For a comphensive overview of the built-in extensions, see [example/output/output.html](example/output/output.html) and [example/input/input.md](example/input/input.md).
+For a comphensive overview of the built-in extensions, see the example [output](example/output/output.html) and [input](example/input/input.md).
 
 ## Extending
 
