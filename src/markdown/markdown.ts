@@ -34,6 +34,7 @@ import { CsvExtension } from './csv_extension';
 import { PythonExtension } from './python_extension';
 import { JavaExtension } from './java_extension';
 import { NodeExtension } from './node_extension';
+import { ImageExtension } from './image_extension';
 
 export default class Markdown {
     private readonly markdownIt: MarkdownIt;
@@ -60,6 +61,7 @@ export default class Markdown {
         extenderConfig.register(new TocExtension());
         extenderConfig.register(new DotExtension());
         extenderConfig.register(new NoteExtension());
+        extenderConfig.register(new ImageExtension());
         extenderConfig.register(new MathJaxExtension());
         extenderConfig.register(new KatexExtension());
         extenderConfig.register(new PlantUmlExtension());

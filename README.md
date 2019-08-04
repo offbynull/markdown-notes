@@ -11,6 +11,7 @@ Inspired by the lack of simple note taking tools for developers and engineers, M
   * Diagramming languages: GraphViz and PlantUML.
   * Programming languages: Python, Node, and Java.
   * Indexing: Table of contents and bookmarks (automatic linking).
+  * Inline image annotations.
   * etc..
 * Single-file HTML output -- everything needed is embedded. 
 * Simple REPL loop -- changes rendered immediately.

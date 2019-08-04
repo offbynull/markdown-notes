@@ -35,7 +35,7 @@ function wrapImage(pathOrBuffer: string | Buffer) {
 export function wrapAsSvg(pathOrBuffer: string | Buffer) {
     const data = wrapImage(pathOrBuffer);
 
-    return (
+    return Buffer.from(
 `<?xml version="1.0" standalone="no"?>
 <svg width="${data.width}" height="${data.height}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <image xlink:href="${data.dataUri}" x="0" y="0" width="${data.width}" height="${data.height}" />
@@ -53,7 +53,7 @@ export function scaleAsSvg(pathOrBuffer: string | Buffer, xFactor: number, yFact
     const newWidth = data.width * xFactor;
     const newHeight = data.height * yFactor;
 
-    return (
+    return Buffer.from(
 `<?xml version="1.0" standalone="no"?>
 <svg width="${newWidth}" height="${newHeight}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <image transform="scale(${xFactor} ${yFactor})" xlink:href="${data.dataUri}" x="0" y="0" width="${data.width}" height="${data.height}" />
@@ -71,7 +71,7 @@ export function resizeAsSvg(pathOrBuffer: string | Buffer, width: number, height
     const xFactor = width / data.width;
     const yFactor = height / data.height;
 
-    return (
+    return Buffer.from(
 `<?xml version="1.0" standalone="no"?>
 <svg width="${width}" height="${height}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <image transform="scale(${xFactor} ${yFactor})" xlink:href="${data.dataUri}" x="0" y="0" width="${data.width}" height="${data.height}" />
@@ -95,7 +95,7 @@ export function canvasResizeAsSvg(pathOrBuffer: string | Buffer, width: number, 
         yOffset = height - data.height - (-yOffset);
     }
 
-    return (
+    return Buffer.from(
 `<?xml version="1.0" standalone="no"?>
 <svg width="${width}" height="${height}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <image xlink:href="${data.dataUri}" x="${xOffset}" y="${yOffset}" width="${data.width}" height="${data.height}" />
@@ -118,7 +118,7 @@ export function cropAsSvg(pathOrBuffer: string | Buffer, x: number, y: number, w
         throw new Error('width/height must be <= image width/height');
     }
 
-    return (
+    return Buffer.from(
 `<?xml version="1.0" standalone="no"?>
 <svg width="${width}" height="${height}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <image transform="translate(${-x} ${-y})" xlink:href="${data.dataUri}" x="0" y="0" width="${data.width}" height="${data.height}" />
@@ -135,7 +135,7 @@ export function highlightPolygonAsSvg(pathOrBuffer: string | Buffer, polygon: {x
 
     const data = wrapImage(pathOrBuffer);
 
-    return (
+    return Buffer.from(
 `<?xml version="1.0" standalone="no"?>
 <svg width="${data.width}" height="${data.height}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <image xlink:href="${data.dataUri}" x="0" y="0" width="${data.width}" height="${data.height}" />
@@ -159,7 +159,7 @@ export function highlightArrowAsSvg(pathOrBuffer: string | Buffer, path: {x: num
 
     const data = wrapImage(pathOrBuffer);
 
-    return (
+    return Buffer.from(
 `<?xml version="1.0" standalone="no"?>
 <svg width="${data.width}" height="${data.height}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <defs>
@@ -188,7 +188,7 @@ export function highlightTextAsSvg(pathOrBuffer: string | Buffer, x: number, y: 
 
     const data = wrapImage(pathOrBuffer);
 
-    return (
+    return Buffer.from(
 `<?xml version="1.0" standalone="no"?>
 <svg width="${data.width}" height="${data.height}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <!-- Embedded font is OpenSans... extracted from https://gist.github.com/stefanmaric/a5043c0998d9fc35483d --> 

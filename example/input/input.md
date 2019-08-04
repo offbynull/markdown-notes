@@ -48,6 +48,55 @@ If the length of the captured text between the matches are equal, an error is th
 1. You can explicitly prevent a piece of text from being matched to any bookmark by wrapping it in a bm-r inline tag (`` `{bm-ri} TEXT` ``). For example, coke zero should link to the example above but `{bm-ri} coke zero` won't. 
 1. You can use the bm-ambiguous inline tag (`` `{bm-ambiguous} ERROR_TEXT/REGEX/REGEX_FLAGS` ``) to generate an error telling the user that they need to disambiguate. For example, you may want to create a bookmark for the word *base*, but in 2 different contexts: *base* as in pH scale and *base* as in nitrogenous base. You can use the bm-ambiguous tag to catch any instances of *base* and throw an error notify the user that they need to provide a more specialized version (e.g. `` `{bm-ambiguous} Base is too ambiguous. Use either base_pH or base_nucleotide/\b(base)\b/i` ``), which you can target using normal bm tags (e.g. `` `{bm} base/\b(base)_nucleotide?\b/i` `` -- this will match *base_nucleotide* but only output *base*).
 
+# Image Annotations
+
+You can include local images and annotate / scale / crop them using the img block tag:
+
+````
+```{img}
+201903_Ribosome.svg
+Diagram of ribosome translating messanger RNA
+By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595
+scale 0.25 0.25
+text 20 20 mRNA strand
+arrow 40 30 40 160 90 160
+highlight_poly 60 75 60 120 230 220 230 180
+```
+````
+
+Output:
+
+```{img}
+201903_Ribosome.svg
+Diagram of ribosome translating messanger RNA
+By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595
+scale 0.25 0.25
+text 20 20 mRNA strand
+arrow 40 30 40 160 90 160
+highlight_poly 60 75 60 120 230 220 230 180
+```
+
+The first 3 lines must be as follows:
+ 1. file name (should sit in the same directory as the input metadata file).
+ 2. alternative text for the image (e.g. description of the image)
+ 3. title text for the image (e.g. attribution).
+
+Subsequent lines are commands that you can use to manipulate and annotate the image...
+ * *scale x_scale y_scale* -- scale the image by some percentage (1.0 = 100%).
+ * *resize new_width new_height* -- scale the image to some new dimension (unit is pixels).
+ * *canvas new_width new_height* -- resize the image canvas to some new dimension without resizing the contents (unit is pixels).
+ * *crop x_offset y_offset new_width new_height* -- crop the image to some new dimension (unit is pixels).
+ * *highlight x_offset y_offset width height* -- highlight a rectangle on the image (unit is pixels).
+ * *highlight_poly x1 y1 x2 y2 x3 y3 ...* -- highlight a polygon on the image (unit is pixels).
+ * *arrow x1 y1 x2 y2 ...* -- draw an arrow on the image (unit is pixels).
+ * *text x_offset y_offset string* -- write a string on the image (unit is pixels).
+ * *highlight_color html_color_code* -- changes the highlight color.
+ * *font_color html_color_code* -- changes the font color.
+ * *font_size size* -- changes the font size (unit is pixels).
+ * *stroke_size size* -- changes the stroke size (unit is pixels).s
+ 
+
+
 # Notes
 
 Generate notes by using the note block tag:
