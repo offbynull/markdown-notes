@@ -58,9 +58,9 @@ You can include local images and annotate / scale / crop them using the img bloc
 Diagram of ribosome translating messanger RNA
 By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595
 scale 0.25 0.25
-text 20 20 mRNA strand
-arrow 40 30 40 160 90 160
-highlight_poly 60 75 60 120 230 220 230 180
+text 0.1 0.1 mRNA strand
+arrow 0.1 0.1  0.1 0.55  0.2 0.55
+highlight_poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
 ```
 ````
 
@@ -70,30 +70,29 @@ Output:
 201903_Ribosome.svg
 Diagram of ribosome translating messanger RNA
 By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595
-scale 0.25 0.25
-text 20 20 mRNA strand
-arrow 40 30 40 160 90 160
-highlight_poly 60 75 60 120 230 220 230 180
+scale 0.45 0.45
+text 0.1 0.1 mRNA strand
+arrow 0.1 0.1  0.1 0.55  0.25 0.55
+highlight_poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
 ```
 
 The first 3 lines must be as follows:
- 1. file name (should sit in the same directory as the input metadata file).
- 2. alternative text for the image (e.g. description of the image)
+ 1. file name (should sit in the same directory as input.md).
+ 2. alternative text for the image (e.g. description of the image).
  3. title text for the image (e.g. attribution).
 
 Subsequent lines are commands that you can use to manipulate and annotate the image...
- * *scale x_scale y_scale* -- scale the image by some percentage (1.0 = 100%).
- * *resize new_width new_height* -- scale the image to some new dimension (unit is pixels).
- * *canvas new_width new_height* -- resize the image canvas to some new dimension without resizing the contents (unit is pixels).
- * *crop x_offset y_offset new_width new_height* -- crop the image to some new dimension (unit is pixels).
- * *highlight x_offset y_offset width height* -- highlight a rectangle on the image (unit is pixels).
- * *highlight_poly x1 y1 x2 y2 x3 y3 ...* -- highlight a polygon on the image (unit is pixels).
- * *arrow x1 y1 x2 y2 ...* -- draw an arrow on the image (unit is pixels).
- * *text x_offset y_offset string* -- write a string on the image (unit is pixels).
+ * *scale x_scale y_scale* -- scale the image by some percentage (unit is percentage).
+ * *expand new_width new_height x_offset y_offset* -- expand the image canvas to some new dimension without resizing the contents (unit is percentage).
+ * *crop x_offset y_offset new_width new_height* -- crop the image to some new dimension (unit is percentage).
+ * *highlight x_offset y_offset width height* -- highlight a rectangle on the image (unit is percentage).
+ * *highlight_poly x1 y1 x2 y2 x3 y3 ...* -- highlight a polygon on the image (unit is percentage).
+ * *arrow x1 y1 x2 y2 ...* -- draw an arrow on the image (unit is percentage).
+ * *text x_offset y_offset string* -- write a string on the image (unit is percentage).
  * *highlight_color html_color_code* -- changes the highlight color.
  * *font_color html_color_code* -- changes the font color.
  * *font_size size* -- changes the font size (unit is pixels).
- * *stroke_size size* -- changes the stroke size (unit is pixels).s
+ * *stroke_size size* -- changes the stroke size (unit is pixels).
  
 
 

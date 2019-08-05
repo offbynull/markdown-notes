@@ -22,7 +22,6 @@ import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 import * as ImageUtils from '../utils/image_utils';
-import { md5 } from '../utils/hash_utils';
 
 export class ImageExtension implements Extension {
     public readonly tokenIds: ReadonlyArray<TokenIdentifier> = [
@@ -120,32 +119,20 @@ export class ImageExtension implements Extension {
                     svgData = ImageUtils.scaleAsSvg(svgData, xScale, yScale);
                     break;
                 }
-                case 'resize': {
+                case 'expand': {
                     const params = line.split(/\s+/, 3);
                     if (params.length !== 3) {
-                        throw new Error(`bad params -- resize new_width new_height: ${line}`);
+                        throw new Error(`Bad params -- expand new_width new_height x_offset y_offset: ${line}`);
                     }
                     const newWidth = parseFloat(params[1]);
                     const newHeight = parseFloat(params[2]);
-                    if (isNaN(newWidth) || isNaN(newHeight)) {
-                        throw new Error(`new_width/new_height param cannot be parsed as float: ${line}`);
+                    const xOffset = parseFloat(params[3]);
+                    const yOffset = parseFloat(params[4]);
+                    if (isNaN(newWidth) || isNaN(newHeight) || isNaN(xOffset) || isNaN(yOffset)) {
+                        throw new Error(`new_width/new_height/x_offset/y_offset param cannot be parsed as float: ${line}`);
                     }
 
-                    svgData = ImageUtils.resizeAsSvg(svgData, newWidth, newHeight);
-                    break;
-                }
-                case 'canvas': {
-                    const params = line.split(/\s+/, 3);
-                    if (params.length !== 3) {
-                        throw new Error(`Bad params -- canvas new_width new_height: ${line}`);
-                    }
-                    const newWidth = parseFloat(params[1]);
-                    const newHeight = parseFloat(params[2]);
-                    if (isNaN(newWidth) || isNaN(newHeight)) {
-                        throw new Error(`new_width/new_height param cannot be parsed as float: ${line}`);
-                    }
-
-                    svgData = ImageUtils.canvasResizeAsSvg(svgData, newWidth, newHeight);
+                    svgData = ImageUtils.expandAsSvg(svgData, newWidth, newHeight, xOffset, yOffset);
                     break;
                 }
                 case 'crop': {

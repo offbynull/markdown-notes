@@ -79,7 +79,7 @@ export function resizeAsSvg(pathOrBuffer: string | Buffer, width: number, height
     );
 }
 
-export function canvasResizeAsSvg(pathOrBuffer: string | Buffer, width: number, height: number, xOffset: number = 0, yOffset: number = 0) {
+export function expandAsSvg(pathOrBuffer: string | Buffer, width: number, height: number, xOffset: number = 0, yOffset: number = 0) {
     if (width <= 0 || height <= 0) {
         throw new Error('width/height must be > 0');
     }
@@ -95,6 +95,11 @@ export function canvasResizeAsSvg(pathOrBuffer: string | Buffer, width: number, 
         yOffset = height - data.height - (-yOffset);
     }
 
+    width = width * data.width;
+    height = height * data.height;
+    xOffset = xOffset * data.width;
+    yOffset = yOffset * data.height;
+
     return Buffer.from(
 `<?xml version="1.0" standalone="no"?>
 <svg width="${width}" height="${height}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -104,12 +109,12 @@ export function canvasResizeAsSvg(pathOrBuffer: string | Buffer, width: number, 
 }
 
 export function cropAsSvg(pathOrBuffer: string | Buffer, x: number, y: number, width: number, height: number) {
-    if (x < 0 || y < 0) {
-        throw new Error('x/y must be >= 0');
+    if (x < 0 || x > 1 || y < 0 || y > 1) {
+        throw new Error('x/y must be >= 0 and <= 1');
     }
 
-    if (width <= 0 || height <= 0) {
-        throw new Error('width/height must be > 0');
+    if (width <= 0 || width > 1 || height <= 0 || height > 1) {
+        throw new Error('width/height must be > 0 and <= 1');
     }
 
     const data = wrapImage(pathOrBuffer);
@@ -117,6 +122,11 @@ export function cropAsSvg(pathOrBuffer: string | Buffer, x: number, y: number, w
     if (width > data.width || height > data.height) {
         throw new Error('width/height must be <= image width/height');
     }
+
+    x = x * data.width;
+    y = y * data.height;
+    width = width * data.width;
+    height = height * data.height;
 
     return Buffer.from(
 `<?xml version="1.0" standalone="no"?>
@@ -134,6 +144,11 @@ export function highlightPolygonAsSvg(pathOrBuffer: string | Buffer, polygon: {x
     validateColorValue(color);
 
     const data = wrapImage(pathOrBuffer);
+
+    polygon = polygon.map(e => ({
+        x: e.x * data.width,
+        y: e.y * data.height
+    }));
 
     return Buffer.from(
 `<?xml version="1.0" standalone="no"?>
@@ -158,6 +173,11 @@ export function highlightArrowAsSvg(pathOrBuffer: string | Buffer, path: {x: num
     validateColorValue(color);
 
     const data = wrapImage(pathOrBuffer);
+
+    path = path.map(e => ({
+        x: e.x * data.width,
+        y: e.y * data.height
+    }));
 
     return Buffer.from(
 `<?xml version="1.0" standalone="no"?>
@@ -187,6 +207,9 @@ export function highlightTextAsSvg(pathOrBuffer: string | Buffer, x: number, y: 
     validateColorValue(fgColor);
 
     const data = wrapImage(pathOrBuffer);
+
+    x = x * data.width;
+    y = y * data.height;
 
     return Buffer.from(
 `<?xml version="1.0" standalone="no"?>
