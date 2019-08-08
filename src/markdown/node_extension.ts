@@ -45,7 +45,7 @@ export class NodeExtension implements Extension {
         new TokenIdentifier('node', Type.BLOCK)
     ];
 
-    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
+    public render(markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext): string {
         const token = tokens[tokenIdx];
         const nodeCode = token.content;
 

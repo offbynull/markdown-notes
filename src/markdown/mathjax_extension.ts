@@ -29,7 +29,7 @@ export class MathJaxExtension implements Extension {
         new TokenIdentifier('mj', Type.INLINE)
     ];
 
-    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
+    public render(markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext): string {
         const token = tokens[tokenIdx];
         let tex = token.content;
 

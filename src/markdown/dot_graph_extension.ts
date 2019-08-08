@@ -31,7 +31,7 @@ export class DotExtension implements Extension {
         new TokenIdentifier('dot', Type.BLOCK),
     ];
 
-    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
+    public render(markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext): string {
         const token = tokens[tokenIdx];
         const dotCode = token.content;
 

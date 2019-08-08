@@ -16,7 +16,6 @@
  * License along with this library.
  */
 
-import FileSystemExtra from 'fs-extra';
 import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
@@ -31,7 +30,7 @@ export class KatexExtension implements Extension {
         new TokenIdentifier('kt', Type.INLINE)
     ];
 
-    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
+    public render(markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext): string {
         const token = tokens[tokenIdx];
         const tex = token.content;
 

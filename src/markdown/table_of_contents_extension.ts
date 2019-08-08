@@ -58,7 +58,7 @@ export class TocExtension implements Extension {
         }
     }
 
-    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
+    public render(markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext): string {
         const type = tokens[tokenIdx].type;
         switch (type) {
             case 'toc':
@@ -70,13 +70,13 @@ export class TocExtension implements Extension {
         }
     }
 
-    private renderTocAnchor(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
+    private renderTocAnchor(markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext): string {
         const tocAnchorToken = tokens[tokenIdx];
         const tocAnchorId = tocAnchorToken.info;
         return '<a name="' + markdownIt.utils.escapeHtml(tocAnchorId) + '"></a>';
     }
 
-    private renderToc(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
+    private renderToc(markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext): string {
         const tocData: TocData = context.shared.get('toc') || new TocData();
         context.shared.set('toc', tocData);
 

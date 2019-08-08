@@ -33,8 +33,7 @@ export class BookmarkReferenceIgnoreExtension implements Extension {
         new TokenIdentifier('bm-ri', Type.INLINE)
     ];
 
-    public process(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number): void {
-        const token = tokens[tokenIdx];
+    public process(markdownIt: MarkdownIt, token: Token): void {
         token.type = 'text_no_bookmark_reference';
         token.tag = '';
     }
@@ -46,14 +45,13 @@ export class BookmarkExtension implements Extension {
         new TokenIdentifier('bm-ambiguous', Type.INLINE)
     ];
 
-    public process(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): void {
+    public process(markdownIt: MarkdownIt, token: Token, context: ExtensionContext): void {
         const bookmarkData: BookmarkData = context.shared.get('bookmark') || new BookmarkData();
         context.shared.set('bookmark', bookmarkData);
 
         const anchorId = "BOOKMARK" + bookmarkData.nextId;
         bookmarkData.nextId++;
 
-        const token = tokens[tokenIdx];
         switch (token.type) {
             case 'bm': {
                 const info = (() => {
@@ -189,7 +187,7 @@ export class BookmarkExtension implements Extension {
         }
     }
     
-    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
+    public render(markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext): string {
         const bookmarkData: BookmarkData = context.shared.get('bookmark') || new BookmarkData();
         context.shared.set('bookmark', bookmarkData);
 

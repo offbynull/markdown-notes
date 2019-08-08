@@ -35,7 +35,7 @@ export class CsvExtension implements Extension {
         new TokenIdentifier('csv', Type.BLOCK)
     ];
 
-    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
+    public render(markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext): string {
         const token = tokens[tokenIdx];
         let content = token.content.trim();
         const lines = content.split(/[\r\n]/g);

@@ -39,7 +39,7 @@ export class PythonExtension implements Extension {
         new TokenIdentifier('python', Type.BLOCK)
     ];
 
-    public render(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): string {
+    public render(markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext): string {
         const token = tokens[tokenIdx];
         const condaCode = token.content;
 

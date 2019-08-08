@@ -27,13 +27,13 @@ export class TitleExtension implements Extension {
         new TokenIdentifier('title', Type.INLINE)
     ];
 
-    public process(markdownIt: MarkdownIt, tokens: Token[], tokenIdx: number, context: ExtensionContext): void {
+    public process(markdownIt: MarkdownIt, token: Token, context: ExtensionContext): void {
         const existingTitle = context.shared.get('title');
         if (existingTitle !== undefined) {
             throw 'Title already set to ' + existingTitle;
         }
 
-        const title = tokens[tokenIdx].content;
+        const title = token.content;
         context.shared.set('title', title);
     }
 
