@@ -89,13 +89,16 @@ function writeCompletedOutput(outputHtml: string) {
 }
 
 function writeRenderingOutput(outputHtml: string, stdout: Buffer, stderr: Buffer) {
+    let message = `Rendering (${new Date().toISOString()})...`;
+    if (stdout.length > 0) {
+        message += '\n-----stdout-----\n' + stdout.toString().replace(/[\r\n]+$/, '');
+    }
+    if (stderr.length > 0) {
+        message += '\n-----stderr-----\n' + stderr.toString().replace(/[\r\n]+$/, '');
+    }
     FileSystem.writeFileSync(
         outputPath + '/output.html',
-        injectHtmlErrorOverlay(
-            outputHtml,
-            'Rendering...\n-----stdout-----\n' + stdout.toString().replace(/[\r\n]+$/, '') + '\n-----stderr-----\n' + stderr.toString().replace(/[\r\n]+$/, ''),
-            'rgba(0,0,0,0.5)'
-        ),
+        injectHtmlErrorOverlay(outputHtml, message, 'rgba(0,0,0,0.5)'),
         { encoding: 'utf8' }
     );
     bs.reload('output.html');
