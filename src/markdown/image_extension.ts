@@ -120,8 +120,8 @@ export class ImageExtension implements Extension {
                     break;
                 }
                 case 'expand': {
-                    const params = line.split(/\s+/, 3);
-                    if (params.length !== 3) {
+                    const params = line.split(/\s+/, 5);
+                    if (params.length !== 5) {
                         throw new Error(`Bad params -- expand new_width new_height x_offset y_offset: ${line}`);
                     }
                     const newWidth = parseFloat(params[1]);
