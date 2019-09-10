@@ -24,7 +24,7 @@ The flavour of Markdown extended by MarkdownNotes is [CommonMark](https://common
 To setup MarkdownNotes...
 
 1. clone the repository.
-1. ensure [buildah](https://github.com/containers/buildah/blob/master/install.md) is installed.
+1. ensure [buildah](https://github.com/containers/buildah/blob/master/install.md) and [runc](https://github.com/opencontainers/runc) are installed.
 1. ensure [NodeJS](https://nodejs.org) is installed.
 1. run `npm install`.
 
