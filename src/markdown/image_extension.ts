@@ -25,7 +25,6 @@ import * as ImageUtils from '../utils/image_utils';
 
 export class ImageExtension implements Extension {
     public readonly tokenIds: ReadonlyArray<TokenIdentifier> = [
-        new TokenIdentifier('image', Type.BLOCK),
         new TokenIdentifier('img', Type.BLOCK)
     ];
 
@@ -102,7 +101,7 @@ export class ImageExtension implements Extension {
                     if (isNaN(newFontSize)) {
                         throw new Error(`size param cannot be parsed as float: ${line}`);
                     }
-                    fontSize = newFontSize;
+                    strokeSize = newFontSize;
                     break;
                 }
                 case 'scale': {
