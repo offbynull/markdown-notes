@@ -97,11 +97,11 @@ export class ImageExtension implements Extension {
                     if (params.length !== 2) {
                         throw new Error(`bad params -- stroke_size size: ${line}`);
                     }
-                    const newFontSize = parseFloat(params[1]);
-                    if (isNaN(newFontSize)) {
+                    const newStrokeSize = parseFloat(params[1]);
+                    if (isNaN(newStrokeSize)) {
                         throw new Error(`size param cannot be parsed as float: ${line}`);
                     }
-                    strokeSize = newFontSize;
+                    strokeSize = newStrokeSize;
                     break;
                 }
                 case 'scale': {
@@ -219,7 +219,7 @@ export class ImageExtension implements Extension {
                         return ret;
                     })();
                     
-                    svgData = ImageUtils.highlightArrowAsSvg(svgData, points, 6, highlightColor);
+                    svgData = ImageUtils.highlightArrowAsSvg(svgData, points, strokeSize, highlightColor);
                     break;
                 }
                 case 'text': {
@@ -247,7 +247,7 @@ export class ImageExtension implements Extension {
         
         const imgPath = context.injectFile(tmpPath);
 
-        return `<img src="${markdownIt.utils.escapeHtml(imgPath)}" alt="${markdownIt.utils.escapeHtml(altText)}" title="${markdownIt.utils.escapeHtml(title)}" />`
+        return `<p><img src="${markdownIt.utils.escapeHtml(imgPath)}" alt="${markdownIt.utils.escapeHtml(altText)}" title="${markdownIt.utils.escapeHtml(title)}" /></p>`
     }
 }
 
