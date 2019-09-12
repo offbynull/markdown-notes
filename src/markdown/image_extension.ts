@@ -45,6 +45,11 @@ export class ImageExtension implements Extension {
         const srcData = FileSystem.readFileSync(srcPath);
 
         let svgData = ImageUtils.wrapAsSvg(srcData);
+
+        let highlightColor: string | undefined;
+        let fontColor: string | undefined;
+        let fontSize: number | undefined;
+        let strokeSize: number | undefined;
         for (let i = 3; i < lines.length; i++) {
             const line = lines[i].trim();
             if (line.length === 0) {
@@ -59,10 +64,6 @@ export class ImageExtension implements Extension {
                 return split[0].toLowerCase();
             })();
 
-            let highlightColor: string | undefined;
-            let fontColor: string | undefined;
-            let fontSize: number | undefined;
-            let strokeSize: number | undefined
             switch (command) {
                 case 'highlight_color': {
                     const params = line.split(/\s+/, 2);
