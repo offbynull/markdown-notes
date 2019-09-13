@@ -1,5 +1,5 @@
 import FileSystem from 'fs-extra';
-import { wrapAsSvg, scaleAsSvg, resizeAsSvg, cropAsSvg, highlightPolygonAsSvg, highlightTextAsSvg, highlightArrowAsSvg } from "./image_utils";
+import { wrapAsSvg, scaleAsSvg, resizeAsSvg, cropAsSvg, polygonAsSvg, textAsSvg, arrowAsSvg } from "./image_utils";
 
 
 // this doesn't test that the annotations made it out... just makes sure no crashes happen
@@ -16,7 +16,7 @@ import { wrapAsSvg, scaleAsSvg, resizeAsSvg, cropAsSvg, highlightPolygonAsSvg, h
 //     svgData = Buffer.from(resizeAsSvg(svgData, 20, 200));
 //     svgData = Buffer.from(cropAsSvg(svgData, 0, 50, 20, 100));
 //     svgData = Buffer.from(canvasResizeAsSvg(svgData, 300, 300, -10, -10));
-//     svgData = Buffer.from(highlightPolygonAsSvg(svgData, [{x: 105, y: 105}, {x: 105, y: 150}, {x: 150, y: 105}]));
+//     svgData = Buffer.from(polygonAsSvg(svgData, [{x: 105, y: 105}, {x: 105, y: 150}, {x: 150, y: 105}]));
 //     svgData = Buffer.from(highlightArrowAsSvg(svgData, [{x: 5, y: 5}, {x: 5, y: 50}, {x: 50, y: 25}], 6));
 //     svgData = Buffer.from(highlightTextAsSvg(svgData, 50, 50, 'Hello world!'));
 //     svgData = Buffer.from(highlightTextAsSvg(svgData, 70, 70, 'Hi!'));

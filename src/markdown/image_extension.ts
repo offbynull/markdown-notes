@@ -46,10 +46,10 @@ export class ImageExtension implements Extension {
 
         let svgData = ImageUtils.wrapAsSvg(srcData);
 
-        let highlightColor: string | undefined;
-        let fontColor: string | undefined;
-        let fontSize: number | undefined;
-        let strokeSize: number | undefined;
+        let bgColor: string = '#7f7f7fff';
+        let fgColor: string = '#000000ff';
+        let fontSize: number = 16;
+        let strokeWidth: number = 6;
         for (let i = 3; i < lines.length; i++) {
             const line = lines[i].trim();
             if (line.length === 0) {
@@ -65,20 +65,22 @@ export class ImageExtension implements Extension {
             })();
 
             switch (command) {
-                case 'highlight_color': {
+                case 'bg_color': {
                     const params = line.split(/\s+/, 2);
                     if (params.length !== 2) {
-                        throw new Error(`bad params -- highlight_color html_color_code: ${line}`);
+                        throw new Error(`bad params -- bg_color html_color_code: ${line}`);
                     }
-                    highlightColor = params[1];
+                    ImageUtils.validateColorValue(params[1]);
+                    bgColor = params[1];
                     break;
                 }
-                case 'font_color': {
+                case 'fg_color': {
                     const params = line.split(/\s+/, 2);
                     if (params.length !== 2) {
-                        throw new Error(`bad params -- font_color html_color_code: ${line}`);
+                        throw new Error(`bad params -- fg_color html_color_code: ${line}`);
                     }
-                    fontColor = params[1];
+                    ImageUtils.validateColorValue(params[1]);
+                    fgColor = params[1];
                     break;
                 }
                 case 'font_size': {
@@ -93,16 +95,16 @@ export class ImageExtension implements Extension {
                     fontSize = newFontSize;
                     break;
                 }
-                case 'stroke_size': {
+                case 'stroke': {
                     const params = line.split(/\s+/, 2);
                     if (params.length !== 2) {
                         throw new Error(`bad params -- stroke_size size: ${line}`);
                     }
-                    const newStrokeSize = parseFloat(params[1]);
-                    if (isNaN(newStrokeSize)) {
-                        throw new Error(`size param cannot be parsed as float: ${line}`);
+                    const newStrokeWidth = parseFloat(params[1]);
+                    if (isNaN(newStrokeWidth)) {
+                        throw new Error(`width param cannot be parsed as float: ${line}`);
                     }
-                    strokeSize = newStrokeSize;
+                    strokeWidth = newStrokeWidth;
                     break;
                 }
                 case 'scale': {
@@ -151,10 +153,10 @@ export class ImageExtension implements Extension {
                     svgData = ImageUtils.cropAsSvg(svgData, xOffset, yOffset, newWidth, newHeight);
                     break;
                 }
-                case 'highlight': {
+                case 'rect': {
                     const params = line.split(/\s+/);
                     if (params.length !== 5) {
-                        throw new Error(`Bad params -- highlight x_offset y_offset width height: ${line}`);
+                        throw new Error(`Bad params -- rect x_offset y_offset width height: ${line}`);
                     }
                     const xOffset = parseFloat(params[1]);
                     const yOffset = parseFloat(params[2]);
@@ -170,13 +172,13 @@ export class ImageExtension implements Extension {
                         {x: xOffset, y: yOffset + height}
                     ];
 
-                    svgData = ImageUtils.highlightPolygonAsSvg(svgData, points, highlightColor);
+                    svgData = ImageUtils.polygonAsSvg(svgData, points, strokeWidth, bgColor, fgColor);
                     break;
                 }
-                case 'highlight_poly': {
+                case 'poly': {
                     const params = line.split(/\s+/);
                     if (params.length < 1) {
-                        throw new Error(`Bad params -- highlight_poly x1 y1 x2 y2 x3 y3 ...: ${line}`);
+                        throw new Error(`Bad params -- poly x1 y1 x2 y2 x3 y3 ...: ${line}`);
                     }
                     const points = (() => {
                         const arr = params.slice(1);
@@ -195,7 +197,7 @@ export class ImageExtension implements Extension {
                         return ret;
                     })();
 
-                    svgData = ImageUtils.highlightPolygonAsSvg(svgData, points, highlightColor);
+                    svgData = ImageUtils.polygonAsSvg(svgData, points, strokeWidth, bgColor, fgColor);
                     break;
                 }
                 case 'arrow': {
@@ -219,8 +221,12 @@ export class ImageExtension implements Extension {
                         }
                         return ret;
                     })();
+
+                    if (strokeWidth === 0) {
+                        throw new Error(`Stroke size must be greater than 0: ${line}`);
+                    }
                     
-                    svgData = ImageUtils.highlightArrowAsSvg(svgData, points, strokeSize, highlightColor);
+                    svgData = ImageUtils.arrowAsSvg(svgData, points, strokeWidth, fgColor);
                     break;
                 }
                 case 'text': {
@@ -235,7 +241,7 @@ export class ImageExtension implements Extension {
                     }
                     const text = getRemainder(line, /\s+/g, 3);
 
-                    svgData = ImageUtils.highlightTextAsSvg(svgData, xOffset, yOffset, text, fontSize, highlightColor, fontColor);
+                    svgData = ImageUtils.textAsSvg(svgData, xOffset, yOffset, text, fontSize, bgColor, fgColor);
                     break;
                 }
                 default:

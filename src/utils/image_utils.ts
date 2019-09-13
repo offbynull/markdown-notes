@@ -136,12 +136,13 @@ export function cropAsSvg(pathOrBuffer: string | Buffer, x: number, y: number, w
     );
 }
 
-export function highlightPolygonAsSvg(pathOrBuffer: string | Buffer, polygon: {x: number, y: number}[], color: string = '#ffff007f') {
+export function polygonAsSvg(pathOrBuffer: string | Buffer, polygon: {x: number, y: number}[], strokeWidth: number = 0, bgColor: string, fgColor: string) {
     if (polygon.length < 2) {
         throw new Error('polygon requires atleast 2 points');
     }
 
-    validateColorValue(color);
+    validateColorValue(bgColor);
+    validateColorValue(fgColor);
 
     const data = wrapImage(pathOrBuffer);
 
@@ -154,14 +155,13 @@ export function highlightPolygonAsSvg(pathOrBuffer: string | Buffer, polygon: {x
 `<?xml version="1.0" standalone="no"?>
 <svg width="${data.width}" height="${data.height}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <image xlink:href="${data.dataUri}" x="0" y="0" width="${data.width}" height="${data.height}" />
-<polygon points="${polygon.map(p => p.x + ' ' + p.y).join(' ')}" stroke="transparent" fill="${color}" stroke-width="0"/>
+<polygon points="${polygon.map(p => p.x + ' ' + p.y).join(' ')}" stroke="${fgColor}" fill="${bgColor}" stroke-width="${strokeWidth}"/>
 </svg>`
     );
 }
 
 
-export function highlightArrowAsSvg(pathOrBuffer: string | Buffer, path: {x: number, y: number}[],
-        thickness: number = 6, color: string = '#ffff007f') {
+export function arrowAsSvg(pathOrBuffer: string | Buffer, path: {x: number, y: number}[], thickness: number, color: string) {
     if (thickness <= 0) {
         throw new Error('thickness must be > 0');
     }
@@ -196,8 +196,7 @@ export function highlightArrowAsSvg(pathOrBuffer: string | Buffer, path: {x: num
     );
 }
 
-export function highlightTextAsSvg(pathOrBuffer: string | Buffer, x: number, y: number, text: string,
-        size: number = 16, bgColor: string = '#ffff007f', fgColor: string = '#000000ff') {
+export function textAsSvg(pathOrBuffer: string | Buffer, x: number, y: number, text: string, size: number, bgColor: string, fgColor: string) {
     if (size <= 0) {
         throw new Error('size must be > 0');
     }
@@ -225,7 +224,7 @@ export function highlightTextAsSvg(pathOrBuffer: string | Buffer, x: number, y: 
 
 .highlightText {
   font: 'Open Sans';
-  font-color: ${fgColor};
+  fill: ${fgColor};
 }
 </style>
 <image xlink:href="${data.dataUri}" x="0" y="0" width="${data.width}" height="${data.height}" />
@@ -247,7 +246,7 @@ export function highlightTextAsSvg(pathOrBuffer: string | Buffer, x: number, y: 
 
 
 
-function validateColorValue(color: string) {
+export function validateColorValue(color: string) {
     if (/^#([0-9a-f]{6}|[0-9a-f]{8})$/i.test(color) === false) {
         throw new Error(`${color} doesn't match RGB / RGBA hexidecimal notation (e.g. #ab10ff7f)`);
     }

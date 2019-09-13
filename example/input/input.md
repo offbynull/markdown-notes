@@ -57,10 +57,17 @@ You can include local images and annotate / scale / crop them using the img bloc
 201903_Ribosome.svg
 Diagram of ribosome translating messanger RNA
 By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595
-scale 0.25 0.25
+
+scale 0.45 0.45
+
+fg_color #000000ff
+bg_color #ffff00ff
 text 0.1 0.1 mRNA strand
-arrow 0.1 0.1  0.1 0.55  0.2 0.55
-highlight_poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
+
+fg_color #ffff00ff
+bg_color #00000000
+arrow 0.1 0.1  0.1 0.55  0.25 0.55
+poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
 ```
 ````
 
@@ -70,10 +77,17 @@ Output:
 201903_Ribosome.svg
 Diagram of ribosome translating messanger RNA
 By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595
+
 scale 0.45 0.45
+
+fg_color #000000ff
+bg_color #ffff00ff
 text 0.1 0.1 mRNA strand
+
+fg_color #ffff00ff
+bg_color #00000000
 arrow 0.1 0.1  0.1 0.55  0.25 0.55
-highlight_poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
+poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
 ```
 
 The first 3 lines must be as follows:
@@ -85,15 +99,14 @@ Subsequent lines are commands that you can use to manipulate and annotate the im
  * *scale x_scale y_scale* -- scale the image by some percentage (unit is percentage).
  * *expand new_width new_height x_offset y_offset* -- expand the image canvas to some new dimension without resizing the contents (unit is percentage).
  * *crop x_offset y_offset new_width new_height* -- crop the image to some new dimension (unit is percentage).
- * *highlight x_offset y_offset width height* -- highlight a rectangle on the image (unit is percentage).
- * *highlight_poly x1 y1 x2 y2 x3 y3 ...* -- highlight a polygon on the image (unit is percentage).
+ * *bg_color html_color_code* -- changes the background color.
+ * *fg_color html_color_code* -- changes the foreground color.
+ * *stroke width* -- changes the stroke width (unit is pixels).
+ * *font_size size* -- changes the font size (unit is pixels).
+ * *rect x_offset y_offset width height* -- highlight a rectangle on the image (unit is percentage).
+ * *poly x1 y1 x2 y2 x3 y3 ...* -- highlight a polygon on the image (unit is percentage).
  * *arrow x1 y1 x2 y2 ...* -- draw an arrow on the image (unit is percentage).
  * *text x_offset y_offset string* -- write a string on the image (unit is percentage).
- * *highlight_color html_color_code* -- changes the highlight color.
- * *font_color html_color_code* -- changes the font color.
- * *font_size size* -- changes the font size (unit is pixels).
- * *stroke_size size* -- changes the stroke size (unit is pixels).
- 
 
 
 # Notes
