@@ -129,7 +129,6 @@ inputWatcher.on('change', () => {
     activeChildProc = ChildProcess.fork('dist/render', [ inputPath ], { silent: true }); // 'silent' allows reading in stdout/stderr 
     let stdoutBuffer = Buffer.alloc(0);
     let stderrBuffer = Buffer.alloc(0);
-    writeRenderingOutput(lastSuccessfulOutput, stdoutBuffer, stderrBuffer);
     if (activeChildProc.stdout !== null) {
         activeChildProc.stdout.on('data', (data) => {
             stdoutBuffer = Buffer.concat([stdoutBuffer, data]);
