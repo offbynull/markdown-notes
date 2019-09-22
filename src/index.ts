@@ -118,15 +118,17 @@ function writeErrorOutput(outputHtml: string, errorText: Buffer) {
 }
 
 inputWatcher.on('change', () => {
+    const doneMarker = { flag: false };
+
     if (activeChildProc !== undefined) {
         console.log('Render process killed');
         activeChildProc.kill('SIGKILL');
         killProcessHierarchy('' + activeChildProc.pid);
+        doneMarker.flag = true;
     }
 
     console.log('Render process started');
     
-    const doneMarker = { flag: false };
     activeChildProc = ChildProcess.fork('dist/render', [ inputPath ], { silent: true }); // 'silent' allows reading in stdout/stderr 
     let stdoutBuffer = Buffer.alloc(0);
     let stderrBuffer = Buffer.alloc(0);
