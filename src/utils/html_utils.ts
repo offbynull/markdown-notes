@@ -39,12 +39,9 @@ export function injectHtmlErrorOverlay(html: string, message: string, background
 
     const textPre = dom.window.document.createElement('pre');
     textPre.style.position = 'absolute';
-    textPre.style.top = '50%';
-    textPre.style.left = '50%';
     textPre.style.fontSize = '12px';
     textPre.style.color = 'white';
     textPre.style.backgroundColor = 'rgb(0,0,0)'
-    textPre.style.transform = 'translate(-50%,-50%)';
     textPre.textContent = message;
     overlayDiv.style.overflow = 'auto';
 

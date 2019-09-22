@@ -125,18 +125,25 @@ inputWatcher.on('change', () => {
     }
 
     console.log('Render process started');
-
+    
+    const doneMarker = { flag: false };
     activeChildProc = ChildProcess.fork('dist/render', [ inputPath ], { silent: true }); // 'silent' allows reading in stdout/stderr 
     let stdoutBuffer = Buffer.alloc(0);
     let stderrBuffer = Buffer.alloc(0);
     if (activeChildProc.stdout !== null) {
         activeChildProc.stdout.on('data', (data) => {
+            if (doneMarker.flag === true) {
+                return;
+            }
             stdoutBuffer = Buffer.concat([stdoutBuffer, data]);
             writeRenderingOutput(lastSuccessfulOutput, stdoutBuffer, stderrBuffer);
         });
     }
     if (activeChildProc.stderr !== null) {
         activeChildProc.stderr.on('data', (data) => {
+            if (doneMarker.flag === true) {
+                return;
+            }
             stderrBuffer = Buffer.concat([stderrBuffer, data]);
             writeRenderingOutput(lastSuccessfulOutput, stdoutBuffer, stderrBuffer);
         });
@@ -158,6 +165,7 @@ inputWatcher.on('change', () => {
             default:
                 throw 'Bad type: ' + type;
         }
+        doneMarker.flag = true;
         console.log('Render process completed');
     });
 });
