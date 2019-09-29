@@ -18,13 +18,12 @@
 
 import * as BrowserSync from 'browser-sync';
 
-import FileSystem from 'fs';
+import FileSystem from 'fs-extra';
 import Process from 'process';
+import { StringDecoder, NodeStringDecoder } from 'string_decoder';
+import Colors from 'colors/safe';
 import ChildProcess from 'child_process';
-import { injectHtmlErrorOverlay } from './utils/html_utils';
 import { killProcessHierarchy } from './utils/process_utils';
-import { Buffer } from 'buffer';
-
 
 process.on('warning', e => console.warn(e.stack));
 
@@ -69,109 +68,78 @@ const inputWatcher = bs.watch(
     }
 );
 
-// Store the last SUCCESSFUL output -- if there was an error, this variable won't get overwritten (but the actual file output will)
-let lastSuccessfulOutput = '<html><head></head><body></body></html>';
-
-// Create a fake output if one does not exist, just so there's something initially to load when we start
-if (FileSystem.existsSync(outputPath + '/output.html') === false) {
-    FileSystem.writeFileSync(outputPath + '/output.html', lastSuccessfulOutput);
+function logOutput(prefix: string, data: Buffer, state: { decoder: NodeStringDecoder, partialLine: string }) {
+    const strSegment = state.decoder.write(data);
+    state.partialLine += strSegment;
+    while (true) {
+        const idx = state.partialLine.indexOf('\n');
+        if (idx == -1) {
+            break;
+        }
+        const line = state.partialLine.substring(0, idx);
+        console.log(prefix + ": " + line);
+        state.partialLine = state.partialLine.substring(idx + 1);
+    }
 }
+
+
+FileSystem.removeSync(outputPath);
+FileSystem.mkdirpSync(outputPath);
+FileSystem.writeFileSync(outputPath + '/output.html', '<html><head></head><body><p>Awaiting initial render...</p></body></html>');
 
 let activeChildProc: undefined | ChildProcess.ChildProcess;
-
-function writeCompletedOutput(outputHtml: string) {
-    FileSystem.writeFileSync(
-        outputPath + '/output.html',
-        outputHtml,
-        { encoding: 'utf8' }
-    );
-    bs.reload('output.html');
-}
-
-function writeRenderingOutput(outputHtml: string, stdout: Buffer, stderr: Buffer) {
-    let message = `Rendering (${new Date().toISOString()})...`;
-    if (stdout.length > 0) {
-        message += '\n-----stdout-----\n' + stdout.toString().replace(/[\r\n]+$/, '');
-    }
-    if (stderr.length > 0) {
-        message += '\n-----stderr-----\n' + stderr.toString().replace(/[\r\n]+$/, '');
-    }
-    FileSystem.writeFileSync(
-        outputPath + '/output.html',
-        injectHtmlErrorOverlay(outputHtml, message, 'rgba(0,0,0,0.5)'),
-        { encoding: 'utf8' }
-    );
-    bs.reload('output.html');
-}
-
-function writeErrorOutput(outputHtml: string, errorText: Buffer) {
-    FileSystem.writeFileSync(
-        outputPath + '/output.html',
-        injectHtmlErrorOverlay(
-            outputHtml,
-            'Error...\n' + errorText,
-            'rgba(255,0,0,0.5)'
-        ),
-        { encoding: 'utf8' }
-    );
-    bs.reload('output.html');
-}
-
+let activeChildExitMarker = { flag: false };
 inputWatcher.on('change', () => {
-    const doneMarker = { flag: false };
-
-    if (activeChildProc !== undefined) {
-        console.log('Render process killed');
+    if (activeChildProc !== undefined && activeChildProc.connected) {
+        console.log('Render process killed (' + activeChildProc.pid + ')');
         activeChildProc.kill('SIGKILL');
         killProcessHierarchy('' + activeChildProc.pid);
-        doneMarker.flag = true;
+        activeChildExitMarker.flag = true;
     }
 
-    console.log('Render process started');
-    
-    activeChildProc = ChildProcess.fork('dist/render', [ inputPath ], { silent: true }); // 'silent' allows reading in stdout/stderr 
-    let stdoutBuffer = Buffer.alloc(0);
-    let stderrBuffer = Buffer.alloc(0);
+    activeChildProc = ChildProcess.fork(
+        'dist/render',
+        [ inputPath, outputPath, 'false' ],  
+        { silent: true } // 'silent' allows reading in stdout/stderr
+    );
+    const exitMarker = { flag: false };
+    activeChildExitMarker = exitMarker;
+    console.log('Render process started (' + activeChildProc.pid + ')');
+     
+    const stdoutState = { decoder: new StringDecoder(), partialLine: '' };
+    const stderrState = { decoder: new StringDecoder(), partialLine: '' };
     if (activeChildProc.stdout !== null) {
         activeChildProc.stdout.on('data', (data) => {
-            if (doneMarker.flag === true) {
+            if (exitMarker.flag === true) {
                 return;
             }
-            stdoutBuffer = Buffer.concat([stdoutBuffer, data]);
-            writeRenderingOutput(lastSuccessfulOutput, stdoutBuffer, stderrBuffer);
+            logOutput(Colors.blue('OUT'), data, stdoutState);
         });
     }
     if (activeChildProc.stderr !== null) {
         activeChildProc.stderr.on('data', (data) => {
-            if (doneMarker.flag === true) {
+            if (exitMarker.flag === true) {
                 return;
             }
-            stderrBuffer = Buffer.concat([stderrBuffer, data]);
-            writeRenderingOutput(lastSuccessfulOutput, stdoutBuffer, stderrBuffer);
+            logOutput(Colors.red('ERR'), data, stderrState);
         });
     }
-    activeChildProc.on('message', (m) => {
-        activeChildProc = undefined;
-        const type = m['type'] as string;
-        switch (type) {
-            case 'output': {
-                lastSuccessfulOutput = m['data'];
-                writeCompletedOutput(lastSuccessfulOutput);
-                break;
-            }
-            case 'error': {
-                const errorText = m['data'];
-                writeErrorOutput(lastSuccessfulOutput, errorText);
-                break;
-            }
-            default:
-                throw 'Bad type: ' + type;
+    activeChildProc.on('close', (code) => {
+        if (exitMarker.flag === true) {
+            return;
         }
-        doneMarker.flag = true;
-        console.log('Render process completed');
-    });
+        switch (code) {
+            case 0:
+                console.log('Render completed.');
+                break;
+            default:
+                console.log(Colors.bgRed('Render error: ' + code + ' exit code.'));
+                break;
+        }
+        bs.reload('output.html');
+        exitMarker.flag = true;
+    })
 });
-
 bs.init({
     server: outputPath,
     watch: true,
@@ -181,7 +149,7 @@ bs.init({
         }
     },
     startPath: 'output.html',
-    // injectChanges: false,
+    injectChanges: false,
     // ghostMode: false,
     reloadDelay: 0, // no point in artificially waiting before reloading?
     reloadOnRestart: true,

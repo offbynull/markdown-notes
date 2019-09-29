@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "browser-sync": "^2.26.7",
+    "colors": "^1.4.0",
     "csv-parse": "^4.4.5",
     "fs-extra": "^8.1.0",
     "github-markdown-css": "^3.0.1",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@types/browser-sync": "^2.26.1",
+    "@types/colors": "^1.2.1",
     "@types/csv-parse": "^1.2.2",
     "@types/fs-extra": "^8.0.0",
     "@types/highlight.js": "^9.12.3",
