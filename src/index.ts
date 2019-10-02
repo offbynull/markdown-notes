@@ -99,7 +99,7 @@ inputWatcher.on('change', () => {
 
     activeChildProc = ChildProcess.fork(
         'dist/render',
-        [ inputPath, outputPath, 'false' ],  
+        [ inputPath, outputPath, 'true' ],  
         { silent: true } // 'silent' allows reading in stdout/stderr
     );
     const exitMarker = { flag: false };
