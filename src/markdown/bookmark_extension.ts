@@ -42,7 +42,8 @@ export class BookmarkReferenceIgnoreExtension implements Extension {
 export class BookmarkExtension implements Extension {
     public readonly tokenIds: ReadonlyArray<TokenIdentifier> = [
         new TokenIdentifier('bm', Type.INLINE),
-        new TokenIdentifier('bm-ambiguous', Type.INLINE)
+        new TokenIdentifier('bm-ambiguous', Type.INLINE),
+        new TokenIdentifier('bm-ignore', Type.INLINE)
     ];
 
     public process(markdownIt: MarkdownIt, token: Token, context: ExtensionContext): void {
@@ -74,8 +75,8 @@ export class BookmarkExtension implements Extension {
                                 + '------\n'
                                 + 'Examples:\n'
                                 + '  `{bm} my bookmark`\n'
-                                + '  `{bm} my label/bookmark\\s+regex/i`\n'
-                                + 'Bookmark tag arguments are delimited using forward slash (\). Use \\ to escape the delimiter (\\/).';
+                                + '  `{bm} my label/(bookmark\\s+regex)/i`\n'
+                                + 'Tag arguments are delimited using forward slash (\). Use \\ to escape the delimiter (\\/).';
                     }
                 })();
                 bookmarkData.scanner.addNormalBookmark(info.regex, info.flags, anchorId);
@@ -91,6 +92,33 @@ export class BookmarkExtension implements Extension {
                 const regex = broken[1];
                 const flags = broken[2];
                 bookmarkData.scanner.addErrorBookmark(regex, flags, errorText);
+                break;
+            }
+            case 'bm-ignore': {
+                const info = (() => {
+                    const broken = breakOnSlashes(token.content);
+                    switch(broken.length) {
+                        case 1:
+                            return {
+                                label: broken[0],
+                                regex: '(' + broken[0] + ')',
+                                flags: 'i'
+                            };
+                        case 2:
+                            return {
+                                regex: broken[0],
+                                flags: broken[1]
+                            };
+                        default:
+                            throw 'Incorrect number of arguments in bm-ignore tag: ' + JSON.stringify(broken) + '\n'
+                                + '------\n'
+                                + 'Examples:\n'
+                                + '  `{bm-ignore} text to ignore`\n'
+                                + '  `{bm-ignore} (ignore\\s+regex)/i`\n'
+                                + 'Tag arguments are delimited using forward slash (\). Use \\ to escape the delimiter (\\/).';
+                    }
+                })();
+                bookmarkData.scanner.addNormalBookmark(info.regex, info.flags, null);
                 break;
             }
             default:
@@ -167,15 +195,26 @@ export class BookmarkExtension implements Extension {
                 const matchText = scanResult.capture.captureMatch;
                 const postText = content.substring(endMatchIdx);
 
-                const bookmarkTokens = [
-                    new Token('text', '', 0), // pre text
-                    new Token('bookmark_link_open', 'a', 1),
-                    new Token('text', '', 0), // link text
-                    new Token('bookmark_link_close', 'a', -1)
-                ];
-                bookmarkTokens[0].content = preText;
-                bookmarkTokens[1].attrSet('href', '#' + markdownIt.utils.escapeHtml(scanResult.anchorId));
-                bookmarkTokens[2].content = matchText;
+                const bookmarkTokens = (() => {
+                    if (scanResult.anchorId === null) {    // if null this was an ignore marker, just put the text back in and move on.
+                        const bookmarkTokens = [
+                            new Token('text', '', 0), // text
+                        ];
+                        bookmarkTokens[0].content = preText + matchText;
+                        return bookmarkTokens;
+                    } else {                               // if not null this was an normal marker, add the bookmark link
+                        const bookmarkTokens = [
+                            new Token('text', '', 0), // pre text
+                            new Token('bookmark_link_open', 'a', 1),
+                            new Token('text', '', 0), // link text
+                            new Token('bookmark_link_close', 'a', -1)
+                        ];
+                        bookmarkTokens[0].content = preText;
+                        bookmarkTokens[1].attrSet('href', '#' + markdownIt.utils.escapeHtml(scanResult.anchorId));
+                        bookmarkTokens[2].content = matchText;
+                        return bookmarkTokens;
+                    }
+                })();
 
                 replacementTokens = replacementTokens.concat(bookmarkTokens);
                 content = postText;
@@ -330,8 +369,8 @@ abstract class BookmarkEntry {
 }
 
 class NormalBookmarkEntry extends BookmarkEntry {
-    public readonly anchorId: string;
-    public constructor(origRegex: string, anchorId: string) {
+    public readonly anchorId: string | null;
+    public constructor(origRegex: string, anchorId: string | null) {
         super(origRegex);
         this.anchorId = anchorId;
     }
@@ -358,7 +397,7 @@ interface CaptureEntry {
 export class BookmarkScannerList {
     private readonly entries: ScannerEntry[] = [];
 
-    public addNormalBookmark(regex: string, flags: string, anchorId: string) {
+    public addNormalBookmark(regex: string, flags: string, anchorId: string | null) {
         const entry = new NormalBookmarkEntry(regex, anchorId);
 
         const scanner = BookmarkRegexScanner.create(regex, flags);
