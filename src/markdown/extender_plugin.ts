@@ -16,13 +16,13 @@
  * License along with this library.
  */
 
-import Crypto from 'crypto'; 
 import Path from 'path';
 import FileSystemExtras from 'fs-extra';
 import MarkdownIt, { RuleBlock, RuleInline } from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import StateCore from 'markdown-it/lib/rules_core/state_core';
 import { JSDOM } from 'jsdom';
+import { md5 } from '../utils/hash_utils';
 
 export enum Type {
     BLOCK = 'block',
@@ -62,15 +62,19 @@ export class ExtensionContext {
     }
 
     public injectDir(sourcePath: string): string {
-        const genPath = `.data_${Crypto.pseudoRandomBytes(8).toString('hex')}`;
+        const sourcePathRelativeToInput = Path.relative(this.realInputPath, sourcePath);
+
+        const genPath = `.datadir_${md5(sourcePathRelativeToInput)}`;
         FileSystemExtras.ensureDirSync(this.realBasePath + '/' + genPath);
         FileSystemExtras.copySync(sourcePath, this.realBasePath + '/' + genPath);
         return this.htmlBasePath + '/' + genPath;
     }
 
     public injectFile(sourcePath: string): string {
+        const sourcePathRelativeToInput = Path.relative(this.realInputPath, sourcePath);
+
         const filename = Path.basename(sourcePath);
-        const genPath = `.datafile_${Crypto.pseudoRandomBytes(8).toString('hex')}`;
+        const genPath = `.datafile_${md5(sourcePathRelativeToInput)}`;
         FileSystemExtras.ensureDirSync(this.realBasePath + '/' + genPath);
         FileSystemExtras.copyFileSync(sourcePath, this.realBasePath + '/' + genPath + '/' + filename);
         return this.htmlBasePath + '/' + genPath + '/' + filename;

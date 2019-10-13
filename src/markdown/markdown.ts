@@ -16,7 +16,6 @@
  * License along with this library.
  */
 
-import Crypto from 'crypto';
 import FileSystemExtras from 'fs-extra';
 import MarkdownIt from 'markdown-it';
 import HighlightJs from 'highlight.js';
@@ -91,7 +90,7 @@ export default class Markdown {
 
 
         // Apply changes for github styling
-        const githubMarkdownGenPath = `.temp_githib_css${Crypto.pseudoRandomBytes(8).toString('hex')}`;
+        const githubMarkdownGenPath = `.temp_githib_css`;
         FileSystemExtras.ensureDirSync(this.realBasePath + '/' + githubMarkdownGenPath);
         FileSystemExtras.copySync('node_modules/github-markdown-css', this.realBasePath + '/' + githubMarkdownGenPath);
         const githubMarkdownHtmlPath = this.htmlBasePath + '/' + githubMarkdownGenPath;
@@ -105,7 +104,7 @@ export default class Markdown {
 
 
         // Apply changes to highlight code blocks
-        const highlightJsGenPath = `.temp_highlightjs_css${Crypto.pseudoRandomBytes(8).toString('hex')}`;
+        const highlightJsGenPath = `.temp_highlightjs_css`;
         FileSystemExtras.ensureDirSync(this.realBasePath + '/' + highlightJsGenPath);
         FileSystemExtras.copySync('node_modules/highlight.js/styles', this.realBasePath + '/' + highlightJsGenPath);
         const highlightJsHtmlPath = this.htmlBasePath + '/' + highlightJsGenPath;
