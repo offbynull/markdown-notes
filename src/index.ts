@@ -87,6 +87,7 @@ FileSystem.removeSync(outputPath);
 FileSystem.mkdirpSync(outputPath);
 FileSystem.writeFileSync(outputPath + '/output.html', '<html><head></head><body><p>Awaiting initial render...</p></body></html>');
 
+let activeChildTmpDir: undefined | string;
 let activeChildProc: undefined | ChildProcess.ChildProcess;
 let activeChildExitMarker = { flag: false };
 inputWatcher.on('change', () => {
@@ -97,9 +98,14 @@ inputWatcher.on('change', () => {
         activeChildExitMarker.flag = true;
     }
 
+    if (activeChildTmpDir !== undefined) {
+        FileSystem.removeSync(activeChildTmpDir);
+    }
+
+    activeChildTmpDir = FileSystem.mkdtempSync('/tmp/render');
     activeChildProc = ChildProcess.fork(
         'dist/render',
-        [ inputPath, outputPath, 'false' ],  
+        [ inputPath, outputPath, 'false', activeChildTmpDir ],  
         { silent: true } // 'silent' allows reading in stdout/stderr
     );
     const exitMarker = { flag: false };

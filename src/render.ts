@@ -4,11 +4,10 @@ import * as Path from 'path';
 import Markdown from './markdown/markdown';
 import { inlineHtml } from './utils/html_utils';
 
-if (Process.argv.length !== 5) {
+if (Process.argv.length !== 6) {
     throw 'Invalid arguments: ' + JSON.stringify(Process.argv);
 }
 
-const tempRenderPath = FileSystem.mkdtempSync('/tmp/render');
 const cachePath = Path.resolve(process.cwd(), '.cache');
 const inputPath = Process.argv[2];
 const outputPath = Process.argv[3];
@@ -22,6 +21,7 @@ const pack = (() => {
             throw new Error(`${Process.argv[4]} unrecognized. Must be either true or false.`);
     }
 })();
+const tempRenderPath = Process.argv[5];
 
 FileSystem.copySync(inputPath, tempRenderPath);
 
