@@ -48,7 +48,7 @@ export default class Markdown {
                 }
                 return ''; // use external default escaping
             }
-        });
+        }).enable([ 'table', 'strikethrough' ]);
 
         this.htmlBasePath = htmlBasePath;
         this.realBasePath = realBasePath;
