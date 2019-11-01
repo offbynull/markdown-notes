@@ -117,6 +117,8 @@ Generate notes by using the note block tag:
 ````
 ```{note}
 This is a custom note.
+
+![Image Example](https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Generic_Camera_Icon.svg/200px-Generic_Camera_Icon.svg.png)
 ```
 ````
 
@@ -124,6 +126,8 @@ Output:
 
 ```{note}
 This is a custom note.
+
+![Image Example](https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Generic_Camera_Icon.svg/200px-Generic_Camera_Icon.svg.png)
 ```
 
 **TODO**: Add CSS styling for this.

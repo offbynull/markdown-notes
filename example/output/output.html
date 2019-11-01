@@ -129,11 +129,18 @@ poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
 <p>Generate notes by using the note block tag:</p>
 <pre><code>```{note}
 This is a custom note.
+
+![Image Example](https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Generic_Camera_Icon.svg/200px-Generic_Camera_Icon.svg.png)
 ```
 </code></pre>
 <p>Output:</p>
-<div style="margin: 2em; background-color: #e0e0e0"><strong>NOTE:</strong> This is a custom note.
-</div><p><strong>TODO</strong>: Add CSS styling for this.</p>
+<div style="margin: 2em; background-color: #e0e0e0">
+<strong>
+⚠️NOTE️️️⚠️</strong>
+<p>This is a custom note.</p>
+<p><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Generic_Camera_Icon.svg/200px-Generic_Camera_Icon.svg.png" alt="Image Example"></p>
+</div>
+<p><strong>TODO</strong>: Add CSS styling for this.</p>
 <a name="HEADREF5"></a><h1>CSV Table</h1>
 <p>Add a table using the CSV block tag:</p>
 <pre><code>```{csv}
@@ -152,8 +159,12 @@ ATG,Antigua and Barbuda
 <p>Block output:</p>
 <table><tbody><tr><th>Code</th><th>Country</th></tr><tr><td>AFG</td><td>Afghanistan</td></tr><tr><td>ALB</td><td>Albania</td></tr><tr><td>ALG</td><td>Algeria</td></tr><tr><td>ASA</td><td>American Samoa</td></tr><tr><td>AND</td><td>Andorra</td></tr><tr><td>ANG</td><td>Angola</td></tr><tr><td>AIA</td><td>Anguilla</td></tr><tr><td>ATG</td><td>Antigua and Barbuda</td></tr></tbody></table><a name="HEADREF6"></a><h1>Math Typesetting</h1>
 <p>You can typeset math expressions using different HTML type setting engines.</p>
-<div style="margin: 2em; background-color: #e0e0e0"><strong>NOTE:</strong> Right now, the preferred method of typesetting is to use KaTeX because it's more lightweight. MathJax 3 may change this (we're using an inline version of MathJax 2).
-</div><a name="HEADREF7"></a><h2>MathJax</h2>
+<div style="margin: 2em; background-color: #e0e0e0">
+<strong>
+⚠️NOTE️️️⚠️</strong>
+<p>Right now, the preferred method of typesetting is to use KaTeX because it's more lightweight. MathJax 3 may change this (we're using an inline version of MathJax 2).</p>
+</div>
+<a name="HEADREF7"></a><h2>MathJax</h2>
 <p>Add a MathJax TeX expression using mj inline/block tag:</p>
 <pre><code>```{mj}
 \frac{a}{b}
@@ -209,8 +220,12 @@ class Enrollment {
 <li><code>/files</code> is where markdown input files are located (read-only).</li>
 </ul>
 <p>Your custom code must generate exactly 1 file in the  <code>/output</code> directory . That file must end in either <code>.txt</code>, <code>.csv</code>, <code>.svg</code>, <code>.png</code>, <code>.gif</code>, <code>.jpg</code>, or <code>.jpeg</code> -- the extension defines how the file gets displayed in the final markup.</p>
-<div style="margin: 2em; background-color: #e0e0e0"><strong>NOTE:</strong> This may be useful for generating custom graphs/diagrams, or for doing various computations.
-</div><a name="HEADREF13"></a><h2>Python</h2>
+<div style="margin: 2em; background-color: #e0e0e0">
+<strong>
+⚠️NOTE️️️⚠️</strong>
+<p>This may be useful for generating custom graphs/diagrams, or for doing various computations.</p>
+</div>
+<a name="HEADREF13"></a><h2>Python</h2>
 <p>Add an image or text generated via Python (miniconda) using the conda block tag:</p>
 <pre><code>```{python}
 f = open("/output/text.txt","w+")
@@ -344,8 +359,12 @@ PImage.encodePNGToStream(img, fs.createWriteStream('/output/out.png')).then(() =
 ##### Heading 5
 ###### Heading 6
 </code></pre>
-<div style="margin: 2em; background-color: #e0e0e0"><strong>NOTE:</strong> Outputs left out so as to not pollute the table of contents.
-</div><a name="HEADREF18"></a><h2>Text Formatting</h2>
+<div style="margin: 2em; background-color: #e0e0e0">
+<strong>
+⚠️NOTE️️️⚠️</strong>
+<p>Outputs left out so as to not pollute the table of contents.</p>
+</div>
+<a name="HEADREF18"></a><h2>Text Formatting</h2>
 <p>Emphasized text:</p>
 <p><em>text</em> --&gt; <code>_text_</code> or <code>*text*</code></p>
 <p>Strong text:</p>

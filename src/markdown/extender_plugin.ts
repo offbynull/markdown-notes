@@ -83,7 +83,7 @@ export class ExtensionContext {
 
 export interface Extension {
     readonly tokenIds: ReadonlyArray<TokenIdentifier>;
-    process?: (markdownIt: MarkdownIt, token: Token, context: ExtensionContext) => void;
+    process?: (markdownIt: MarkdownIt, token: Token, context: ExtensionContext, state: StateCore) => void;
     postProcess?: (markdownIt: MarkdownIt, tokens: Token[], context: ExtensionContext) => void;
     render?: (markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext) => string;
     postHtml?: (dom: JSDOM, context: ExtensionContext) => JSDOM;
@@ -261,7 +261,7 @@ export function extender(markdownIt: MarkdownIt, extenderConfig: ExtenderConfig)
                 token.info = '';
                 token.tag = '';
                 if (extensionEntries.block.process !== undefined) { // call if handler is a function
-                    extensionEntries.block.process(markdownIt, token, context);
+                    extensionEntries.block.process(markdownIt, token, context, state);
                 }
             } else { // if unrecognized, don't try to process it
                 // Do nothing
@@ -308,7 +308,7 @@ export function extender(markdownIt: MarkdownIt, extenderConfig: ExtenderConfig)
                     token.tag = '';
                     token.content = token.content.slice(skipLen);
                     if (extensionEntries.inline.process !== undefined) { // call if handler is a function
-                        extensionEntries.inline.process(markdownIt, token, context);
+                        extensionEntries.inline.process(markdownIt, token, context, state);
                     }
                 } else { // if unrecognized, don't try to process it
                     // Do nothing
