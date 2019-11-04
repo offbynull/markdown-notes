@@ -45,9 +45,71 @@ Usage examples:
 In certain cases, multiple bookmarks may match a certain piece of text. To resolve this, the bookmark with the longest piece of text captured by the capture group is the one that gets linked to. For example, if the bookmarks *Samsung (Galaxy)* and *Samsung (Galaxy Smartphone)* matched on the text *Samsung Galaxy Smartphone Holder*, the second bookmark would get chosen because capture group 1 returns a longer piece of text.
 
 If the length of the captured text between the matches are equal, an error is thrown and you'll need to find a way to disambiguate. Several options are available:
-1. You can explicitly prevent a piece of text from being matched to any bookmark by wrapping it in a bm-r inline tag (`` `{bm-ri} TEXT` ``). For example, coke zero should link to the example above but `{bm-ri} coke zero` won't. 
-1. You can explicitly prevent any matching text from being matched to a bookmark by using the bm-ignore inline text (`` `{bm-ignore} TEXT` `` or `` `{bm-ignore} REGEX/REGEX_FLAGS` ``). Anything text that matches the bm-ignore tag will get consumed as if it were a bookmark, but won't link back to anything. `{bm-ignore} coke zeroooo` For example, a bm-ignore tag was added for the word coke zeroooo -- coke zero should link to the example above but coke zeroooo should match the bm-ignore tag and thus not link back in any way. 
-1. You can use the bm-ambiguous inline tag (`` `{bm-ambiguous} ERROR_TEXT/REGEX/REGEX_FLAGS` ``) to generate an error telling the user that they need to disambiguate. For example, you may want to create a bookmark for the word *base*, but in 2 different contexts: *base* as in pH scale and *base* as in nitrogenous base. You can use the bm-ambiguous tag to catch any instances of *base* and throw an error notify the user that they need to provide a more specialized version (e.g. `` `{bm-ambiguous} Base is too ambiguous. Use either base_pH or base_nucleotide/\b(base)\b/i` ``), which you can target using normal bm tags (e.g. `` `{bm} base/\b(base)_nucleotide?\b/i` `` -- this will match *base_nucleotide* but only output *base*).
+
+ * `` `{bm-ri} TEXT` `` -- Render the encapsulated text without bookmark links.
+
+   Example usage / output:
+   
+   ```
+   Bookmark `{bm} dominant allele`.
+    * Dominant allele should be linked back.
+    * `{bm-ri} Dominant allele` should NOT be linked back.
+   ```
+
+   Bookmark `{bm} dominant allele`.
+    * Dominant allele should be linked back.
+    * `{bm-ri} Dominant allele` should NOT be linked back.
+
+ * `` `{bm-ignore} TEXT` `` -- Render all instances of text without bookmark links.
+
+   Example usage / output:
+   
+   ```
+   `{bm-ignore} recessive allele`
+   Bookmark `{bm} recessive` and `{bm} allele`, but ignore both of them together.
+    * The term recessive should be linked back.
+    * The term allele should be linked back.
+    * The term recessive allele should NOT be linked back.
+   ```
+
+   `{bm-ignore} recessive allele`
+   Bookmark `{bm} recessive` and `{bm} allele`, but ignore both of them together.
+    * The term recessive should be linked back.
+    * The term allele should be linked back.
+    * The term recessive allele should NOT be linked back.
+
+ * `` `{bm-ignore} REGEX/REGEX_FLAGS` `` -- Render all instances of text matching the regex without bookmark links.
+ 
+   Note that the regex must have exactly 1 capture group. The text captured by that group is what gets rendered (similar to bm inline tag).
+
+   Example usage / output:
+   
+   ```
+   `{bm-ignore} (basic)_norm/i`
+   Bookmark `{bm} basic/(basic)_pH/i` when suffix is _pH and `{bm} basic/(basic)_lang/i` when suffix is _lang, but ignore when suffix is _norm.
+    * The term basic_pH should be linked back to the _pH suffix.
+    * The term basic_lang should be linked back to the _lang suffix.
+    * The term basic_norm should NOT be linked back.
+   ```
+
+   `{bm-ignore} (basic)_norm/i`
+   Bookmark `{bm} basic/(basic)_pH/i` when suffix is _pH and `{bm} basic/(basic)_lang/i` when suffix is _lang, but ignore when suffix is _norm.
+    * The term basic_pH should be linked back to the _pH suffix.
+    * The term basic_lang should be linked back to the _lang suffix.
+    * The term basic_norm should NOT be linked back.
+
+ * `` `{bm-ambiguous} ERROR_MESSAGE/REGEX/REGEX_FLAGS` `` -- Throw error if any text matches.
+
+   Example usage / output:
+   
+   ```
+   `` `{bm-ambiguous} Base is too ambiguous. Use either base_pH or base_nucleotide/\b(base)\b/i` ``
+    * The term base_pH should be linked back to the _pH suffix.
+    * The term base_nucleotide should be linked back to the _nucleotide suffix.
+    * The term base should cause the render process to error.
+   ```
+
+   OUTPUT NOT POSSIBLE BECAUSE THROWN ERROR WOULD CANCEL RENDER.
 
 # Image Annotations
 

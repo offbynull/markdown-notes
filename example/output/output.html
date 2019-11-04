@@ -80,11 +80,66 @@ Markdown Example!
 </ul>
 <p>In certain cases, multiple bookmarks may match a certain piece of text. To resolve this, the bookmark with the longest piece of text captured by the capture group is the one that gets linked to. For example, if the bookmarks <em>Samsung (Galaxy)</em> and <em>Samsung (Galaxy Smartphone)</em> matched on the text <em>Samsung Galaxy Smartphone Holder</em>, the second bookmark would get chosen because capture group 1 returns a longer piece of text.</p>
 <p>If the length of the captured text between the matches are equal, an error is thrown and you'll need to find a way to disambiguate. Several options are available:</p>
-<ol>
-<li>You can explicitly prevent a piece of text from being matched to any bookmark by wrapping it in a bm-r inline tag (<code>`{bm-ri} TEXT`</code>). For example, <a href="#BOOKMARK0">coke zero</a> should link to the example above but coke zero won't.</li>
-<li>You can explicitly prevent any matching text from being matched to a bookmark by using the bm-ignore inline text (<code>`{bm-ignore} TEXT`</code> or <code>`{bm-ignore} REGEX/REGEX_FLAGS`</code>). Anything text that matches the bm-ignore tag will get consumed as if it were a bookmark, but won't link back to anything.  For example, a bm-ignore tag was added for the word coke zeroooo -- <a href="#BOOKMARK0">coke zero</a> should link to the example above but coke zeroooo should match the bm-ignore tag and thus not link back in any way.</li>
-<li>You can use the bm-ambiguous inline tag (<code>`{bm-ambiguous} ERROR_TEXT/REGEX/REGEX_FLAGS`</code>) to generate an error telling the user that they need to disambiguate. For example, you may want to create a bookmark for the word <em>base</em>, but in 2 different contexts: <em>base</em> as in pH scale and <em>base</em> as in nitrogenous base. You can use the bm-ambiguous tag to catch any instances of <em>base</em> and throw an error notify the user that they need to provide a more specialized version (e.g. <code>`{bm-ambiguous} Base is too ambiguous. Use either base_pH or base_nucleotide/\b(base)\b/i`</code>), which you can target using normal bm tags (e.g. <code>`{bm} base/\b(base)_nucleotide?\b/i`</code> -- this will match <em>base_nucleotide</em> but only output <em>base</em>).</li>
-</ol>
+<ul>
+<li>
+<p><code>`{bm-ri} TEXT`</code> -- Render the encapsulated text without bookmark links.</p>
+<p>Example usage / output:</p>
+<pre><code>Bookmark `{bm} dominant allele`.
+ * Dominant allele should be linked back.
+ * `{bm-ri} Dominant allele` should NOT be linked back.
+</code></pre>
+<p>Bookmark <a name="BOOKMARK4"></a><strong>dominant allele</strong>.</p>
+<ul>
+<li><a href="#BOOKMARK4">Dominant allele</a> should be linked back.</li>
+<li>Dominant allele should NOT be linked back.</li>
+</ul>
+</li>
+<li>
+<p><code>`{bm-ignore} TEXT`</code> -- Render all instances of text without bookmark links.</p>
+<p>Example usage / output:</p>
+<pre><code>`{bm-ignore} recessive allele`
+Bookmark `{bm} recessive` and `{bm} allele`, but ignore both of them together.
+ * The term recessive should be linked back.
+ * The term allele should be linked back.
+ * The term recessive allele should NOT be linked back.
+</code></pre>
+<p>
+Bookmark <a name="BOOKMARK6"></a><strong>recessive</strong> and <a name="BOOKMARK7"></a><strong>allele</strong>, but ignore both of them together.</p>
+<ul>
+<li>The term <a href="#BOOKMARK6">recessive</a> should be linked back.</li>
+<li>The term <a href="#BOOKMARK7">allele</a> should be linked back.</li>
+<li>The term recessive allele should NOT be linked back.</li>
+</ul>
+</li>
+<li>
+<p><code>`{bm-ignore} REGEX/REGEX_FLAGS`</code> -- Render all instances of text matching the regex without bookmark links.</p>
+<p>Note that the regex must have exactly 1 capture group. The text captured by that group is what gets rendered (similar to bm inline tag).</p>
+<p>Example usage / output:</p>
+<pre><code>`{bm-ignore} (basic)_norm/i`
+Bookmark `{bm} basic/(basic)_pH/i` when suffix is _pH and `{bm} basic/(basic)_lang/i` when suffix is _lang, but ignore when suffix is _norm.
+ * The term basic_pH should be linked back to the _pH suffix.
+ * The term basic_lang should be linked back to the _lang suffix.
+ * The term basic_norm should NOT be linked back.
+</code></pre>
+<p>
+Bookmark <a name="BOOKMARK9"></a><strong>basic</strong> when suffix is _pH and <a name="BOOKMARK10"></a><strong>basic</strong> when suffix is _lang, but ignore when suffix is _norm.</p>
+<ul>
+<li>The term <a href="#BOOKMARK9">basic</a> should be linked back to the _pH suffix.</li>
+<li>The term <a href="#BOOKMARK10">basic</a> should be linked back to the _lang suffix.</li>
+<li>The term basic should NOT be linked back.</li>
+</ul>
+</li>
+<li>
+<p><code>`{bm-ambiguous} ERROR_MESSAGE/REGEX/REGEX_FLAGS`</code> -- Throw error if any text matches.</p>
+<p>Example usage / output:</p>
+<pre><code>`` `{bm-ambiguous} Base is too ambiguous. Use either base_pH or base_nucleotide/\b(base)\b/i` ``
+ * The term base_pH should be linked back to the _pH suffix.
+ * The term base_nucleotide should be linked back to the _nucleotide suffix.
+ * The term base should cause the render process to error.
+</code></pre>
+<p>OUTPUT NOT POSSIBLE BECAUSE THROWN ERROR WOULD CANCEL RENDER.</p>
+</li>
+</ul>
 <a name="HEADREF3"></a><h1>Image Annotations</h1>
 <p>You can include local images and annotate / scale / crop them using the img block tag:</p>
 <pre><code>```{img}
