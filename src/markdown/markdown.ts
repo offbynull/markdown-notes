@@ -34,6 +34,7 @@ import { PythonExtension } from './python_extension';
 import { JavaExtension } from './java_extension';
 import { NodeExtension } from './node_extension';
 import { ImageExtension } from './image_extension';
+import { ChemfigExtension } from './chemfig_extension';
 
 export default class Markdown {
     private readonly markdownIt: MarkdownIt;
@@ -68,6 +69,7 @@ export default class Markdown {
         extenderConfig.register(new PythonExtension());
         extenderConfig.register(new JavaExtension());
         extenderConfig.register(new NodeExtension());
+        extenderConfig.register(new ChemfigExtension());
         this.markdownIt.use(extender, extenderConfig);
         // this.markdownIt.use(indexer);
     }

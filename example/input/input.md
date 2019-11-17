@@ -275,7 +275,7 @@ Block output:
 
 # Diagrams
 
-## GraphViz (dot)
+## GraphViz
 
 Generate Graphviz dot diagrams by using dot block tag:
 
@@ -336,6 +336,24 @@ class Enrollment {
 }
 @enduml
 ```
+
+## LaTeX Chemfig
+
+Generate LaTeX chemfig diagrams by using chemfig block tag:
+
+````
+```{chemfig}
+\chemfig{Cl-[6]Co(<:[3]H_2O)(<[5]H_2O)(<[7]H_2O)(<:[9]H_2O)-[6]Cl}
+```
+````
+
+Output:
+
+```{chemfig}
+\chemfig{Cl-[6]Co(<:[3]H_2O)(<[5]H_2O)(<[7]H_2O)(<:[9]H_2O)-[6]Cl}
+```
+
+All preamble and postamble text for the LaTeX document is automatically added by this extension -- only the chemfig LaTeX package is loaded.  For details on chemfig syntax, see [here](https://en.wikibooks.org/w/index.php?title=LaTeX/Chemical_Graphics&oldid=3452092).
 
 # Language Support
 
