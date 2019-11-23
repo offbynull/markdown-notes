@@ -66,20 +66,28 @@ Markdown Example!
 <p>Output: (see the title of this HTML page)</p>
 <p>If you're using a block tag, make sure you put the title on a NEW line (not on the same line that declares the tag).</p>
 <a name="HEADREF2"></a><h1>Bookmarks</h1>
-<p>You can automatically link back to any piece of text by using the bm inline tag:</p>
+<p>You can automatically linkify text using the bm inline tag. It comes in 3 variants:</p>
 <ul>
-<li><code>`{bm} LITERAL`</code>, where matches are made using basic case-insensitive text search.</li>
-<li><code>`{bm} LABEL/REGEX/REGEX_FLAGS`</code>, where matches are made using the regex specified. The regex must have exactly 1 capture group, where the text captured by that group is what gets rendered and gets linked.</li>
+<li>
+<p><code>`{bm} LITERAL`</code>, where matches are made using basic case-insensitive text search.</p>
+<p>Examples:</p>
+<p><code>`{bm} coke zero`</code> -- <a name="BOOKMARK0"></a><strong>coke zero</strong> will be the reference for <a href="#BOOKMARK0">coke zero</a>, <a href="#BOOKMARK0">cOkE zErO</a>, and <a href="#BOOKMARK0">coke zero</a>s.</p>
+</li>
+<li>
+<p><code>`{bm} LABEL/REGEX/REGEX_FLAGS`</code>, where matches are made using a regex. The regex must have exactly 1 capture group, where the text captured by that group is what gets rendered and linked. Matching text before/after group 1 is not rendered.</p>
+<p>Examples:</p>
+<p><code>`{bm} this text/\b(dog)s?\b/i`</code> -- <a name="BOOKMARK1"></a><strong>this text</strong> will be the reference for <a href="#BOOKMARK1">DOG</a> and <a href="#BOOKMARK1">dog</a> but not doggy, doggo, or ddog.
+<code>`{bm} this text/(carp\w+s?)/`</code> -- <a name="BOOKMARK2"></a><strong>this text</strong> will be the reference for <a href="#BOOKMARK2">carps</a>, <a href="#BOOKMARK2">carpenter</a>, and <a href="#BOOKMARK2">carpenters</a>, but not carp.
+<code>`{bm} this text/hello\s+(world)/i`</code> -- <a name="BOOKMARK3"></a><strong>this text</strong> will be the reference for <a href="#BOOKMARK3">world</a>. Even though the word hello was specified and matched on, it won't be included in the output because it isn't in the capture group.</p>
+</li>
+<li>
+<p><code>`{bm} LABEL/REGEX/REGEX_FLAGS/SHOW_PRE/SHOW_POST`</code>, where matches are made using a regex. The regex must have exactly 1 capture group, where the text captured by that group is what gets rendered and linked. Matching text before/after group 1 may get rendered if SHOW_PRE/SHOW_POST is set to true.</p>
+<p>Examples:</p>
+<p><code>`{bm} grams/\d+(grams|gram|g)\b/i/true/false`</code> -- <a name="BOOKMARK4"></a><strong>grams</strong> will be the reference for a g, gram, or grams anytime it's following numbers: 12345<a href="#BOOKMARK4">g</a>.</p>
+</li>
 </ul>
-<p>The tag can take in either 1 argument or 3 arguments, where forward-slashes (<code>/</code>) are used to delimit arguments. If required, use back-slash to escape the delimiter (e.g. <code>\/</code>).</p>
-<p>Usage examples:</p>
-<ul>
-<li><code>`{bm} coke zero`</code> -- <a name="BOOKMARK0"></a><strong>coke zero</strong> will be the reference for <a href="#BOOKMARK0">coke zero</a>, <a href="#BOOKMARK0">cOkE zErO</a>, and <a href="#BOOKMARK0">coke zero</a>s.</li>
-<li><code>`{bm} this text/\b(dog)s?\b/i`</code> -- <a name="BOOKMARK1"></a><strong>this text</strong> will be the reference for <a href="#BOOKMARK1">DOG</a> and <a href="#BOOKMARK1">dog</a> but not doggy, doggo, or ddog.</li>
-<li><code>`{bm} this text/(carp\w+s?)/`</code> -- <a name="BOOKMARK2"></a><strong>this text</strong> will be the reference for <a href="#BOOKMARK2">carps</a>, <a href="#BOOKMARK2">carpenter</a>, and <a href="#BOOKMARK2">carpenters</a>, but not carp.</li>
-<li><code>`{bm} this text/hello\s+(world)/i`</code> -- <a name="BOOKMARK3"></a><strong>this text</strong> will be the reference for <a href="#BOOKMARK3">world</a>. Even though the word hello was specified and matched on, it won't be included in the output because it isn't in the capture group.</li>
-</ul>
-<p>In certain cases, multiple bookmarks may match a certain piece of text. To resolve this, the bookmark with the longest piece of text captured by the capture group is the one that gets linked to. For example, if the bookmarks <em>Samsung (Galaxy)</em> and <em>Samsung (Galaxy Smartphone)</em> matched on the text <em>Samsung Galaxy Smartphone Holder</em>, the second bookmark would get chosen because capture group 1 returns a longer piece of text.</p>
+<p>The tag can take in either 1, 3, or 5 arguments, where forward-slashes (<code>/</code>) are used to delimit arguments. If required, use back-slash to escape the delimiter (e.g. <code>\/</code>).</p>
+<p>In certain cases, multiple bookmarks may match a certain piece of text. To resolve this, the bookmark with the longest piece of text captured by the capture group is the one that gets linked to. For example, if the bookmarks <code>`{bm} label1/Samsung (Galaxy)/i`</code> and <a name="BOOKMARK5"></a><strong>label2</strong> matched on the text <em><a href="#BOOKMARK5">Galaxy Smartphone</a> Holder</em>, the second bookmark would get chosen because capture group 1 returns a longer piece of text.</p>
 <p>If the length of the captured text between the matches are equal, an error is thrown and you'll need to find a way to disambiguate. Several options are available:</p>
 <ul>
 <li>
@@ -89,9 +97,9 @@ Markdown Example!
  * Dominant allele should be linked back.
  * `{bm-ri} Dominant allele` should NOT be linked back.
 </code></pre>
-<p>Bookmark <a name="BOOKMARK4"></a><strong>dominant allele</strong>.</p>
+<p>Bookmark <a name="BOOKMARK6"></a><strong>dominant allele</strong>.</p>
 <ul>
-<li><a href="#BOOKMARK4">Dominant allele</a> should be linked back.</li>
+<li><a href="#BOOKMARK6">Dominant allele</a> should be linked back.</li>
 <li>Dominant allele should NOT be linked back.</li>
 </ul>
 </li>
@@ -105,11 +113,11 @@ Bookmark `{bm} recessive` and `{bm} allele`, but ignore both of them together.
  * The term recessive allele should NOT be linked back.
 </code></pre>
 <p>
-Bookmark <a name="BOOKMARK6"></a><strong>recessive</strong> and <a name="BOOKMARK7"></a><strong>allele</strong>, but ignore both of them together.</p>
+Bookmark <a name="BOOKMARK8"></a><strong>recessive</strong> and <a name="BOOKMARK9"></a><strong>allele</strong>, but ignore both of them together.</p>
 <ul>
-<li>The term <a href="#BOOKMARK6">recessive</a> should be linked back.</li>
-<li>The term <a href="#BOOKMARK7">allele</a> should be linked back.</li>
-<li>The term recessive allele should NOT be linked back.</li>
+<li>The term <a href="#BOOKMARK8">recessive</a> should be linked back.</li>
+<li>The term <a href="#BOOKMARK9">allele</a> should be linked back.</li>
+<li>recessive allele should NOT be linked back.</li>
 </ul>
 </li>
 <li>
@@ -123,11 +131,11 @@ Bookmark `{bm} basic/(basic)_pH/i` when suffix is _pH and `{bm} basic/(basic)_la
  * The term basic_norm should NOT be linked back.
 </code></pre>
 <p>
-Bookmark <a name="BOOKMARK9"></a><strong>basic</strong> when suffix is _pH and <a name="BOOKMARK10"></a><strong>basic</strong> when suffix is _lang, but ignore when suffix is _norm.</p>
+Bookmark <a name="BOOKMARK11"></a><strong>basic</strong> when suffix is _pH and <a name="BOOKMARK12"></a><strong>basic</strong> when suffix is _lang, but ignore when suffix is _norm.</p>
 <ul>
-<li>The term <a href="#BOOKMARK9">basic</a> should be linked back to the _pH suffix.</li>
-<li>The term <a href="#BOOKMARK10">basic</a> should be linked back to the _lang suffix.</li>
-<li>The term basic should NOT be linked back.</li>
+<li>The term <a href="#BOOKMARK11">basic</a> should be linked back to the _pH suffix.</li>
+<li>The term <a href="#BOOKMARK12">basic</a> should be linked back to the _lang suffix.</li>
+<li>basic should NOT be linked back.</li>
 </ul>
 </li>
 <li>
