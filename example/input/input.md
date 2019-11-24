@@ -30,31 +30,28 @@ If you're using a block tag, make sure you put the title on a NEW line (not on t
 
 # Bookmarks
 
-You can automatically linkify text using the bm inline tag. It comes in 3 variants:
+You can automatically linkify text using the bm inline tag. It comes in 2 variants: simple and advanced.
 
 * `` `{bm} LITERAL` ``, where matches are made using basic case-insensitive text search.
-
-  Examples:
   
-  `` `{bm} coke zero` `` -- `{bm} coke zero` will be the reference for coke zero, cOkE zErO, and coke zeros.
+  * `` `{bm} coke zero` `` -- `{bm} coke zero` will be the reference for coke zero, cOkE zErO, and coke zeros.
 
-* `` `{bm} LABEL/REGEX/REGEX_FLAGS` ``, where matches are made using a regex. The regex must have exactly 1 capture group, where the text captured by that group is what gets rendered and linked. Matching text before/after group 1 is not rendered.
+* `` `{bm} LABEL/REGEX/REGEX_FLAGS/SHOW_PRE/SHOW_POST` ``, where matches are made using a regex.
 
-  Examples:
+  REGEX must have exactly 1 capture group, where the text captured by that group is what gets rendered and linked. Matching text before/after group 1 may get rendered if SHOW_PRE/SHOW_POST is set to true (respectively).
 
-  `` `{bm} this text/\b(dog)s?\b/i` `` -- `{bm} this text/\b(dog)s?\b/i` will be the reference for DOG and dogs but not doggy, doggo, or ddog.
-  `` `{bm} this text/(carp\w+s?)/` `` -- `{bm} this text/(carp\w+s?)/` will be the reference for carps, carpenter, and carpenters, but not carp.
-  `` `{bm} this text/hello\s+(world)/i` `` -- `{bm} this text/hello\s+(world)/i` will be the reference for hello world. Even though the word hello was specified and matched on, it won't be included in the output because it isn't in the capture group.
+  SHOW_PRE and SHOW_POST may be omitted -- they default to false.
 
-* `` `{bm} LABEL/REGEX/REGEX_FLAGS/SHOW_PRE/SHOW_POST` ``, where matches are made using a regex. The regex must have exactly 1 capture group, where the text captured by that group is what gets rendered and linked. Matching text before/after group 1 may get rendered if SHOW_PRE/SHOW_POST is set to true.
+  * `` `{bm} this text/\b(dog)s?\b/i` `` -- `{bm} this text/\b(dog)s?\b/i` will be the reference for DOG and dogs but not doggy, doggo, or ddog.
+  * `` `{bm} this text/(carp\w+s?)/` `` -- `{bm} this text/(carp\w+s?)/` will be the reference for carps, carpenter, and carpenters, but not carp.
+  * `` `{bm} this text/hello\s+(world)/i` `` -- `{bm} this text/hello\s+(world)/i` will be the reference for hello world. Even though the word hello was specified and matched on, it won't be included in the output because it isn't in the capture group.
+  * `` `{bm} grams/\d+(grams|gram|g)\b/i/true/false` `` -- `{bm} grams/\b\d+(grams|gram|g)\b/i/true/false` will be the reference for a g, gram, or grams anytime it's following numbers: 12345g.
 
-  Examples:
+```{note}
+Forward-slashes (`/`) are used to delimit arguments. If required, use back-slash to escape the delimiter (e.g. `\/`).
+```
 
-  `` `{bm} grams/\d+(grams|gram|g)\b/i/true/false` `` -- `{bm} grams/\b\d+(grams|gram|g)\b/i/true/false` will be the reference for a g, gram, or grams anytime it's following numbers: 12345g.
-
-The tag can take in either 1, 3, or 5 arguments, where forward-slashes (`/`) are used to delimit arguments. If required, use back-slash to escape the delimiter (e.g. `\/`).
-
-In certain cases, multiple bookmarks may match a certain piece of text. To resolve this, the bookmark with the longest piece of text captured by the capture group is the one that gets linked to. For example, if the bookmarks `` `{bm} label1/Samsung (Galaxy)/i` `` and `{bm} label2/Samsung (Galaxy Smartphone)/i` matched on the text *Samsung Galaxy Smartphone Holder*, the second bookmark would get chosen because capture group 1 returns a longer piece of text.
+In certain cases, multiple bookmarks may match a certain piece of text. To resolve this, the bookmark with the longest piece of text captured by the capture group is the one that gets linked to. For example, if the bookmarks `` `{bm} label1/Samsung (Galaxy)/i` `` and `` `{bm} label2/Samsung (Galaxy Smartphone)/i` `` matched on the text _Samsung Galaxy Smartphone Holder_, the second bookmark would get chosen because capture group 1 returns a longer piece of text.
 
 If the length of the captured text between the matches are equal, an error is thrown and you'll need to find a way to disambiguate. Several options are available:
 
