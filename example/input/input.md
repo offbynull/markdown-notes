@@ -632,6 +632,65 @@ PImage.encodePNGToStream(img, fs.createWriteStream('/output/out.png')).then(() =
 });
 ```
 
+# Macro
+
+Define a macro using a chunk of NodeJS code using the define-block and define-inline tags, and apply that macro using that apply tag:
+
+Use...
+ * define-block to define a block-level macro.
+ * define-inline to define an inline-level macro.
+
+Regardless of if its a define-block or define-inline, definitions must be done as a block. The usage of the node is similar to the node tag, except that the name of the macro must be prepended on its own line prior to defining the code. The code itself reads the input from `/input/input.txt` and should write its output to `/output/output.txt`.
+
+Macros must be defined prior to being used.
+
+````
+```{define-block}
+testmacrob
+const fs = require('fs');
+const input = fs.readFileSync("/input/input.txt", {encoding:'utf8'});
+fs.writeFileSync("/output/output.txt", "This is a BLOCK macro that outputs Markdown text with a link: [" + input + "](http://www.google.com)!", { encoding: 'utf8' });
+```
+
+```{define-inline}
+testmacroa
+const fs = require('fs');
+const input = fs.readFileSync("/input/input.txt", {encoding:'utf8'});
+fs.writeFileSync("/output/output.txt", "This is a BLOCK macro that outputs Markdown text with a link: [" + input + "](http://www.google.com)!", { encoding: 'utf8' });
+```
+
+```{apply}
+testmacrob
+hello
+```
+
+Some text before. `{apply} testmacroa hello` Some text after.
+````
+
+
+Output:
+
+```{define-block}
+testmacrob
+const fs = require('fs');
+const input = fs.readFileSync("/input/input.txt", {encoding:'utf8'});
+fs.writeFileSync("/output/output.txt", "This is a BLOCK macro that outputs Markdown text with a link: [" + input + "](http://www.google.com)!", { encoding: 'utf8' });
+```
+
+```{define-inline}
+testmacroa
+const fs = require('fs');
+const input = fs.readFileSync("/input/input.txt", {encoding:'utf8'});
+fs.writeFileSync("/output/output.txt", "This is a BLOCK macro that outputs Markdown text with a link: [" + input + "](http://www.google.com)!", { encoding: 'utf8' });
+```
+
+```{apply}
+testmacrob
+hello block
+```
+
+Some text before. `{apply} testmacroa hello inline` Some text after.
+
 # Standard Markdown
 
 Standard Markdown syntax guide (adapted from https://github.com/tchapi/markdown-cheatsheet).

@@ -35,6 +35,7 @@ import { JavaExtension } from './java_extension';
 import { NodeExtension } from './node_extension';
 import { ImageExtension } from './image_extension';
 import { ChemfigExtension } from './chemfig_extension';
+import { MacroDefineExtension, MacroApplyExtension } from './macro_extension';
 
 export default class Markdown {
     private readonly markdownIt: MarkdownIt;
@@ -70,6 +71,8 @@ export default class Markdown {
         extenderConfig.register(new JavaExtension());
         extenderConfig.register(new NodeExtension());
         extenderConfig.register(new ChemfigExtension());
+        extenderConfig.register(new MacroDefineExtension());
+        extenderConfig.register(new MacroApplyExtension());
         this.markdownIt.use(extender, extenderConfig);
         // this.markdownIt.use(indexer);
     }

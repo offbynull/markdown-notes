@@ -46,14 +46,15 @@
 <li><a href="#HEADREF15">Java</a></li>
 <li><a href="#HEADREF16">NodeJS</a></li>
 </ul>
-<li><a href="#HEADREF17">Standard Markdown</a></li>
+<li><a href="#HEADREF17">Macro</a></li>
+<li><a href="#HEADREF18">Standard Markdown</a></li>
 <ul>
-<li><a href="#HEADREF18">Headers</a></li>
-<li><a href="#HEADREF19">Text Formatting</a></li>
-<li><a href="#HEADREF20">Image</a></li>
-<li><a href="#HEADREF21">Lists</a></li>
-<li><a href="#HEADREF22">Table</a></li>
-<li><a href="#HEADREF23">Code</a></li>
+<li><a href="#HEADREF19">Headers</a></li>
+<li><a href="#HEADREF20">Text Formatting</a></li>
+<li><a href="#HEADREF21">Image</a></li>
+<li><a href="#HEADREF22">Lists</a></li>
+<li><a href="#HEADREF23">Table</a></li>
+<li><a href="#HEADREF24">Code</a></li>
 </ul>
 </ul>
 </div>
@@ -425,9 +426,43 @@ PImage.encodePNGToStream(img, fs.createWriteStream('/output/out.png')).then(() =
 </code></pre>
 <p>The NPM package JSON and Javascript source code are separated by <code>----</code>.</p>
 <p>Block output:</p>
-<pre>Hey there!</pre><p><img src="/.datafile_b175f6b6dbd154d73c56cc9864e45e31/out.png" alt="Generated image"></p><a name="HEADREF17"></a><h1>Standard Markdown</h1>
+<pre>Hey there!</pre><p><img src="/.datafile_b175f6b6dbd154d73c56cc9864e45e31/out.png" alt="Generated image"></p><a name="HEADREF17"></a><h1>Macro</h1>
+<p>Define a macro using a chunk of NodeJS code using the define-block and define-inline tags, and apply that macro using that apply tag:</p>
+<p>Use...</p>
+<ul>
+<li>define-block to define a block-level macro.</li>
+<li>define-inline to define an inline-level macro.</li>
+</ul>
+<p>Regardless of if its a define-block or define-inline, definitions must be done as a block. The usage of the node is similar to the node tag, except that the name of the macro must be prepended on its own line prior to defining the code. The code itself reads the input from <code>/input/input.txt</code> and should write its output to <code>/output/output.txt</code>.</p>
+<p>Macros must be defined prior to being used.</p>
+<pre><code>```{define-block}
+testmacrob
+const fs = require('fs');
+const input = fs.readFileSync("/input/input.txt", {encoding:'utf8'});
+fs.writeFileSync("/output/output.txt", "This is a BLOCK macro that outputs Markdown text with a link: [" + input + "](http://www.google.com)!", { encoding: 'utf8' });
+```
+
+```{define-inline}
+testmacroa
+const fs = require('fs');
+const input = fs.readFileSync("/input/input.txt", {encoding:'utf8'});
+fs.writeFileSync("/output/output.txt", "This is a BLOCK macro that outputs Markdown text with a link: [" + input + "](http://www.google.com)!", { encoding: 'utf8' });
+```
+
+```{apply}
+testmacrob
+hello
+```
+
+Some text before. `{apply} testmacroa hello` Some text after.
+</code></pre>
+<p>Output:</p>
+<p>This is a BLOCK macro that outputs Markdown text with a link: <a href="http://www.google.com">
+hello block</a>!</p>
+<p>Some text before. This is a BLOCK macro that outputs Markdown text with a link: <a href="http://www.google.com"> hello inline</a>! Some text after.</p>
+<a name="HEADREF18"></a><h1>Standard Markdown</h1>
 <p>Standard Markdown syntax guide (adapted from https://github.com/tchapi/markdown-cheatsheet).</p>
-<a name="HEADREF18"></a><h2>Headers</h2>
+<a name="HEADREF19"></a><h2>Headers</h2>
 <pre><code># Heading 1
 ## Heading 2
 ### Heading 3
@@ -440,7 +475,7 @@ PImage.encodePNGToStream(img, fs.createWriteStream('/output/out.png')).then(() =
 ⚠️NOTE️️️⚠️</strong>
 <p>Outputs left out so as to not pollute the table of contents.</p>
 </div>
-<a name="HEADREF19"></a><h2>Text Formatting</h2>
+<a name="HEADREF20"></a><h2>Text Formatting</h2>
 <p>Emphasized text:</p>
 <p><em>text</em> --&gt; <code>_text_</code> or <code>*text*</code></p>
 <p>Strong text:</p>
@@ -463,12 +498,12 @@ PImage.encodePNGToStream(img, fs.createWriteStream('/output/out.png')).then(() =
 <hr>
 <pre><code>- - - -
 </code></pre>
-<a name="HEADREF20"></a><h2>Image</h2>
+<a name="HEADREF21"></a><h2>Image</h2>
 <p>Image:</p>
 <p><img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/MRNA_structure.svg" alt="Messenger RNA structure"></p>
 <pre><code>![Messenger RNA structure](https://upload.wikimedia.org/wikipedia/commons/b/ba/MRNA_structure.svg)
 </code></pre>
-<a name="HEADREF21"></a><h2>Lists</h2>
+<a name="HEADREF22"></a><h2>Lists</h2>
 <p>Unordered list:</p>
 <ul>
 <li>Some item
@@ -507,9 +542,9 @@ PImage.encodePNGToStream(img, fs.createWriteStream('/output/out.png')).then(() =
         1. Some inner inner item
 1. Some other item
 </code></pre>
-<a name="HEADREF22"></a><h2>Table</h2>
+<a name="HEADREF23"></a><h2>Table</h2>
 <p>No flavour of markdown tables are supported. You can use CSV tables instead.</p>
-<a name="HEADREF23"></a><h2>Code</h2>
+<a name="HEADREF24"></a><h2>Code</h2>
 <p>Code can either be inline in a paragraph or as a standalone block. Only standalone blocks can have syntax highlighting.</p>
 <p>Inline code block example:</p>
 <p><code>inlineCode(arg1, arg2)</code> --&gt; <code>`inlineCode(arg1, arg2)`</code></p>
