@@ -232,6 +232,9 @@ export class BookmarkExtension implements Extension {
                 const bookmarkTokens = (() => {
                     if (scanResult.entry.anchorId === null) {    // if null this was an ignore marker, just put the text back in and move on.
                         const bookmarkTokens: Token[] = [];
+                        // pre text
+                        bookmarkTokens.push(new Token('text', '', 0));
+                        bookmarkTokens[bookmarkTokens.length - 1].content = preText;
                         // capture preamble text
                         if (capturePreambleText !== null) {
                             bookmarkTokens.push(new Token('text', '', 0)); 
