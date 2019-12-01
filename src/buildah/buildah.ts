@@ -65,16 +65,21 @@ export function createContainer(environmentDir: string, containerName: string, d
     const imageName = containerName + '_image';
     execBuildah(environmentDir, ['--network=host', 'build-using-dockerfile', '-t', imageName, '-f', 'Dockerfile', '.']);
     execBuildah(environmentDir, ['--name', containerName, 'from', 'localhost/' + imageName]);
-
-
-    // Remove docker file and related files (so they won't be included in the final package)
-    FileSystem.remove(dockerFile);
-    for (const srcFile of dockerScriptDataFiles) {
-        const filename = Path.basename(srcFile);
-        const dstPath = Path.resolve(environmentDir, filename);
-        FileSystem.removeSync(dstPath);
-    }
 }
+
+export function createContainerRaw(environmentDir: string, containerName: string) {
+    createEnvIfNotExists(environmentDir);
+    if (existsContainer(environmentDir, containerName)) {
+        return;
+    }
+
+
+    // Run
+    const imageName = containerName + '_image';
+    execBuildah(environmentDir, ['--network=host', 'build-using-dockerfile', '-t', imageName, '-f', 'Dockerfile', '.']);
+    execBuildah(environmentDir, ['--name', containerName, 'from', 'localhost/' + imageName]);
+}
+
 
 
 
