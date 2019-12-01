@@ -263,7 +263,7 @@ digraph {
 ```
 </code></pre>
 <p>Output:</p>
-<p><img src="/.datafile_82c6dfba83d7b7e52b1b3ac23cf9eb4d/diagram.svg" alt="Generated image"></p><a name="HEADREF11"></a><h2>PlantUML</h2>
+<p><img src="/.datafile_3676e9fd02036fca26175f5a20f2f640/diagram.svg" alt="Generated image"></p><a name="HEADREF11"></a><h2>PlantUML</h2>
 <p>Add a PlantUML diagram using the plantuml block tag:</p>
 <pre><code>```{plantuml}
 @startuml
@@ -281,14 +281,14 @@ class Enrollment {
 ```
 </code></pre>
 <p>Block output:</p>
-<p><img src="/.datafile_2ba038b2249f6b7574a7ee28af2d6127/diagram.svg" alt="Generated image"></p><a name="HEADREF12"></a><h2>LaTeX Chemfig</h2>
+<p><img src="/.datafile_0721f17870b2d95de4ee8312368cf545/diagram.svg" alt="Generated image"></p><a name="HEADREF12"></a><h2>LaTeX Chemfig</h2>
 <p>Generate LaTeX chemfig diagrams by using chemfig block tag:</p>
 <pre><code>```{chemfig}
 \chemfig{Cl-[6]Co(&lt;:[3]H_2O)(&lt;[5]H_2O)(&lt;[7]H_2O)(&lt;:[9]H_2O)-[6]Cl}
 ```
 </code></pre>
 <p>Output:</p>
-<p><img src="/.datafile_2798b44860537c533a18d5255855e083/diagram.svg" alt="Generated image"></p><p>All preamble and postamble text for the LaTeX document is automatically added by this extension -- only the chemfig LaTeX package is loaded.  For details on chemfig syntax, see <a href="https://en.wikibooks.org/w/index.php?title=LaTeX/Chemical_Graphics&amp;oldid=3452092">here</a>.</p>
+<p><img src="/.datafile_8a11b88ce66567b990365be6b63b5843/diagram.svg" alt="Generated image"></p><p>All preamble and postamble text for the LaTeX document is automatically added by this extension -- only the chemfig LaTeX package is loaded.  For details on chemfig syntax, see <a href="https://en.wikibooks.org/w/index.php?title=LaTeX/Chemical_Graphics&amp;oldid=3452092">here</a>.</p>
 <a name="HEADREF13"></a><h1>Language Support</h1>
 <p>You can generate output by passing in custom code to run in various programming languages. The code is built and run in an isolated container, so it should be safe. The container is set up such that...</p>
 <ul>
@@ -323,7 +323,7 @@ plt.savefig("/output/out.svg", format="svg")
 </code></pre>
 <p>The Miniconda environment YAML and Python source code are separated by <code>----</code>.</p>
 <p>Block output:</p>
-<pre>hello world!</pre><p><img src="/.datafile_2e8ffebe0125194d3bfa00805bf8fc3f/out.svg" alt="Generated image"></p><a name="HEADREF15"></a><h2>Java</h2>
+<pre>hello world!</pre><p><img src="/.datafile_08460fa23c359f3c6d55b03fccbd6c06/out.svg" alt="Generated image"></p><a name="HEADREF15"></a><h2>Java</h2>
 <p>Add an image or text generated via Java (maven) using the java block tag:</p>
 <pre><code>```{java}
 import java.io.*;
@@ -389,7 +389,7 @@ public class Main {
 </code></pre>
 <p>The Maven POM XML and Java source code are separated by <code>----</code>.</p>
 <p>Block output:</p>
-<pre>hello world</pre><p><img src="/.datafile_6188266a76e7d5062a0f8ba6845194bf/output.svg" alt="Generated image"></p><a name="HEADREF16"></a><h2>NodeJS</h2>
+<pre>hello world</pre><p><img src="/.datafile_addd9fc36eb3c16aee36da4c031318a2/output.svg" alt="Generated image"></p><a name="HEADREF16"></a><h2>NodeJS</h2>
 <p>Add an image or text generated via NodeJS (npm) using the node block tag:</p>
 <pre><code>```{node}
 const fs = require('fs');
@@ -426,27 +426,29 @@ PImage.encodePNGToStream(img, fs.createWriteStream('/output/out.png')).then(() =
 </code></pre>
 <p>The NPM package JSON and Javascript source code are separated by <code>----</code>.</p>
 <p>Block output:</p>
-<pre>Hey there!</pre><p><img src="/.datafile_98ffefac95e47dc35e0e7ba0fd6b48d0/out.png" alt="Generated image"></p><a name="HEADREF17"></a><h1>Macro</h1>
-<p>Define a macro using a chunk of NodeJS code using the define-block and define-inline tags, and apply that macro using that apply tag:</p>
+<pre>Hey there!</pre><p><img src="/.datafile_8301a82919ce8ed0e16298dcea8b0a0b/out.png" alt="Generated image"></p><a name="HEADREF17"></a><h1>Macro</h1>
+<p>Define a macro that generates markdown using the define-block and define-inline tags, and apply that macro using that apply tag. Each instance of the apply tag will run code defined by the associated block tag to generate markdown.</p>
 <p>Use...</p>
 <ul>
 <li>define-block to define a block-level macro.</li>
 <li>define-inline to define an inline-level macro.</li>
 </ul>
-<p>Regardless of if its a define-block or define-inline, definitions must be done as a block. The usage of the node is similar to the node tag, except that the name of the macro must be prepended on its own line prior to defining the code. The code itself reads the input from <code>/input/input.txt</code> and should write its output to <code>/output/output.txt</code>.</p>
+<p>The first line of the definition is the name of the macro. The second line of the definition is a path to the container environment for the macro, where ...</p>
+<ul>
+<li><code>[PATH]/container</code> contains the Dockerfile and any files required by it.</li>
+<li><code>[PATH]/input</code> contains the folder to be mapped to /input/ when the container runs.</li>
+<li><code>[PATH]/input/run.sh</code> is the script that gets run within the container.</li>
+</ul>
+<p>On completion, <code>/output/output.md</code> on the container must contain the markdown to write out. Any other output files can also be written to <code>/output</code>, but it's recommended that they be written to <code>/output/[RANDOMIZED_PATH]</code> because they may conflict with existing rendered outputs.</p>
 <p>Macros must be defined prior to being used.</p>
 <pre><code>```{define-block}
 testmacrob
-const fs = require('fs');
-const input = fs.readFileSync("/input/input.txt", {encoding:'utf8'});
-fs.writeFileSync("/output/output.txt", "This is a BLOCK macro that outputs Markdown text with a link: [" + input + "](http://www.google.com)!", { encoding: 'utf8' });
+macroa/
 ```
 
 ```{define-inline}
 testmacroa
-const fs = require('fs');
-const input = fs.readFileSync("/input/input.txt", {encoding:'utf8'});
-fs.writeFileSync("/output/output.txt", "This is a BLOCK macro that outputs Markdown text with a link: [" + input + "](http://www.google.com)!", { encoding: 'utf8' });
+macrob/
 ```
 
 ```{apply}
@@ -456,10 +458,14 @@ hello
 
 Some text before. `{apply} testmacroa hello` Some text after.
 </code></pre>
+<div style="margin: 2em; background-color: #e0e0e0">
+<strong>
+⚠️NOTE️️️⚠️</strong>
+<p>See input/macroa and input/macrob directories to see the related files.</p>
+</div>
 <p>Output:</p>
-<p>This is a BLOCK macro that outputs Markdown text with a link: <a href="http://www.google.com">
-hello block</a>!</p>
-<p>Some text before. This is a BLOCK macro that outputs Markdown text with a link: <a href="http://www.google.com"> hello inline</a>! Some text after.</p>
+<p>This is a BLOCK macro that outputs Markdown text with a link: <a href="http://www.google.com">hello block</a>!</p>
+<p>Some text before. This is an INLINE macro that outputs Markdown text with a link: <a href="http://www.google.com">hello inline</a>! Some text after.</p>
 <a name="HEADREF18"></a><h1>Standard Markdown</h1>
 <p>Standard Markdown syntax guide (adapted from https://github.com/tchapi/markdown-cheatsheet).</p>
 <a name="HEADREF19"></a><h2>Headers</h2>

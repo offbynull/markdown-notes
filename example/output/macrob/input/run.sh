@@ -1,0 +1,1 @@
+cd /input && node code.js

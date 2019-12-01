@@ -152,7 +152,7 @@ function runContainer(
         FileSystem.copySync(inputDir, newInputDir);
         for (const e of inputOverrides.entries()) {
             const overridePath = Path.normalize(Path.resolve(newInputDir, e[0]));
-            if (Path.relative(overridePath, newInputDir).startsWith('..')) {
+            if (Path.relative(newInputDir, overridePath).startsWith('..')) {
                 throw new Error(`Cannot inject outside of input directory: ${e[0]}`);
             }
             const overridePathDir = Path.dirname(overridePath);

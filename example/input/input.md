@@ -634,29 +634,31 @@ PImage.encodePNGToStream(img, fs.createWriteStream('/output/out.png')).then(() =
 
 # Macro
 
-Define a macro using a chunk of NodeJS code using the define-block and define-inline tags, and apply that macro using that apply tag:
+Define a macro that generates markdown using the define-block and define-inline tags, and apply that macro using that apply tag. Each instance of the apply tag will run code defined by the associated block tag to generate markdown.
 
 Use...
  * define-block to define a block-level macro.
  * define-inline to define an inline-level macro.
 
-Regardless of if its a define-block or define-inline, definitions must be done as a block. The usage of the node is similar to the node tag, except that the name of the macro must be prepended on its own line prior to defining the code. The code itself reads the input from `/input/input.txt` and should write its output to `/output/output.txt`.
+The first line of the definition is the name of the macro. The second line of the definition is a path to the container environment for the macro, where ... 
+
+ * `[PATH]/container` contains the Dockerfile and any files required by it.
+ * `[PATH]/input` contains the folder to be mapped to /input/ when the container runs.
+ * `[PATH]/input/run.sh` is the script that gets run within the container.
+
+On completion, `/output/output.md` on the container must contain the markdown to write out. Any other output files can also be written to `/output`, but it's recommended that they be written to `/output/[RANDOMIZED_PATH]` because they may conflict with existing rendered outputs.
 
 Macros must be defined prior to being used.
 
 ````
 ```{define-block}
 testmacrob
-const fs = require('fs');
-const input = fs.readFileSync("/input/input.txt", {encoding:'utf8'});
-fs.writeFileSync("/output/output.txt", "This is a BLOCK macro that outputs Markdown text with a link: [" + input + "](http://www.google.com)!", { encoding: 'utf8' });
+macroa/
 ```
 
 ```{define-inline}
 testmacroa
-const fs = require('fs');
-const input = fs.readFileSync("/input/input.txt", {encoding:'utf8'});
-fs.writeFileSync("/output/output.txt", "This is a BLOCK macro that outputs Markdown text with a link: [" + input + "](http://www.google.com)!", { encoding: 'utf8' });
+macrob/
 ```
 
 ```{apply}
@@ -667,21 +669,20 @@ hello
 Some text before. `{apply} testmacroa hello` Some text after.
 ````
 
+```{note}
+See input/macroa and input/macrob directories to see the related files.
+```
 
 Output:
 
 ```{define-block}
 testmacrob
-const fs = require('fs');
-const input = fs.readFileSync("/input/input.txt", {encoding:'utf8'});
-fs.writeFileSync("/output/output.txt", "This is a BLOCK macro that outputs Markdown text with a link: [" + input + "](http://www.google.com)!", { encoding: 'utf8' });
+macroa/
 ```
 
 ```{define-inline}
 testmacroa
-const fs = require('fs');
-const input = fs.readFileSync("/input/input.txt", {encoding:'utf8'});
-fs.writeFileSync("/output/output.txt", "This is a BLOCK macro that outputs Markdown text with a link: [" + input + "](http://www.google.com)!", { encoding: 'utf8' });
+macrob/
 ```
 
 ```{apply}
