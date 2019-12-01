@@ -17,14 +17,12 @@
  */
 
 import FileSystem from 'fs-extra';
-import Crypto from 'crypto';
 import Path from 'path';
 import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 import * as Buildah from '../buildah/buildah';
-
-const CONTAINER_NAME = 'dot';
+import { runSingleOutputGeneratingContainer } from './container_helper';
 
 export class DotExtension implements Extension {
     public readonly tokenIds: ReadonlyArray<TokenIdentifier> = [
@@ -33,71 +31,39 @@ export class DotExtension implements Extension {
 
     public render(markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext): string {
         const token = tokens[tokenIdx];
-        const dotCode = token.content;
+        const input = token.content;
 
-        DotExtension.initializeDot(context.realCachePath);
+        const workDir = FileSystem.mkdtempSync('/tmp/dotWorkDir');
+        const containerDir = Path.resolve(workDir, 'container');
+        const inputDir = Path.resolve(workDir, 'input');
+        const outputDir = Path.resolve(workDir, 'output');
 
-        const dotCodeHash = Crypto.createHash('md5').update(dotCode).digest('hex');
-        const dotDataDir = context.realCachePath + `/dot/${dotCodeHash}`;
-        const dotOutputFile = dotDataDir + '/diagram.svg';
+        FileSystem.mkdirpSync(containerDir);
+        FileSystem.mkdirpSync(inputDir);
+        FileSystem.mkdirpSync(outputDir);
 
-        if (FileSystem.existsSync(dotOutputFile) === false) { // only generate if not already exists
-            const svgData = DotExtension.launchDot(context.realCachePath, context.realInputPath, dotCode);
-            FileSystem.mkdirpSync(dotDataDir);
-            FileSystem.writeFileSync(dotOutputFile, svgData);
-        }
-
-        const dotOutputHtmlPath = context.injectFile(dotOutputFile);
-        return `<p><img src="${markdownIt.utils.escapeHtml(dotOutputHtmlPath)}" alt="Graphviz Dot Diagram" /></p>`;
-    }
-
-
-
-
-    private static initializeDot(cacheDir: string) {
-        const envDir = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env');
-        if (Buildah.existsContainer(envDir, CONTAINER_NAME)) {
-            return;
-        }
-
-        console.log('Initializing Dot container');
-
-        FileSystem.mkdirpSync(envDir);
-        
-        // create container
-        Buildah.createContainer(
-            envDir,
-            CONTAINER_NAME,
+        FileSystem.writeFileSync(
+            Path.resolve(containerDir, 'Dockerfile'),
             'FROM alpine:3.10\n'
             + 'RUN apk add --no-cache graphviz\n'
-            + 'RUN mkdir -p /opt\n',
-            []  // files req for dockerscript above (if any), will get copied to dockerfile folder before running
         );
-    }
-    
-    private static launchDot(cacheDir: string, realInputDir: string, codeInput: string) {
-        console.log('Launching Dot container');
 
-        const envDir = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env');
+        FileSystem.writeFileSync(Path.resolve(inputDir, 'diagram.dot'), input);
+        FileSystem.writeFileSync(Path.resolve(inputDir, 'run.sh'), 'dot -Tsvg /input/diagram.dot > /output/diagram.svg\n');
 
-        const tmpPath = FileSystem.mkdtempSync('/tmp/data');
-        FileSystem.mkdirpSync(tmpPath + '/input');
-        FileSystem.mkdirpSync(tmpPath + '/output');
-        FileSystem.writeFileSync(tmpPath + '/input/diagram.dot', codeInput);
-        FileSystem.writeFileSync(tmpPath + '/input/script.sh',
-            'dot -Tsvg /input/diagram.dot > /output/diagram.svg\n'
+        const ret = runSingleOutputGeneratingContainer(
+            'dot',
+            containerDir,
+            inputDir,
+            new Map(),
+            outputDir,
+            [
+                new Buildah.LaunchVolumeMapping(context.realInputPath, '/files', 'r')
+            ],
+            context
         );
-    
-        Buildah.launchContainer(envDir, CONTAINER_NAME, ['sh', '/input/script.sh'],
-            {
-                volumeMappings: [
-                    new Buildah.LaunchVolumeMapping(tmpPath + '/input', '/input', 'rw'),
-                    new Buildah.LaunchVolumeMapping(tmpPath + '/output', '/output', 'rw'),
-                    new Buildah.LaunchVolumeMapping(realInputDir, '/files', 'r')
-                ]
-            });
-        const svgOutput = FileSystem.readFileSync(tmpPath + '/output/diagram.svg', { encoding: 'utf8' });
-        
-        return svgOutput;
+
+        FileSystem.removeSync(workDir);
+        return ret;
     }
 }

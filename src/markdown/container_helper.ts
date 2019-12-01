@@ -20,6 +20,122 @@ import FileSystem from 'fs-extra';
 import Crypto from 'crypto';
 import Path from 'path';
 import * as Buildah from '../buildah/buildah';
+import { ExtensionContext } from './extender_plugin';
+import CsvParse from 'csv-parse/lib/sync';
+import escapeHTML from 'escape-html';
+
+export function runSingleOutputGeneratingContainer(
+    friendlyName: string,
+    containerDir: string,
+    inputDir: string,
+    inputOverrides: Map<string, string | Buffer>,
+    outputDir: string,
+    extraVolumeMappings: Buildah.LaunchVolumeMapping[],
+    extensionContext: ExtensionContext
+) {
+    // Run container
+    const dirOverrides = runContainer(
+        friendlyName,
+        containerDir,
+        inputDir,
+        inputOverrides,
+        outputDir,
+        extraVolumeMappings,
+        extensionContext.realCachePath);
+    inputDir = dirOverrides.updatedInputDir;
+    outputDir = dirOverrides.updatedOutputDir;
+
+    // Get output
+    const outputFiles = FileSystem.readdirSync(outputDir);
+    if (outputFiles.length !== 1) {
+        throw new Error('Require exactly 1 output, but was ' + outputFiles.length + ' outputs');
+    }
+    const outputFile = Path.resolve(outputDir, outputFiles[0]);
+
+    // Interpret output based on filetype
+    if (outputFile.toLowerCase().endsWith('.txt')) {
+        const data = FileSystem.readFileSync(outputFile, { encoding: 'utf8' });
+        return `<pre>${escapeHTML(data)}</pre>`;
+    } else if (outputFile.toLowerCase().endsWith('.svg')
+        || outputFile.toLowerCase().endsWith('.png')
+        || outputFile.toLowerCase().endsWith('.gif')
+        || outputFile.toLowerCase().endsWith('.jpg')
+        || outputFile.toLowerCase().endsWith('.jpeg')) {
+        const imageHtmlPath = extensionContext.injectFile(outputFile);
+        return `<p><img src="${escapeHTML(imageHtmlPath)}" alt="Generated image" /></p>`;
+    } else if (outputFile.toLowerCase().endsWith('.csv')) {
+        const data = FileSystem.readFileSync(outputFile, { encoding: 'utf8' });
+        const records = CsvParse(data, {
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            relax_column_count: true
+        });
+
+        if (Array.isArray(records) === false) {
+            throw 'CSV did not parse to array'; // this should never happen
+        }
+
+        const recordsAsArray = records as string[][];
+        let ret = '';
+        ret += '<table>';
+        for (let i = 0; i < recordsAsArray.length; i++) {
+            const record = recordsAsArray[i];
+            const headerRow = i === 0;
+            ret += '<tr>';
+            for (let j = 0; j < record.length; j++) {
+                const data = record[j];
+                ret += headerRow ? '<th>' : '<td>';
+                ret += escapeHTML(data);
+                ret += headerRow ? '</th>' : '</td>';
+            }
+            ret += '</tr>';
+        }
+        ret += '</table>';
+        return ret;
+    } else {
+        throw new Error('Generated output file contains unknown extension: ' + outputFile);
+    }
+}
+
+export function runMarkdownGeneratingContainer(
+    friendlyName: string,
+    containerDir: string,
+    inputDir: string,
+    inputOverrides: Map<string, string | Buffer>,
+    outputDir: string,
+    extraVolumeMappings: Buildah.LaunchVolumeMapping[],
+    extensionContext: ExtensionContext
+) {
+    // Run container
+    const dirOverrides = runContainer(
+        friendlyName,
+        containerDir,
+        inputDir,
+        inputOverrides,
+        outputDir,
+        extraVolumeMappings,
+        extensionContext.realCachePath);
+    inputDir = dirOverrides.updatedInputDir;
+    outputDir = dirOverrides.updatedOutputDir;
+
+    // Read in output markdown
+    const outputMdPath = Path.resolve(outputDir, 'output.md');
+    if (!FileSystem.existsSync(outputMdPath) || !FileSystem.lstatSync(outputMdPath).isFile()) {
+        throw new Error('No output.md found');
+    }
+    const outputMd = FileSystem.readFileSync(outputMdPath, { encoding: 'utf8' });
+
+    // Copy over output files generated to base path (do not copy output.md, fail if a file already exists)
+    FileSystem.copySync(outputDir, extensionContext.realBasePath,
+        {
+            overwrite: true,
+            errorOnExist: true,
+            filter: (p) => Path.relative(outputDir, p) !== 'output.md' /* copy if the file isn't ./output.md */
+        }
+    );
+
+    // Return markdown for rendering
+    return outputMd;
+}
 
 function runContainer(
     friendlyName: string,
@@ -28,13 +144,16 @@ function runContainer(
     inputOverrides: Map<string, string | Buffer>,
     outputDir: string,
     extraVolumeMappings: Buildah.LaunchVolumeMapping[],
-    cacheDir: string) {
+    cacheDir: string
+) {
+    // If input overrides available, copy inputs to tmp dir and apply overrides    
     if (inputOverrides.size !== 0) {
-        FileSystem.mkdtempSync('inputoverrides');
+        const newInputDir = FileSystem.mkdtempSync('/tmp/inputoverrides');
+        FileSystem.copySync(inputDir, newInputDir);
         for (const e of inputOverrides.entries()) {
-            const overridePath = Path.normalize(Path.resolve(inputDir, e[0]));
-            if (Path.relative(overridePath, inputDir).startsWith('..')) {
-                throw new Error(`Cannot inject outside of input directory: ${e[0]} vs ${inputDir}`);
+            const overridePath = Path.normalize(Path.resolve(newInputDir, e[0]));
+            if (Path.relative(overridePath, newInputDir).startsWith('..')) {
+                throw new Error(`Cannot inject outside of input directory: ${e[0]}`);
             }
             const overridePathDir = Path.dirname(overridePath);
             FileSystem.mkdirpSync(overridePathDir);
@@ -46,13 +165,33 @@ function runContainer(
                 FileSystem.writeFileSync(overridePath, value);
             }
         }
+        inputDir = newInputDir;
     }
-    return new ContainerHelper(friendlyName, containerDir, inputDir, outputDir, cacheDir).run(extraVolumeMappings);
+
+    // Create container helper
+    const ch = new ContainerHelper(
+        friendlyName,
+        containerDir,
+        inputDir,
+        outputDir,
+        cacheDir
+    );
+
+    // Has there been a previous run of this container for this specific input?
+    if (ch.isAlreadyProcessed()) { // If so, use the cached output
+        outputDir = ch.cachedOutputDir;
+    } else { // If not, run container
+        ch.run(extraVolumeMappings);
+    }
+
+    return { updatedInputDir: inputDir, updatedOutputDir: outputDir };
 }
 
 export class ContainerHelper {
     private readonly containerHash: string;
-    private readonly dataHash: string;
+    public readonly dataHash: string;
+    public readonly cachedContainerDir: string;
+    public readonly cachedOutputDir: string;
     constructor(
         private readonly friendlyName: string,
         private readonly containerDir: string,
@@ -60,20 +199,31 @@ export class ContainerHelper {
         private readonly outputDir: string,
         private readonly cacheDir: string
     ) {
-        this.containerHash = hashDirectories([ containerDir ]);
-        this.dataHash = hashDirectories([ containerDir, inputDir ]);
+        const containerHasher = Crypto.createHash('md5');
+        hashDirectory(containerHasher, containerDir);
+        this.containerHash = containerHasher.digest('hex');
+
+        const dataHasher = Crypto.createHash('md5');
+        dataHasher.update('container');
+        dataHasher.update(this.containerHash);
+        dataHasher.update('data');
+        hashDirectory(dataHasher, inputDir);
+        this.dataHash = dataHasher.digest('hex');
+
+        this.cachedOutputDir = Path.resolve(this.cacheDir, 'container_output_' + this.dataHash);
+        this.cachedContainerDir = Path.resolve(this.cacheDir, 'container_env_' + this.containerHash);
     }
 
     public run(extraVolumeMappings?: Buildah.LaunchVolumeMapping[]) {
-        this.initializeContainer();
         if (this.isAlreadyProcessed()) {
             return;
         }
+        this.initializeContainer();
         this.launchContainer(extraVolumeMappings || []);
     }
 
     private initializeContainer() {
-        const envDir = Path.resolve(this.cacheDir, this.containerHash + '_macro_env');
+        const envDir = this.cachedContainerDir;
         if (Buildah.existsContainer(envDir, this.containerHash)) {
             return;
         }
@@ -81,10 +231,14 @@ export class ContainerHelper {
         console.log(`Initializing ${this.friendlyName} container (may take several minutes)`);
 
         FileSystem.copySync(this.containerDir, envDir);
-        Buildah.createContainerRaw(envDir, this.friendlyName);
+        Buildah.createContainerRaw(envDir, this.containerHash);
     }
 
     private launchContainer(extraVolumeMappings: Buildah.LaunchVolumeMapping[]) {
+        if (this.isAlreadyProcessed()) {
+            return;
+        }
+
         console.log(`Launching ${this.friendlyName} container`);
 
         const scriptFile = Path.resolve(this.inputDir, 'run.sh');
@@ -92,7 +246,7 @@ export class ContainerHelper {
             throw new Error('Missing run.sh');
         }
 
-        const envDir = Path.resolve(this.cacheDir, this.containerHash + '_macro_env');
+        const envDir = this.cachedContainerDir;
         const volumeMappings = [
             new Buildah.LaunchVolumeMapping(this.inputDir, '/input', 'r'),
             new Buildah.LaunchVolumeMapping(this.outputDir, '/output', 'rw')            
@@ -100,16 +254,18 @@ export class ContainerHelper {
         volumeMappings.concat(extraVolumeMappings);
         Buildah.launchContainer(
             envDir,
-            this.friendlyName,
-            ['bash', '/input/run.sh'],
+            this.containerHash,
+            ['sh', '/input/run.sh'],
             {
                 volumeMappings: volumeMappings
             }
         );
+
+        FileSystem.copySync(this.outputDir, this.cachedOutputDir)
     }
 
-    private isAlreadyProcessed() {
-        const outDir = Path.resolve(this.cacheDir, this.containerHash + '_macro_output');
+    public isAlreadyProcessed() {
+        const outDir = this.cachedOutputDir;
         if (!FileSystem.existsSync(outDir)) {
             return false;
         }
@@ -122,26 +278,28 @@ export class ContainerHelper {
     }
 }
 
-function hashDirectories(dirs: string[]) {
-    const hasher = Crypto.createHash('md5');
-    for (const dir of dirs) {
-        const children = listDirectory(dir);
-        for (const path of children) {
-            const lstat = FileSystem.lstatSync(path);
-            if (lstat.isDirectory()) {
-                hasher.update('dir', 'utf8');
-                hasher.update(path, 'utf8');
-            } else if (lstat.isFile()) {
-                hasher.update('file', 'utf8');
-                hasher.update('path' + path, 'utf8');
-                hasher.update('size' + lstat.size, 'utf8');
-                hasher.update(FileSystem.readFileSync(path));
-            } else {
-                throw new Error('Unrecognized path type: ' + JSON.stringify(lstat));
-            }
+// children of dir are relativized prior to hashing (dir is stripped off of children before hashing)
+function hashDirectory(hasher: Crypto.Hash, dir: string) {
+    if (!Path.isAbsolute(dir)) {
+        throw new Error(`${dir} is not absolute`);
+    }
+    dir = Path.normalize(dir);
+    const children = listDirectory(dir);
+    for (const path of children) {
+        const lstat = FileSystem.lstatSync(path);
+        const relPath = Path.relative(dir, path);
+        if (lstat.isDirectory()) {
+            hasher.update('dir', 'utf8');
+            hasher.update(relPath, 'utf8');
+        } else if (lstat.isFile()) {
+            hasher.update('file', 'utf8');
+            hasher.update('path' + relPath, 'utf8');
+            hasher.update('size' + lstat.size, 'utf8');
+            hasher.update(FileSystem.readFileSync(path));
+        } else {
+            throw new Error('Unrecognized path type: ' + JSON.stringify(lstat));
         }
     }
-    return hasher.digest('base64');
 }
 
 function listDirectory(dir: string) {

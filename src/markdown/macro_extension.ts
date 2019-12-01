@@ -27,7 +27,7 @@ import { outputFileToHtml } from './output_utils';
 import StateCore from 'markdown-it/lib/rules_core/state_core';
 import StateBlock from 'markdown-it/lib/rules_block/state_block';
 
-const CONTAINER_NAME = 'node';
+const CONTAINER_NAME = 'macro';
 
 const DEFAULT_PACKAGE_JSON =
     `
@@ -207,7 +207,7 @@ export class MacroApplyExtension implements Extension {
             return;
         }
 
-        console.log('Initializing Node container (may take several minutes)');
+        console.log('Initializing Macro container (may take several minutes)');
 
         FileSystem.mkdirpSync(envDir);
         
@@ -221,7 +221,7 @@ export class MacroApplyExtension implements Extension {
     }
     
     private static launchNode(cacheDir: string, realInputDir: string, packageJson: string, input: string, code: string) {
-        console.log('Launching Node container');
+        console.log('Launching Macro container');
 
         const envDir = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env');
 
@@ -237,12 +237,14 @@ export class MacroApplyExtension implements Extension {
         FileSystem.writeFileSync(Path.resolve(inputPath, 'input.txt'), input);
         FileSystem.writeFileSync(Path.resolve(inputPath, 'script.sh'),
             `
+            rm -rf ${containerWorkDir}
             mkdir -p ${containerWorkDir} 
             rm ${containerWorkDir}/package.json
             rm ${containerWorkDir}/code.js
             cp /input/package.json ${containerWorkDir} 
             cp /input/code.js ${containerWorkDir}
             cd ${containerWorkDir} && npm install && npm start
+            rm -rf ${containerWorkDir}
             `
         );
 

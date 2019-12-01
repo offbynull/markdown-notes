@@ -23,9 +23,7 @@ import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 import * as Buildah from '../buildah/buildah';
-import { outputFileToHtml } from './output_utils';
-
-const CONTAINER_NAME = 'maven';
+import { runSingleOutputGeneratingContainer } from './container_helper';
 
 const DEFAULT_PACKAGE_JSON =
     `
@@ -54,121 +52,60 @@ export class JavaExtension implements Extension {
 
     public render(markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext): string {
         const token = tokens[tokenIdx];
-        const mavenCode = token.content;
+        const input = token.content;
 
-        JavaExtension.initializeMaven(context.realCachePath);
+        const workDir = FileSystem.mkdtempSync('/tmp/javaWorkDir');
+        const containerDir = Path.resolve(workDir, 'container');
+        const inputDir = Path.resolve(workDir, 'input');
+        const outputDir = Path.resolve(workDir, 'output');
 
-        const mavenCodeHash = Crypto.createHash('md5').update(mavenCode).digest('hex');
-        const mavenDataDir = Path.resolve(context.realCachePath, 'maven', mavenCodeHash);
+        FileSystem.mkdirpSync(containerDir);
+        FileSystem.mkdirpSync(inputDir);
+        FileSystem.mkdirpSync(outputDir);
 
-        FileSystem.mkdirpSync(mavenDataDir);
-        let mavenOutputFile = (() => {
-            const entries = FileSystem.readdirSync(mavenDataDir);
-            if (entries.length === 0) {
-                return undefined;
-            } else if (entries.length === 1) {
-                return Path.resolve(mavenDataDir, entries[0]);
+        FileSystem.writeFileSync(Path.resolve(containerDir, 'Dockerfile'), 'FROM maven:3.6.1-jdk-12\n');
+
+        const splitCode = (() => {
+            const split = input.split(/^----$/gm);
+            switch (split.length) {
+                case 1:
+                    return { packageJson: DEFAULT_PACKAGE_JSON, javaCode: split[0] };
+                case 2:
+                    return { packageJson: split[0], javaCode: split[1] };
+                default:
+                    throw new Error('Split into unrecognized number of segments: ' + split.length);
             }
-
-            const fullEntries = JSON.stringify(
-                entries.map(e => Path.resolve(mavenDataDir, e))
-            );
-            throw new Error('Too many cached files detected ' + fullEntries);
         })();
+        FileSystem.writeFileSync(Path.resolve(inputDir, 'pom.xml'), splitCode.packageJson);
+        FileSystem.writeFileSync(Path.resolve(inputDir, 'Main.java'), splitCode.javaCode);
 
-
-        if (mavenOutputFile === undefined) {
-            const splitCode = (() => {
-                const split = mavenCode.split(/^----$/gm);
-                switch (split.length) {
-                    case 1:
-                        return { project: DEFAULT_PACKAGE_JSON, code: split[0] };
-                    case 2:
-                        return { project: split[0], code: split[1] };
-                    default:
-                        throw new Error('Split into unrecognized number of segments: ' + split.length);
-                }
-            })();
-
-            const outputFile = JavaExtension.launchMaven(context.realCachePath, context.realInputPath, splitCode.project, splitCode.code);
-
-            const outputFileName = Path.basename(outputFile);
-            const dstFile = Path.resolve(mavenDataDir, outputFileName);
-
-            FileSystem.mkdirpSync(mavenDataDir);
-            FileSystem.copyFileSync(outputFile, dstFile);
-
-            mavenOutputFile = dstFile;
-        }
-
-        return outputFileToHtml(mavenOutputFile, markdownIt, context);
-    }
-
-
-
-
-
-    private static initializeMaven(cacheDir: string) {
-        const envDir = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env');
-        if (Buildah.existsContainer(envDir, CONTAINER_NAME)) {
-            return;
-        }
-
-        console.log('Initializing Maven container (may take several minutes)');
-
-        FileSystem.mkdirpSync(envDir);
-        
-        // create container
-        Buildah.createContainer(
-            envDir,
-            CONTAINER_NAME,
-            'FROM maven:3.6.1-jdk-12\n',
-            [], // loc of files req for dockerscript above -- e.g, specify [ '../resources/plantuml.1.2019.7.jar' ] and add 'COPY plantuml.1.2019.7.jar /opt/\n' in dockerfile above
-        );
-    }
-    
-    private static launchMaven(cacheDir: string, realInputDir: string, pom: string, code: string) {
-        console.log('Launching Maven container');
-
-        const envDir = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env');
-
-        const tmpPath = FileSystem.mkdtempSync('/tmp/data');
-        const inputPath = Path.resolve(tmpPath, 'input');
-        const outputPath = Path.resolve(tmpPath, 'output');
-        FileSystem.mkdirpSync(inputPath);
-        FileSystem.mkdirpSync(outputPath);
-        FileSystem.writeFileSync(Path.resolve(inputPath, 'pom.xml'), pom);
-
-        const srcPath = Path.resolve(inputPath, 'src', 'main', 'java');
-        FileSystem.mkdirpSync(srcPath);
-        FileSystem.writeFileSync(Path.resolve(srcPath, 'Main.java'), code);
-        FileSystem.writeFileSync(Path.resolve(inputPath, 'script.sh'),
+        const envHash = Crypto.createHash('md5').update(splitCode.packageJson).digest('hex');
+        const containerWorkDir = Path.resolve('/tmp', envHash)
+        FileSystem.writeFileSync(Path.resolve(inputDir, 'run.sh'),
             `
-            cd /input && mvn clean install exec:java -Dexec.mainClass="Main" 
+            rm -rf ${containerWorkDir}
+            mkdir -p ${containerWorkDir}
+            mkdir -p ${containerWorkDir}/src/main/java 
+            cp /input/Main.java ${containerWorkDir}/src/main/java 
+            cp /input/pom.xml ${containerWorkDir}
+            cd ${containerWorkDir} && mvn clean install exec:java -Dexec.mainClass="Main" 
+            rm -rf ${containerWorkDir}
             `
         );
 
-        Buildah.launchContainer(envDir, CONTAINER_NAME, ['bash', '/input/script.sh'],
-        {
-            volumeMappings: [
-                new Buildah.LaunchVolumeMapping(inputPath, '/input', 'rw'),
-                new Buildah.LaunchVolumeMapping(outputPath, '/output', 'rw'),
-                new Buildah.LaunchVolumeMapping(realInputDir, '/files', 'r')
-            ]
-        });
+        const ret = runSingleOutputGeneratingContainer(
+            'java',
+            containerDir,
+            inputDir,
+            new Map(),
+            outputDir,
+            [
+                new Buildah.LaunchVolumeMapping(context.realInputPath, '/files', 'r')
+            ],
+            context
+        );
 
-        const outputFiles = FileSystem.readdirSync(outputPath);
-        if (outputFiles.length !== 1) {
-            throw new Error(
-                'Require exactly 1 output, but was ' + outputFiles.length + ' outputs\n'
-                + '-----\n'
-                + JSON.stringify(outputFiles) + '\n'
-                + '-----\n'
-                + code
-            );
-        }
-        const outputFile = Path.resolve(outputPath, outputFiles[0]);
-        
-        return outputFile;
+        FileSystem.removeSync(workDir);
+        return ret;
     }
 }

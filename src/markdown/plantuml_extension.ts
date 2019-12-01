@@ -23,8 +23,7 @@ import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 import * as Buildah from '../buildah/buildah';
-
-const CONTAINER_NAME = 'plantuml';
+import { runSingleOutputGeneratingContainer } from './container_helper';
 
 export class PlantUmlExtension implements Extension {
     public readonly tokenIds: ReadonlyArray<TokenIdentifier> = [
@@ -33,42 +32,19 @@ export class PlantUmlExtension implements Extension {
 
     public render(markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext): string {
         const token = tokens[tokenIdx];
-        const pumlCode = token.content;
+        const input = token.content;
 
-        PlantUmlExtension.initializePlantUml(context.realCachePath);
+        const workDir = FileSystem.mkdtempSync('/tmp/plantumlWorkDir');
+        const containerDir = Path.resolve(workDir, 'container');
+        const inputDir = Path.resolve(workDir, 'input');
+        const outputDir = Path.resolve(workDir, 'output');
 
-        const pumlCodeHash = Crypto.createHash('md5').update(pumlCode).digest('hex');
-        const pumlDataDir = context.realCachePath + `/puml/${pumlCodeHash}`;
-        const pumlOutputFile = pumlDataDir + '/diagram.svg';
+        FileSystem.mkdirpSync(containerDir);
+        FileSystem.mkdirpSync(inputDir);
+        FileSystem.mkdirpSync(outputDir);
 
-        if (FileSystem.existsSync(pumlOutputFile) === false) { // only generate if not already exists
-            const svgData = PlantUmlExtension.launchPlantUml(context.realCachePath, context.realInputPath, pumlCode);
-            FileSystem.mkdirpSync(pumlDataDir);
-            FileSystem.writeFileSync(pumlOutputFile, svgData);
-        }
-
-        const pumpOutputHtmlPath = context.injectFile(pumlOutputFile);
-        return `<p><img src="${markdownIt.utils.escapeHtml(pumpOutputHtmlPath)}" alt="PlantUML Diagram" /></p>`;
-    }
-
-
-
-
-
-    private static initializePlantUml(cacheDir: string) {
-        const envDir = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env');
-        if (Buildah.existsContainer(envDir, CONTAINER_NAME)) {
-            return;
-        }
-
-        console.log('Initializing PlantUML container');
-
-        FileSystem.mkdirpSync(envDir);
-        
-        // create container
-        Buildah.createContainer(
-            envDir,
-            CONTAINER_NAME,
+        FileSystem.writeFileSync(
+            Path.resolve(containerDir, 'Dockerfile'),
             'FROM alpine:3.10\n'
             + 'RUN apk add --no-cache openjdk11-jre\n'          // jre-headless won't work -- it fails when running plantuml (regardless of if the -Djava.awt.headless=true is present)
             + 'RUN apk add --no-cache fontconfig ttf-dejavu\n'  // without these packages, plantuml fails with font related exception
@@ -77,35 +53,36 @@ export class PlantUmlExtension implements Extension {
             + 'RUN mkdir -p /opt\n'
             + 'WORKDIR /opt\n'
             + 'RUN wget https://repo1.maven.org/maven2/net/sourceforge/plantuml/plantuml/1.2019.8/plantuml-1.2019.8.jar\n'
-            + 'RUN apk del --no-cache wget\n',
-            [], // loc of files req for dockerscript above -- e.g, specify [ '../resources/plantuml.1.2019.7.jar' ] and add 'COPY plantuml.1.2019.7.jar /opt/\n' in dockerfile above
+            + 'RUN apk del --no-cache wget\n'
         );
-    }
-    
-    private static launchPlantUml(cacheDir: string, realInputDir: string, codeInput: string) {
-        console.log('Launching PlantUML container');
 
-        const envDir = Path.resolve(cacheDir, CONTAINER_NAME + '_container_env');
-
-        const tmpPath = FileSystem.mkdtempSync('/tmp/data');
-        FileSystem.mkdirpSync(tmpPath + '/input');
-        FileSystem.mkdirpSync(tmpPath + '/output');
-        FileSystem.writeFileSync(tmpPath + '/input/diagram.puml', codeInput);
-        FileSystem.writeFileSync(tmpPath + '/input/script.sh',
-            'java -Djava.awt.headless=true -jar /opt/plantuml-1.2019.8.jar -tsvg /input/diagram.puml\n'
-            + 'mv /input/diagram.svg /output\n'
+        const envHash = Crypto.createHash('md5').update(input).digest('hex');
+        const containerWorkDir = Path.resolve('/tmp', envHash)
+        FileSystem.writeFileSync(Path.resolve(inputDir, 'diagram.puml'), input);
+        FileSystem.writeFileSync(Path.resolve(inputDir, 'run.sh'),
+            `
+            rm -rf ${containerWorkDir}
+            mkdir -p ${containerWorkDir}
+            cp /input/diagram.puml ${containerWorkDir} 
+            cd ${containerWorkDir} && java -Djava.awt.headless=true -jar /opt/plantuml-1.2019.8.jar -tsvg diagram.puml
+            mv ${containerWorkDir}/diagram.svg /output
+            rm -rf ${containerWorkDir}
+            `
         );
-    
-        Buildah.launchContainer(envDir, CONTAINER_NAME, ['sh', '/input/script.sh'],
-        {
-            volumeMappings: [
-                new Buildah.LaunchVolumeMapping(tmpPath + '/input', '/input', 'rw'),
-                new Buildah.LaunchVolumeMapping(tmpPath + '/output', '/output', 'rw'),
-                new Buildah.LaunchVolumeMapping(realInputDir, '/files', 'r')
-            ]
-        });
-        const svgOutput = FileSystem.readFileSync(tmpPath + '/output/diagram.svg', { encoding: 'utf8' });
-        
-        return svgOutput;
+
+        const ret = runSingleOutputGeneratingContainer(
+            'plantuml',
+            containerDir,
+            inputDir,
+            new Map(),
+            outputDir,
+            [
+                new Buildah.LaunchVolumeMapping(context.realInputPath, '/files', 'r')
+            ],
+            context
+        );
+
+        FileSystem.removeSync(workDir);
+        return ret;
     }
 }
