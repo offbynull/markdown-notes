@@ -46,12 +46,15 @@ export class TokenIdentifier {
     }
 }
 
+export type RuntimeProcessDefinition = (markdownIt: MarkdownIt, token: Token, context: ExtensionContext, state: StateCore) => void;
 export class ExtensionContext {
     public readonly realCachePath: string;
     public readonly realInputPath: string;
     public readonly realBasePath: string;
     public readonly htmlBasePath: string;
     public readonly shared: Map<string, any>;
+    public readonly runtimeBlockExtensions: Map<string, RuntimeProcessDefinition>;
+    public readonly runtimeInlineExtensions: Map<string, RuntimeProcessDefinition>;
 
     public constructor(realCachePath: string, inputPath: string, realBasePath: string, htmlBasePath: string) {
         this.realCachePath = realCachePath;
@@ -59,6 +62,8 @@ export class ExtensionContext {
         this.realBasePath = realBasePath;
         this.htmlBasePath = htmlBasePath;
         this.shared = new Map();
+        this.runtimeBlockExtensions = new Map();
+        this.runtimeInlineExtensions = new Map();
     }
 
     public injectDir(sourcePath: string): string {
@@ -251,20 +256,31 @@ export function extender(markdownIt: MarkdownIt, extenderConfig: ExtenderConfig)
         const token = state.tokens[tokenIdx];
         const infoMatch = token.info.match(NAME_EXTRACT_REGEX);
         if (infoMatch !== null && infoMatch.length === 2) { //infoMatch[0] is the whole thing, infoMatch[1] is the group
+            const skipLen = infoMatch[0].length;
             const info = infoMatch[1];
-            const extensionEntries = extenderConfig.get(info);
             if (info.length === 0) { // if empty id, remove it and fallback to normal
-                const skipLen = infoMatch[0].length;
                 token.info = token.info.slice(skipLen);
-            } else if (extensionEntries !== undefined && extensionEntries.block !== undefined) { // if id is expected, keep it
-                token.type = info;
-                token.info = '';
-                token.tag = '';
-                if (extensionEntries.block.process !== undefined) { // call if handler is a function
-                    extensionEntries.block.process(markdownIt, token, context, state);
+            } else {
+                const extensionEntries = extenderConfig.get(info);
+                const runtimeProcessor = context.runtimeBlockExtensions.get(info);
+
+                if (extensionEntries !== undefined && extensionEntries.block !== undefined && runtimeProcessor !== undefined) {
+                    throw new Error(`Unable to apply processor for ${info} because it overrides a hardcoded extension with the same name`);
                 }
-            } else { // if unrecognized, don't try to process it
-                // Do nothing
+
+                if (runtimeProcessor !== undefined) {
+                    token.type = info;
+                    token.info = '';
+                    token.tag = '';
+                    runtimeProcessor(markdownIt, token, context, state);
+                } else if (extensionEntries !== undefined && extensionEntries.block !== undefined) { // if id is expected, keep it
+                    token.type = info;
+                    token.info = '';
+                    token.tag = '';
+                    if (extensionEntries.block.process !== undefined) { // call if handler is a function
+                        extensionEntries.block.process(markdownIt, token, context, state);
+                    }
+                }
             }
         }
 
@@ -299,19 +315,31 @@ export function extender(markdownIt: MarkdownIt, extenderConfig: ExtenderConfig)
             if (infoMatch !== null && infoMatch.length === 2) { //infoMatch[0] is the whole thing, infoMatch[1] is the group
                 const skipLen = infoMatch[0].length;
                 const info = infoMatch[1];
-                const extensionEntries = extenderConfig.get(info);
                 if (info.length === 0) { // if empty id, remove it and fallback to normal
                     token.content = token.content.slice(skipLen);
-                } else if (extensionEntries !== undefined && extensionEntries.inline !== undefined) { // if id is expected, keep it
-                    token.type = info;
-                    token.info = '';
-                    token.tag = '';
-                    token.content = token.content.slice(skipLen);
-                    if (extensionEntries.inline.process !== undefined) { // call if handler is a function
-                        extensionEntries.inline.process(markdownIt, token, context, state);
+                } else {
+                    const extensionEntries = extenderConfig.get(info);
+                    const runtimeProcessor = context.runtimeInlineExtensions.get(info);
+
+                    if (extensionEntries !== undefined && extensionEntries.inline !== undefined && runtimeProcessor !== undefined) {
+                        throw new Error(`Unable to apply processor for ${info} because it overrides a hardcoded extension with the same name`);
                     }
-                } else { // if unrecognized, don't try to process it
-                    // Do nothing
+
+                    if (runtimeProcessor !== undefined) {
+                        token.type = info;
+                        token.info = '';
+                        token.tag = '';
+                        token.content = token.content.slice(skipLen);
+                        runtimeProcessor(markdownIt, token, context, state);
+                    } else if (extensionEntries !== undefined && extensionEntries.inline !== undefined) { // if id is expected, keep it
+                        token.type = info;
+                        token.info = '';
+                        token.tag = '';
+                        token.content = token.content.slice(skipLen);
+                        if (extensionEntries.inline.process !== undefined) { // call if handler is a function
+                            extensionEntries.inline.process(markdownIt, token, context, state);
+                        }
+                    }
                 }
             }
         }

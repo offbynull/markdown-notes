@@ -661,12 +661,11 @@ testmacroa
 macrob/
 ```
 
-```{apply}
-testmacrob
+```{testmacrob}
 hello
 ```
 
-Some text before. `{apply} testmacroa hello` Some text after.
+Some text before. `{testmacroa} hello` Some text after.
 ````
 
 ```{note}
@@ -685,12 +684,11 @@ testmacroa
 macrob/
 ```
 
-```{apply}
-testmacrob
+```{testmacrob}
 hello block
 ```
 
-Some text before. `{apply} testmacroa hello inline` Some text after.
+Some text before. `{testmacroa} hello inline` Some text after.
 
 # Standard Markdown
 

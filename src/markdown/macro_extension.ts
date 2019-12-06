@@ -17,7 +17,6 @@
  */
 
 import FileSystem from 'fs-extra';
-import Crypto from 'crypto';
 import Path from 'path';
 import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
@@ -65,12 +64,20 @@ export class MacroDefineExtension implements Extension {
                     throw new Error('Macro definition name already exists as block definition: ' + name);
                 }
                 macroData.blockDefines.set(name, containerDir);
+                if (context.runtimeBlockExtensions.has(name)) {
+                    throw new Error('Runtime block extension already exists: ' + name);
+                }
+                context.runtimeBlockExtensions.set(name, macroApply)
                 break;
             case 'define-inline':
                 if (macroData.inlineDefines.has(name)) {
                     throw new Error('Macro definition name already exists as inline definition: ' + name);
                 }
                 macroData.inlineDefines.set(name, containerDir);
+                if (context.runtimeInlineExtensions.has(name)) {
+                    throw new Error('Runtime inline extension already exists: ' + name);
+                }
+                context.runtimeInlineExtensions.set(name, macroApply)
                 break;
             default:
                 throw new Error('This should never happen');
@@ -78,84 +85,72 @@ export class MacroDefineExtension implements Extension {
     }
 }
 
-export class MacroApplyExtension implements Extension {
+export class MacroApplyNoopExtension implements Extension {
     public readonly tokenIds: ReadonlyArray<TokenIdentifier> = [
-        new TokenIdentifier('apply', Type.BLOCK),
-        new TokenIdentifier('apply', Type.INLINE)
+        new TokenIdentifier('apply-NORENDER-SKIP', Type.BLOCK),
+        new TokenIdentifier('apply-NORENDER-SKIP', Type.INLINE)
     ];
 
-    public process(markdownIt: MarkdownIt, token: Token, context: ExtensionContext, state: StateCore) {
-        const macroData: MacroData = context.shared.get('macro') || new MacroData();
-        context.shared.set('macro', macroData);
+    public render(markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext) {
+        return '';
+    }
+}
 
-        const content = token.content.trim();
+function macroApply(markdownIt: MarkdownIt, token: Token, context: ExtensionContext, state: StateCore) {
+    const macroData: MacroData = context.shared.get('macro') || new MacroData();
+    context.shared.set('macro', macroData);
 
-        const data = (() => {
-            if (token.block) {
-                const lines = content.split(/\r?\n/i, 1);
-                if (lines.length < 1) {
-                    throw new Error('Application of block macro missing name (first line).');
-                }
-                const matches = lines[0].match(/^[a-z0-9]+/i);
-                if (matches === null || matches.length !== 1) {
-                    throw new Error('Application of block macro missing name (first word of first line)');
-                }
-                const name = matches[0];
-                const input = content.substring(lines[0].length).trim();
-                const dir = macroData.blockDefines.get(name);
-                if (dir === undefined) {
-                    throw new Error('Application of block macro missing macro: ' + name);
-                }
-                return {
-                    name: name,
-                    containerDir: dir,
-                    input: input
-                }
-            } else {
-                const matches = content.match(/^[a-z0-9]+/i);
-                if (matches === null || matches.length !== 1) {
-                    throw new Error('Application of macro missing name (first word)');
-                }
-                const name = matches[0];
-                const input = content.substring(name.length).trim();
-                const dir = macroData.inlineDefines.get(name);
-                if (dir === undefined) {
-                    throw new Error('Application of inline macro missing macro: ' + name);
-                }
-                return {
-                    name: name,
-                    containerDir: dir,
-                    input: input
-                }
-            }
-        })();
-
-        const inputOverrides: Map<string, string> = new Map();
-        inputOverrides.set('input.data', data.input);
-
-        const dirInfo = containerCheck(context.realInputPath, data.containerDir);
-        const outputDir = FileSystem.mkdtempSync('/tmp/macroContainerOutput');
-
-        const mdOutput = runMarkdownGeneratingContainer(
-            'macro-' + data.name,
-            dirInfo.setupDir,
-            dirInfo.inputDir,
-            inputOverrides,
-            outputDir,
-            [
-                new Buildah.LaunchVolumeMapping(context.realInputPath, '/files', 'r')
-            ],
-            context
-        );
-
-        FileSystem.removeSync(outputDir);
-        
-        const newTokens: Token[] = [];
+    const content = token.content.trim();
+    const name = token.type;
+    const containerDir = (() => {
         if (token.block) {
-            state.md.block.parse(mdOutput, state.md, state.env, newTokens);
+            const dir = macroData.blockDefines.get(name);
+            if (dir === undefined) {
+                throw new Error('Application of block macro missing macro: ' + name);
+            }
+            return dir;
         } else {
-            state.md.inline.parse(mdOutput, state.md, state.env, newTokens);
+            const dir = macroData.inlineDefines.get(name);
+            if (dir === undefined) {
+                throw new Error('Application of inline macro missing macro: ' + name);
+            }
+            return dir;
         }
+    })();
+
+    const inputOverrides: Map<string, string> = new Map();
+    inputOverrides.set('input.data', content);
+
+    const dirInfo = containerCheck(context.realInputPath, containerDir);
+    const outputDir = FileSystem.mkdtempSync('/tmp/macroContainerOutput');
+
+    const mdOutput = runMarkdownGeneratingContainer(
+        'macro-' + name,
+        dirInfo.setupDir,
+        dirInfo.inputDir,
+        inputOverrides,
+        outputDir,
+        [
+            new Buildah.LaunchVolumeMapping(context.realInputPath, '/files', 'r')
+        ],
+        context
+    );
+
+    FileSystem.removeSync(outputDir);
+
+    const newTokens: Token[] = [];
+    if (token.block) {
+        state.md.block.parse(mdOutput, state.md, state.env, newTokens);
+    } else {
+        state.md.inline.parse(mdOutput, state.md, state.env, newTokens);
+    }
+
+    // Remove token original token and replace it with generated tokens. If no tokens were generated, DO NOT REMOVE ORIGINAL token -- you can't reduce the number below the original number of tokens because it'll
+    // screw up the extender plugin (the plugin that calls this chunk of code). Instead set the token to a no-op (will not render).
+    if (newTokens.length === 0) {
+        token.type = 'apply-NORENDER-SKIP';
+    } else {
+        state.tokens.pop();
         newTokens.forEach(t => state.tokens.push(t));
     }
 }
