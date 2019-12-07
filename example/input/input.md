@@ -634,21 +634,7 @@ PImage.encodePNGToStream(img, fs.createWriteStream('/output/out.png')).then(() =
 
 # Macro
 
-Define a macro that generates markdown using the define-block and define-inline tags, and apply that macro using that apply tag. Each instance of the apply tag will run code defined by the associated block tag to generate markdown.
-
-Use...
- * define-block to define a block-level macro.
- * define-inline to define an inline-level macro.
-
-The first line of the definition is the name of the macro. The second line of the definition is a path to the container environment for the macro, where ... 
-
- * `[PATH]/container` contains the Dockerfile and any files required by it.
- * `[PATH]/input` contains the folder to be mapped to /input/ when the container runs.
- * `[PATH]/input/run.sh` is the script that gets run within the container.
-
-On completion, `/output/output.md` on the container must contain the markdown to write out. Any other output files can also be written to `/output`, but it's recommended that they be written to `/output/[RANDOMIZED_PATH]` because they may conflict with existing rendered outputs.
-
-Macros must be defined prior to being used.
+Define a macro using the define-block and define-inline tags:
 
 ````
 ```{define-block}
@@ -660,7 +646,21 @@ macroa/
 testmacroa
 macrob/
 ```
+````
 
+```{define-block}
+testmacrob
+macroa/
+```
+
+```{define-inline}
+testmacroa
+macrob/
+```
+
+1st line is the name of the macro while 2nd line is a path to the macro's container environment. To apply a macro, use its name directly in a block or inline tag:
+
+````
 ```{testmacrob}
 hello
 ```
@@ -668,27 +668,42 @@ hello
 Some text before. `{testmacroa} hello` Some text after.
 ````
 
-```{note}
-See input/macroa and input/macrob directories to see the related files.
-```
-
 Output:
-
-```{define-block}
-testmacrob
-macroa/
-```
-
-```{define-inline}
-testmacroa
-macrob/
-```
 
 ```{testmacrob}
 hello block
 ```
 
 Some text before. `{testmacroa} hello inline` Some text after.
+
+```{note}
+Macros must be defined prior to use.
+
+For more information on container environments, see the paths for the example macros above.
+```
+
+A macro's container environment must contain...
+ * `[PATH]/container`: a directory containing the container `Dockerfile` and any files required by it.
+ * `[PATH]/input`: a directory containing input files (mapped to `/input` on container).
+ * `[PATH]/input/run.sh`: a file that gets run when the container starts (mapped to `/input/run.sh` on container).
+
+When a macro gets used, its container runs. The container expects ...
+ * `/input/input.data` to contain the input text.
+ * `/files` to contain all markdown files.
+ * `/output/output.md` to get populated with the output markdown.
+ * `/output/[RANDOM_DIR]` to get populated with the resources generated for output markdown (e.g. images, tables, etc..).
+
+It's highly recommended that you place resources in `/output/[RANDOM_DIR]` instead of `/output`. Resources placed directly in `/output` may encounter name collisions when rendering. You can streamline the generation of `/output/[RANDOM_DIR]` via the shell -- for example:
+
+```bash
+rand=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13)
+# Script should write markdown to /output/output.md
+# Script should write markdown resources to /output/$rand/ but reference them
+#   in markdown as $rand/ (e.g. output to /output/$rand/out.png but reference
+#   in output.md as $rand/out.png).
+mkdir /output/$rand
+npm start -- $rand
+```
 
 # Standard Markdown
 

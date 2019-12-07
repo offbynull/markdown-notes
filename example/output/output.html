@@ -427,20 +427,7 @@ PImage.encodePNGToStream(img, fs.createWriteStream('/output/out.png')).then(() =
 <p>The NPM package JSON and Javascript source code are separated by <code>----</code>.</p>
 <p>Block output:</p>
 <pre>Hey there!</pre><p><img src="/.datafile_8301a82919ce8ed0e16298dcea8b0a0b/out.png" alt="Generated image"></p><a name="HEADREF17"></a><h1>Macro</h1>
-<p>Define a macro that generates markdown using the define-block and define-inline tags, and apply that macro using that apply tag. Each instance of the apply tag will run code defined by the associated block tag to generate markdown.</p>
-<p>Use...</p>
-<ul>
-<li>define-block to define a block-level macro.</li>
-<li>define-inline to define an inline-level macro.</li>
-</ul>
-<p>The first line of the definition is the name of the macro. The second line of the definition is a path to the container environment for the macro, where ...</p>
-<ul>
-<li><code>[PATH]/container</code> contains the Dockerfile and any files required by it.</li>
-<li><code>[PATH]/input</code> contains the folder to be mapped to /input/ when the container runs.</li>
-<li><code>[PATH]/input/run.sh</code> is the script that gets run within the container.</li>
-</ul>
-<p>On completion, <code>/output/output.md</code> on the container must contain the markdown to write out. Any other output files can also be written to <code>/output</code>, but it's recommended that they be written to <code>/output/[RANDOMIZED_PATH]</code> because they may conflict with existing rendered outputs.</p>
-<p>Macros must be defined prior to being used.</p>
+<p>Define a macro using the define-block and define-inline tags:</p>
 <pre><code>```{define-block}
 testmacrob
 macroa/
@@ -450,21 +437,45 @@ macroa/
 testmacroa
 macrob/
 ```
-
-```{testmacrob}
+</code></pre>
+<p>1st line is the name of the macro while 2nd line is a path to the macro's container environment. To apply a macro, use its name directly in a block or inline tag:</p>
+<pre><code>```{testmacrob}
 hello
 ```
 
 Some text before. `{testmacroa} hello` Some text after.
 </code></pre>
-<div style="margin: 2em; background-color: #e0e0e0">
-<strong>
-⚠️NOTE️️️⚠️</strong>
-<p>See input/macroa and input/macrob directories to see the related files.</p>
-</div>
 <p>Output:</p>
 <p>This is a BLOCK macro that outputs Markdown text with a link: <a href="http://www.google.com">hello block</a>!</p>
 <p>Some text before. This is an INLINE macro that outputs Markdown text with a link: <a href="http://www.google.com">hello inline</a>! Some text after.</p>
+<div style="margin: 2em; background-color: #e0e0e0">
+<strong>
+⚠️NOTE️️️⚠️</strong>
+<p>Macros must be defined prior to use.</p>
+<p>For more information on container environments, see the paths for the example macros above.</p>
+</div>
+<p>A macro's container environment must contain...</p>
+<ul>
+<li><code>[PATH]/container</code>: a directory containing the container <code>Dockerfile</code> and any files required by it.</li>
+<li><code>[PATH]/input</code>: a directory containing input files (mapped to <code>/input</code> on container).</li>
+<li><code>[PATH]/input/run.sh</code>: a file that gets run when the container starts (mapped to <code>/input/run.sh</code> on container).</li>
+</ul>
+<p>When a macro gets used, its container runs. The container expects ...</p>
+<ul>
+<li><code>/input/input.data</code> to contain the input text.</li>
+<li><code>/files</code> to contain all markdown files.</li>
+<li><code>/output/output.md</code> to get populated with the output markdown.</li>
+<li><code>/output/[RANDOM_DIR]</code> to get populated with the resources generated for output markdown (e.g. images, tables, etc..).</li>
+</ul>
+<p>It's highly recommended that you place resources in <code>/output/[RANDOM_DIR]</code> instead of <code>/output</code>. Resources placed directly in <code>/output</code> may encounter name collisions when rendering. You can streamline the generation of <code>/output/[RANDOM_DIR]</code> via the shell -- for example:</p>
+<pre class="hljs"><code>rand=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13)
+<span class="hljs-comment"># Script should write markdown to /output/output.md</span>
+<span class="hljs-comment"># Script should write markdown resources to /output/$rand/ but reference them</span>
+<span class="hljs-comment">#   in markdown as $rand/ (e.g. output to /output/$rand/out.png but reference</span>
+<span class="hljs-comment">#   in output.md as $rand/out.png).</span>
+mkdir /output/<span class="hljs-variable">$rand</span>
+npm start -- <span class="hljs-variable">$rand</span>
+</code></pre>
 <a name="HEADREF18"></a><h1>Standard Markdown</h1>
 <p>Standard Markdown syntax guide (adapted from https://github.com/tchapi/markdown-cheatsheet).</p>
 <a name="HEADREF19"></a><h2>Headers</h2>

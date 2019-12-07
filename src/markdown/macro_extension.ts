@@ -125,7 +125,7 @@ function macroApply(markdownIt: MarkdownIt, token: Token, context: ExtensionCont
     const outputDir = FileSystem.mkdtempSync('/tmp/macroContainerOutput');
 
     const mdOutput = runMarkdownGeneratingContainer(
-        'macro-' + name,
+        name,
         dirInfo.setupDir,
         dirInfo.inputDir,
         inputOverrides,
