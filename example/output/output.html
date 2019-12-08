@@ -438,7 +438,7 @@ testmacroa
 macrob/
 ```
 </code></pre>
-<p>1st line is the name of the macro while 2nd line is a path to the macro's container environment. To apply a macro, use its name directly in a block or inline tag:</p>
+<p>Apply a macro by using a tag with that macro's name (1st line of the macro definition):</p>
 <pre><code>```{testmacrob}
 hello
 ```
@@ -448,26 +448,29 @@ Some text before. `{testmacroa} hello` Some text after.
 <p>Output:</p>
 <p>This is a BLOCK macro that outputs Markdown text with a link: <a href="http://www.google.com">hello block</a>!</p>
 <p>Some text before. This is an INLINE macro that outputs Markdown text with a link: <a href="http://www.google.com">hello inline</a>! Some text after.</p>
-<div style="margin: 2em; background-color: #e0e0e0">
-<strong>
-⚠️NOTE️️️⚠️</strong>
-<p>Macros must be defined prior to use.</p>
-<p>For more information on container environments, see the paths for the example macros above.</p>
-</div>
-<p>A macro's container environment must contain...</p>
+<p>When defining a macro, the...</p>
 <ul>
-<li><code>[PATH]/container</code>: a directory containing the container <code>Dockerfile</code> and any files required by it.</li>
-<li><code>[PATH]/input</code>: a directory containing input files (mapped to <code>/input</code> on container).</li>
-<li><code>[PATH]/input/run.sh</code>: a file that gets run when the container starts (mapped to <code>/input/run.sh</code> on container).</li>
-</ul>
-<p>When a macro gets used, its container runs. The container expects ...</p>
+<li>1st line is the name of the macro.</li>
+<li>2nd line is a path to the macro's environment (relative path under the root markdown input directory).
 <ul>
-<li><code>/input/input.data</code> to contain the input text.</li>
-<li><code>/files</code> to contain all markdown files.</li>
-<li><code>/output/output.md</code> to get populated with the output markdown.</li>
-<li><code>/output/[RANDOM_DIR]</code> to get populated with the resources generated for output markdown (e.g. images, tables, etc..).</li>
+<li><code>[MACRO_ENV_PATH]/container</code>: a directory containing container setup files.</li>
+<li><code>[MACRO_ENV_PATH]/container/Dockerfile</code>: a Dockerfile that sets up the container.</li>
+<li><code>[MACRO_ENV_PATH]/container/*</code>: files/resources required by the <code>Dockerfile</code>.</li>
+<li><code>[MACRO_ENV_PATH]/input</code>: a directory containing input files.</li>
+<li><code>[MACRO_ENV_PATH]/input/run.sh</code>: a script that gets run when the container starts.</li>
+<li><code>[MACRO_ENV_PATH]/input/*</code>: files/resources required by <code>run.sh</code> and/or whatever it invokes.</li>
 </ul>
-<p>It's highly recommended that you place resources in <code>/output/[RANDOM_DIR]</code> instead of <code>/output</code>. Resources placed directly in <code>/output</code> may encounter name collisions when rendering. You can streamline the generation of <code>/output/[RANDOM_DIR]</code> via the shell -- for example:</p>
+</li>
+<li>remaining lines are paths to copy from the root input directory to the macro's input directory.</li>
+</ul>
+<p>When a macro gets used, its container runs. The container ...</p>
+<ul>
+<li>will map <code>[MACRO_ENV_PATH]/input</code> to <code>/input</code> on the container.</li>
+<li>will store input text to <code>/input/input.data</code> on the container.</li>
+<li>will expect output markdown in <code>/output/output.md</code> on the container.</li>
+</ul>
+<p>Any other files generated inside <code>/output</code> are assumed to be resources referenced by <code>/output/output.md</code> and as such will get copied over to the root markdown input directory. It's highly recommended that you place these resources in <code>/output/[RANDOM_DIR]</code> instead of <code>/output</code>. Resources placed directly in <code>/output</code> may encounter name collisions when rendering.</p>
+<p>You can streamline the generation of <code>/output/[RANDOM_DIR]</code> via the shell -- for example:</p>
 <pre class="hljs"><code>rand=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13)
 <span class="hljs-comment"># Script should write markdown to /output/output.md</span>
 <span class="hljs-comment"># Script should write markdown resources to /output/$rand/ but reference them</span>

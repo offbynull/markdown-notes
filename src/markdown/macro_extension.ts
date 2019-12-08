@@ -21,13 +21,22 @@ import Path from 'path';
 import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
-import * as Buildah from '../buildah/buildah';
 import StateCore from 'markdown-it/lib/rules_core/state_core';
 import { runMarkdownGeneratingContainer } from './container_helper';
 
 class MacroData {
-    public readonly blockDefines: Map<string, string> = new Map();  // name to containerdir
-    public readonly inlineDefines: Map<string, string> = new Map(); // name to containerdir
+    public readonly blockDefines: Map<string, Definition> = new Map();
+    public readonly inlineDefines: Map<string, Definition> = new Map();
+}
+
+class Definition {
+    public readonly requiredRootPaths: ReadonlyArray<string>;
+    constructor(
+        public readonly containerDir: string,
+        requiredRootPaths: string[]
+    ) {
+        this.requiredRootPaths = requiredRootPaths.slice();
+    }
 }
 
 export class MacroDefineExtension implements Extension {
@@ -37,9 +46,9 @@ export class MacroDefineExtension implements Extension {
     ];
 
     public process(markdownIt: MarkdownIt, token: Token, context: ExtensionContext) {
-        const preambleLines = token.content.split(/\r?\n/i, 2);
+        const preambleLines = token.content.trim().split(/\r?\n/i);
         if (preambleLines.length < 2) {
-            throw new Error('Macro definition requires 2 lines: name and container_dir.');
+            throw new Error('Macro definition requires at least 2 lines: name and container_dir, followed by paths from root folder to copy.');
         }
 
         const name = preambleLines[0].trim();
@@ -56,6 +65,8 @@ export class MacroDefineExtension implements Extension {
         }
         containerCheck(context.realInputPath, containerDir);
 
+        const requiredRootPaths = preambleLines.slice(2); // these are paths in the root markdown folder which get copied over
+
         const macroData: MacroData = context.shared.get('macro') || new MacroData();
         context.shared.set('macro', macroData);
         switch (token.type) {
@@ -63,7 +74,7 @@ export class MacroDefineExtension implements Extension {
                 if (macroData.blockDefines.has(name)) {
                     throw new Error('Macro definition name already exists as block definition: ' + name);
                 }
-                macroData.blockDefines.set(name, containerDir);
+                macroData.blockDefines.set(name, new Definition(containerDir, requiredRootPaths));
                 if (context.runtimeBlockExtensions.has(name)) {
                     throw new Error('Runtime block extension already exists: ' + name);
                 }
@@ -73,7 +84,7 @@ export class MacroDefineExtension implements Extension {
                 if (macroData.inlineDefines.has(name)) {
                     throw new Error('Macro definition name already exists as inline definition: ' + name);
                 }
-                macroData.inlineDefines.set(name, containerDir);
+                macroData.inlineDefines.set(name, new Definition(containerDir, requiredRootPaths));
                 if (context.runtimeInlineExtensions.has(name)) {
                     throw new Error('Runtime inline extension already exists: ' + name);
                 }
@@ -102,7 +113,7 @@ function macroApply(markdownIt: MarkdownIt, token: Token, context: ExtensionCont
 
     const content = token.content.trim();
     const name = token.type;
-    const containerDir = (() => {
+    const definition = (() => {
         if (token.block) {
             const dir = macroData.blockDefines.get(name);
             if (dir === undefined) {
@@ -121,22 +132,34 @@ function macroApply(markdownIt: MarkdownIt, token: Token, context: ExtensionCont
     const inputOverrides: Map<string, string> = new Map();
     inputOverrides.set('input.data', content);
 
-    const dirInfo = containerCheck(context.realInputPath, containerDir);
-    const outputDir = FileSystem.mkdtempSync('/tmp/macroContainerOutput');
+    const dirInfo = containerCheck(context.realInputPath, definition.containerDir);
+    const workDir = FileSystem.mkdtempSync('/tmp/macroContainerTemp');
+    FileSystem.mkdirpSync(workDir);
+    const outputDir = Path.resolve(workDir, 'output');
+    FileSystem.mkdirpSync(outputDir);
+    const inputDir = (() => {
+        if (definition.requiredRootPaths.length > 0) {
+            const tempInputDir = Path.resolve(workDir, 'input');
+            FileSystem.mkdirpSync(tempInputDir);
+            FileSystem.copySync(dirInfo.inputDir, tempInputDir); // copy original inputs folder to new inputs folder
+            copyPaths(context.realInputPath, definition.requiredRootPaths, tempInputDir); // copy requested files from root markdown input folder to new inputs folder
+            return tempInputDir;
+        } else {
+            return dirInfo.inputDir;
+        }
+    })();
 
     const mdOutput = runMarkdownGeneratingContainer(
         name,
         dirInfo.setupDir,
-        dirInfo.inputDir,
+        inputDir,
         inputOverrides,
         outputDir,
-        [
-            new Buildah.LaunchVolumeMapping(context.realInputPath, '/files', 'r')
-        ],
+        [],
         context
     );
 
-    FileSystem.removeSync(outputDir);
+    FileSystem.removeSync(workDir);
 
     const newTokens: Token[] = [];
     if (token.block) {
@@ -180,5 +203,30 @@ function containerCheck(parentDir: string, dir: string) {
         setupDir: containerSetupDir,
         inputDir: containerInputDir,
         inputRunnerScript: containerRunnerScript
+    }
+}
+
+function copyPaths(srcBase: string, paths: ReadonlyArray<string>, dstBase: string) {
+    srcBase = Path.normalize(Path.resolve(srcBase));
+    dstBase = Path.normalize(Path.resolve(dstBase));
+    for (const path of paths) {
+        const src = Path.resolve(srcBase, path).normalize();
+
+        const relPath = Path.relative(srcBase, src);
+        console.log(relPath)
+        if (relPath.startsWith('..')) {
+            throw new Error(`Cannot inject from outside root markdown directory: ${srcBase} vs ${src}`);
+        }
+        
+        const dst = Path.resolve(dstBase, relPath);
+        const dstDir = Path.dirname(dst);
+        if (dst == dstBase) {
+            console.warn(`Injecting root markdown directory (this is almost always incorrect -- do you have blank or '.' in your list of files?)`);
+        }
+        if (FileSystem.existsSync(dst)) {
+            console.log(`Original destination exists -- overwriting existing: ${relPath} (${src} to ${dst})`);
+        }
+        FileSystem.mkdirpSync(dstDir);
+        FileSystem.copySync(src, dst);
     }
 }

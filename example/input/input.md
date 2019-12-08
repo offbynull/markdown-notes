@@ -648,17 +648,7 @@ macrob/
 ```
 ````
 
-```{define-block}
-testmacrob
-macroa/
-```
-
-```{define-inline}
-testmacroa
-macrob/
-```
-
-1st line is the name of the macro while 2nd line is a path to the macro's container environment. To apply a macro, use its name directly in a block or inline tag:
+Apply a macro by using a tag with that macro's name (1st line of the macro definition):
 
 ````
 ```{testmacrob}
@@ -670,30 +660,41 @@ Some text before. `{testmacroa} hello` Some text after.
 
 Output:
 
+```{define-block}
+testmacrob
+macroa/
+```
+
+```{define-inline}
+testmacroa
+macrob/
+```
+
 ```{testmacrob}
 hello block
 ```
 
 Some text before. `{testmacroa} hello inline` Some text after.
 
-```{note}
-Macros must be defined prior to use.
+When defining a macro, the...
+ * 1st line is the name of the macro.
+ * 2nd line is a path to the macro's environment (relative path under the root markdown input directory).
+   * `[MACRO_ENV_PATH]/container`: a directory containing container setup files.
+   * `[MACRO_ENV_PATH]/container/Dockerfile`: a Dockerfile that sets up the container.
+   * `[MACRO_ENV_PATH]/container/*`: files/resources required by the `Dockerfile`.
+   * `[MACRO_ENV_PATH]/input`: a directory containing input files.
+   * `[MACRO_ENV_PATH]/input/run.sh`: a script that gets run when the container starts.
+   * `[MACRO_ENV_PATH]/input/*`: files/resources required by `run.sh` and/or whatever it invokes.
+ * remaining lines are paths to copy from the root input directory to the macro's input directory.
 
-For more information on container environments, see the paths for the example macros above.
-```
+When a macro gets used, its container runs. The container ...
+ * will map `[MACRO_ENV_PATH]/input` to `/input` on the container.
+ * will store input text to `/input/input.data` on the container.
+ * will expect output markdown in `/output/output.md` on the container.
 
-A macro's container environment must contain...
- * `[PATH]/container`: a directory containing the container `Dockerfile` and any files required by it.
- * `[PATH]/input`: a directory containing input files (mapped to `/input` on container).
- * `[PATH]/input/run.sh`: a file that gets run when the container starts (mapped to `/input/run.sh` on container).
+Any other files generated inside `/output` are assumed to be resources referenced by `/output/output.md` and as such will get copied over to the root markdown input directory. It's highly recommended that you place these resources in `/output/[RANDOM_DIR]` instead of `/output`. Resources placed directly in `/output` may encounter name collisions when rendering.
 
-When a macro gets used, its container runs. The container expects ...
- * `/input/input.data` to contain the input text.
- * `/files` to contain all markdown files.
- * `/output/output.md` to get populated with the output markdown.
- * `/output/[RANDOM_DIR]` to get populated with the resources generated for output markdown (e.g. images, tables, etc..).
-
-It's highly recommended that you place resources in `/output/[RANDOM_DIR]` instead of `/output`. Resources placed directly in `/output` may encounter name collisions when rendering. You can streamline the generation of `/output/[RANDOM_DIR]` via the shell -- for example:
+You can streamline the generation of `/output/[RANDOM_DIR]` via the shell -- for example:
 
 ```bash
 rand=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13)
