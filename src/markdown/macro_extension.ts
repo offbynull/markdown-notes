@@ -213,7 +213,6 @@ function copyPaths(srcBase: string, paths: ReadonlyArray<string>, dstBase: strin
         const src = Path.resolve(srcBase, path).normalize();
 
         const relPath = Path.relative(srcBase, src);
-        console.log(relPath)
         if (relPath.startsWith('..')) {
             throw new Error(`Cannot inject from outside root markdown directory: ${srcBase} vs ${src}`);
         }

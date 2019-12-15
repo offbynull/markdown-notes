@@ -250,8 +250,7 @@ export class ContainerHelper {
         const volumeMappings = [
             new Buildah.LaunchVolumeMapping(this.inputDir, '/input', 'r'),
             new Buildah.LaunchVolumeMapping(this.outputDir, '/output', 'rw')            
-        ];
-        volumeMappings.concat(extraVolumeMappings);
+        ].concat(extraVolumeMappings);
         Buildah.launchContainer(
             envDir,
             this.containerHash,
@@ -303,12 +302,18 @@ function hashDirectory(hasher: Crypto.Hash, dir: string) {
 }
 
 function listDirectory(dir: string) {
+    const paths = listDirectoryInternal(dir);
+    paths.sort();
+    return paths;
+}
+
+function listDirectoryInternal(dir: string): string[] {
     const dirChildren = FileSystem.readdirSync(dir)
         .map(c => Path.resolve(dir, c));
     const dirChildrenChildren = dirChildren
         .filter(c => FileSystem.lstatSync(c).isDirectory())
-        .map(c => listDirectory(c))
+        .map(c => listDirectoryInternal(c))
         .reduceRight((p, c) => c.concat(p), []);
-    dirChildren.concat(dirChildrenChildren);
-    return dirChildren;
+    const allChildren = dirChildren.concat(dirChildrenChildren);
+    return allChildren;
 }
