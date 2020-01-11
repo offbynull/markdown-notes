@@ -26,11 +26,20 @@ class BookmarkData {
     public readonly scanner = new BookmarkScannerList(); // bookmark regex to entry
     public readonly anchorIdToLabel = new Map<string, string>(); // anchor id to label
     public nextId = 0;
+    public linkerActive: boolean = true;
+}
+
+export class BookmarkLinkerControllerExtension implements Extension {
+    public readonly tokenIds: ReadonlyArray<TokenIdentifier> = [
+        new TokenIdentifier('bm-linker-off', Type.INLINE),
+        new TokenIdentifier('bm-linker-on', Type.INLINE)
+    ];
 }
 
 export class BookmarkReferenceIgnoreExtension implements Extension {
     public readonly tokenIds: ReadonlyArray<TokenIdentifier> = [
-        new TokenIdentifier('bm-ri', Type.INLINE)
+        new TokenIdentifier('bm-ri', Type.INLINE),
+        new TokenIdentifier('bm-delink', Type.INLINE)
     ];
 
     public process(markdownIt: MarkdownIt, token: Token): void {
@@ -193,11 +202,28 @@ export class BookmarkExtension implements Extension {
                 continue;
             }
 
+
+            // Turn on/off bookmarker
+            if (token.type === 'bm-linker-off') {
+                bookmarkData.linkerActive = false;
+                continue;
+            } else if (token.type === 'bm-linker-on') {
+                bookmarkData.linkerActive = true;
+                continue;
+            }
+
+
             // Process
             if (token.type !== 'text') {
                 if (token.children !== null) {
                     this.postProcess(markdownIt, token.children, context)
                 }
+                continue;
+            }
+
+
+            // At this point, this is an entire block of text -- if bookmarker is off, skip it
+            if (bookmarkData.linkerActive === false) {
                 continue;
             }
 

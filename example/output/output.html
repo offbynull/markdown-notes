@@ -96,17 +96,33 @@ Markdown Example!
 <p>If the length of the captured text between the matches are equal, an error is thrown and you'll need to find a way to disambiguate. Several options are available:</p>
 <ul>
 <li>
-<p><code>`{bm-ri} TEXT`</code> -- Render the encapsulated text without bookmark links.</p>
+<p><code>`{bm-delink} TEXT`</code> -- Render the encapsulated text without bookmark links.</p>
 <p>Example usage / output:</p>
 <pre><code>Bookmark `{bm} dominant allele`.
  * Dominant allele should be linked back.
- * `{bm-ri} Dominant allele` should NOT be linked back.
+ * `{bm-delink} Dominant allele` should NOT be linked back.
 </code></pre>
 <p>Bookmark <a name="BOOKMARK5"></a><strong>dominant allele</strong>.</p>
 <ul>
 <li><a href="#BOOKMARK5">Dominant allele</a> should be linked back.</li>
 <li>Dominant allele should NOT be linked back.</li>
 </ul>
+</li>
+<li>
+<p><code>`{bm-linker-off}`</code> / <code>`{bm-linker-on}`</code> -- Turns off/on the linker entirely.</p>
+<p>Example usage / output:</p>
+<pre><code>Bookmark `{bm} caffeine`.
+ * Caffeine should `{bm-linker-off}` be linked back.
+ * Caffeine should NOT be linked back.
+
+`{bm-linker-on}`
+</code></pre>
+<p>Bookmark <a name="BOOKMARK6"></a><strong>caffeine</strong>.</p>
+<ul>
+<li><a href="#BOOKMARK6">Caffeine</a> should  be linked back.</li>
+<li>Caffeine should NOT be linked back.</li>
+</ul>
+<p></p>
 </li>
 <li>
 <p><code>`{bm-ignore} TEXT`</code> -- Render all instances of text without bookmark links.</p>
@@ -118,10 +134,10 @@ Bookmark `{bm} recessive` and `{bm} allele`, but ignore both of them together.
  * The term recessive allele should NOT be linked back.
 </code></pre>
 <p>
-Bookmark <a name="BOOKMARK7"></a><strong>recessive</strong> and <a name="BOOKMARK8"></a><strong>allele</strong>, but ignore both of them together.</p>
+Bookmark <a name="BOOKMARK8"></a><strong>recessive</strong> and <a name="BOOKMARK9"></a><strong>allele</strong>, but ignore both of them together.</p>
 <ul>
-<li>The term <a href="#BOOKMARK7">recessive</a> should be linked back.</li>
-<li>The term <a href="#BOOKMARK8">allele</a> should be linked back.</li>
+<li>The term <a href="#BOOKMARK8">recessive</a> should be linked back.</li>
+<li>The term <a href="#BOOKMARK9">allele</a> should be linked back.</li>
 <li>The term recessive allele should NOT be linked back.</li>
 </ul>
 </li>
@@ -136,10 +152,10 @@ Bookmark `{bm} basic/(basic)_pH/i` when suffix is _pH and `{bm} basic/(basic)_la
  * The term basic_norm should NOT be linked back.
 </code></pre>
 <p>
-Bookmark <a name="BOOKMARK10"></a><strong>basic</strong> when suffix is _pH and <a name="BOOKMARK11"></a><strong>basic</strong> when suffix is _lang, but ignore when suffix is _norm.</p>
+Bookmark <a name="BOOKMARK11"></a><strong>basic</strong> when suffix is _pH and <a name="BOOKMARK12"></a><strong>basic</strong> when suffix is _lang, but ignore when suffix is _norm.</p>
 <ul>
-<li>The term <a href="#BOOKMARK10">basic</a> should be linked back to the _pH suffix.</li>
-<li>The term <a href="#BOOKMARK11">basic</a> should be linked back to the _lang suffix.</li>
+<li>The term <a href="#BOOKMARK11">basic</a> should be linked back to the _pH suffix.</li>
+<li>The term <a href="#BOOKMARK12">basic</a> should be linked back to the _lang suffix.</li>
 <li>The term basic should NOT be linked back.</li>
 </ul>
 </li>

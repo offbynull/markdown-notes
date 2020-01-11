@@ -55,19 +55,37 @@ In certain cases, multiple bookmarks may match a certain piece of text. To resol
 
 If the length of the captured text between the matches are equal, an error is thrown and you'll need to find a way to disambiguate. Several options are available:
 
- * `` `{bm-ri} TEXT` `` -- Render the encapsulated text without bookmark links.
+ * `` `{bm-delink} TEXT` `` -- Render the encapsulated text without bookmark links.
 
    Example usage / output:
    
    ```
    Bookmark `{bm} dominant allele`.
     * Dominant allele should be linked back.
-    * `{bm-ri} Dominant allele` should NOT be linked back.
+    * `{bm-delink} Dominant allele` should NOT be linked back.
    ```
 
    Bookmark `{bm} dominant allele`.
     * Dominant allele should be linked back.
-    * `{bm-ri} Dominant allele` should NOT be linked back.
+    * `{bm-delink} Dominant allele` should NOT be linked back.
+
+ * `` `{bm-linker-off}` `` / `` `{bm-linker-on}` `` -- Turns off/on the linker entirely.
+
+   Example usage / output:
+   
+   ```
+   Bookmark `{bm} caffeine`.
+    * Caffeine should `{bm-linker-off}` be linked back.
+    * Caffeine should NOT be linked back.
+   
+   `{bm-linker-on}`
+   ```
+
+   Bookmark `{bm} caffeine`.
+    * Caffeine should `{bm-linker-off}` be linked back.
+    * Caffeine should NOT be linked back.
+   
+   `{bm-linker-on}`
 
  * `` `{bm-ignore} TEXT` `` -- Render all instances of text without bookmark links.
 
