@@ -5,5 +5,9 @@
         { "language": "typescript", "autoFix": true },
         { "language": "typescriptReact", "autoFix": true },
     ],
-    "eslint.workingDirectories": [ "src" ]
+    "eslint.workingDirectories": [ "src" ],
+    "files.watcherExclude": {
+        "**/.cache": true,
+        "**/.cache/**": true
+      }    
 }

@@ -36,6 +36,7 @@ import { NodeExtension } from './node_extension';
 import { ImageExtension } from './image_extension';
 import { ChemfigExtension } from './chemfig_extension';
 import { MacroDefineExtension, MacroApplyNoopExtension } from './macro_extension';
+import { OutputExtension } from './output_extension';
 
 export default class Markdown {
     private readonly markdownIt: MarkdownIt;
@@ -63,6 +64,7 @@ export default class Markdown {
         extenderConfig.register(new TocExtension());
         extenderConfig.register(new DotExtension());
         extenderConfig.register(new NoteExtension());
+        extenderConfig.register(new OutputExtension());
         extenderConfig.register(new ImageExtension());
         extenderConfig.register(new MathJaxExtension());
         extenderConfig.register(new KatexExtension());

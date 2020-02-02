@@ -198,6 +198,39 @@ Subsequent lines are commands that you can use to manipulate and annotate the im
  * *arrow x1 y1 x2 y2 ...* -- draw an arrow on the image (unit is percentage).
  * *text x_offset y_offset string* -- write a string on the image (unit is percentage).
 
+# Output
+
+Output text files using the output block tag:
+
+````
+```{output}
+set_lang>java
+write>    // This is my example code...
+set_file_strip>[\s^\n]*//[^\n]*
+set_file_isolate>\n([ ]+static boolean isBalanced.*?)\s+static boolean isCharged
+file>InternalUtils.java
+```
+````
+
+Output:
+
+```{output}
+set_lang>java
+write>    // This is my example code...
+set_file_strip>[\s^\n]*//[^\n]*
+set_file_isolate>\n([ ]+static boolean isBalanced.*?)\s+static boolean isCharged
+file>InternalUtils.java
+```
+
+The output block takes in commands, where each command performs some task or sets some internal variable...
+
+* `set_lang>(.*)` will set the the syntax highlighter's language.
+* `write>(.*)` will write out a single line to the output.
+* `file>(.*)` will write out a file to the output.
+* `set_file_isolate>(.*)` will set a regex such that subsequent the `file>` commands will match against the regex and output group 1. The regex MUST have group 1. The regex has the s flag enabled -- dot (.) will match ALL characters (including new line characters).
+* `set_file_strip>(.*)` will set a regex such that subsequent the `file>` commands will strip matches from the string. The regex has the s flag enabled -- dot (.) will match ALL characters (including new line characters).
+
+In the example above, the file is isolated to the method isBalanced and single line comments are stripped.
 
 # Notes
 

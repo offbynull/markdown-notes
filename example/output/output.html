@@ -27,34 +27,35 @@
 <li><a href="#HEADREF1">Page Title</a></li>
 <li><a href="#HEADREF2">Bookmarks</a></li>
 <li><a href="#HEADREF3">Image Annotations</a></li>
-<li><a href="#HEADREF4">Notes</a></li>
-<li><a href="#HEADREF5">CSV Table</a></li>
-<li><a href="#HEADREF6">Math Typesetting</a></li>
+<li><a href="#HEADREF4">Output</a></li>
+<li><a href="#HEADREF5">Notes</a></li>
+<li><a href="#HEADREF6">CSV Table</a></li>
+<li><a href="#HEADREF7">Math Typesetting</a></li>
 <ul>
-<li><a href="#HEADREF7">MathJax</a></li>
-<li><a href="#HEADREF8">KaTeX</a></li>
+<li><a href="#HEADREF8">MathJax</a></li>
+<li><a href="#HEADREF9">KaTeX</a></li>
 </ul>
-<li><a href="#HEADREF9">Diagrams</a></li>
+<li><a href="#HEADREF10">Diagrams</a></li>
 <ul>
-<li><a href="#HEADREF10">GraphViz</a></li>
-<li><a href="#HEADREF11">PlantUML</a></li>
-<li><a href="#HEADREF12">LaTeX Chemfig</a></li>
+<li><a href="#HEADREF11">GraphViz</a></li>
+<li><a href="#HEADREF12">PlantUML</a></li>
+<li><a href="#HEADREF13">LaTeX Chemfig</a></li>
 </ul>
-<li><a href="#HEADREF13">Language Support</a></li>
+<li><a href="#HEADREF14">Language Support</a></li>
 <ul>
-<li><a href="#HEADREF14">Python</a></li>
-<li><a href="#HEADREF15">Java</a></li>
-<li><a href="#HEADREF16">NodeJS</a></li>
+<li><a href="#HEADREF15">Python</a></li>
+<li><a href="#HEADREF16">Java</a></li>
+<li><a href="#HEADREF17">NodeJS</a></li>
 </ul>
-<li><a href="#HEADREF17">Macro</a></li>
-<li><a href="#HEADREF18">Standard Markdown</a></li>
+<li><a href="#HEADREF18">Macro</a></li>
+<li><a href="#HEADREF19">Standard Markdown</a></li>
 <ul>
-<li><a href="#HEADREF19">Headers</a></li>
-<li><a href="#HEADREF20">Text Formatting</a></li>
-<li><a href="#HEADREF21">Image</a></li>
-<li><a href="#HEADREF22">Lists</a></li>
-<li><a href="#HEADREF23">Table</a></li>
-<li><a href="#HEADREF24">Code</a></li>
+<li><a href="#HEADREF20">Headers</a></li>
+<li><a href="#HEADREF21">Text Formatting</a></li>
+<li><a href="#HEADREF22">Image</a></li>
+<li><a href="#HEADREF23">Lists</a></li>
+<li><a href="#HEADREF24">Table</a></li>
+<li><a href="#HEADREF25">Code</a></li>
 </ul>
 </ul>
 </div>
@@ -210,7 +211,43 @@ poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
 <li><em>arrow x1 y1 x2 y2 ...</em> -- draw an arrow on the image (unit is percentage).</li>
 <li><em>text x_offset y_offset string</em> -- write a string on the image (unit is percentage).</li>
 </ul>
-<a name="HEADREF4"></a><h1>Notes</h1>
+<a name="HEADREF4"></a><h1>Output</h1>
+<p>Output text files using the output block tag:</p>
+<pre><code>```{output}
+set_lang&gt;java
+write&gt;    // This is my example code...
+set_file_strip&gt;[\s^\n]*//[^\n]*
+set_file_isolate&gt;\n([ ]+static boolean isBalanced.*?)\s+static boolean isCharged
+file&gt;InternalUtils.java
+```
+</code></pre>
+<p>Output:</p>
+<pre class="hljs"><code>    <span class="hljs-comment">// This is my example code...</span>
+    <span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isBalanced</span><span class="hljs-params">(ChemicalEquation ce)</span> </span>{
+        Multiset&lt;Element&gt; reactantElementBag = HashMultiset.create();
+        ce.reactants.items.stream()
+                .flatMap(i -&gt; nCopies(i.count, i.bond.items).stream())
+                .flatMap(i -&gt; i.stream())
+                .forEach(bu -&gt; reactantElementBag.add(bu.element, bu.count));
+        
+        Multiset&lt;Element&gt; productElementBag = HashMultiset.create();
+        ce.products.items.stream()
+                .flatMap(i -&gt; nCopies(i.count, i.bond.items).stream())
+                .flatMap(i -&gt; i.stream())
+                .forEach(bu -&gt; productElementBag.add(bu.element, bu.count));
+        
+        <span class="hljs-keyword">return</span> reactantElementBag.equals(productElementBag);
+    }
+</code></pre><p>The output block takes in commands, where each command performs some task or sets some internal variable...</p>
+<ul>
+<li><code>set_lang&gt;(.*)</code> will set the the syntax highlighter's language.</li>
+<li><code>write&gt;(.*)</code> will write out a single line to the output.</li>
+<li><code>file&gt;(.*)</code> will write out a file to the output.</li>
+<li><code>set_file_isolate&gt;(.*)</code> will set a regex such that subsequent the <code>file&gt;</code> commands will match against the regex and output group 1. The regex MUST have group 1. The regex has the s flag enabled -- dot (.) will match ALL characters (including new line characters).</li>
+<li><code>set_file_strip&gt;(.*)</code> will set a regex such that subsequent the <code>file&gt;</code> commands will strip matches from the string. The regex has the s flag enabled -- dot (.) will match ALL characters (including new line characters).</li>
+</ul>
+<p>In the example above, the file is isolated to the method isBalanced and single line comments are stripped.</p>
+<a name="HEADREF5"></a><h1>Notes</h1>
 <p>Generate notes by using the note block tag:</p>
 <pre><code>```{note}
 This is a custom note.
@@ -226,7 +263,7 @@ This is a custom note.
 <p><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Generic_Camera_Icon.svg/200px-Generic_Camera_Icon.svg.png" alt="Image Example"></p>
 </div>
 <p><strong>TODO</strong>: Add CSS styling for this.</p>
-<a name="HEADREF5"></a><h1>CSV Table</h1>
+<a name="HEADREF6"></a><h1>CSV Table</h1>
 <p>Add a table using the CSV block tag:</p>
 <pre><code>```{csv}
 !!{ "firstLineHeader": true }
@@ -242,14 +279,14 @@ ATG,Antigua and Barbuda
 ```
 </code></pre>
 <p>Block output:</p>
-<table><tbody><tr><th>Code</th><th>Country</th></tr><tr><td>AFG</td><td>Afghanistan</td></tr><tr><td>ALB</td><td>Albania</td></tr><tr><td>ALG</td><td>Algeria</td></tr><tr><td>ASA</td><td>American Samoa</td></tr><tr><td>AND</td><td>Andorra</td></tr><tr><td>ANG</td><td>Angola</td></tr><tr><td>AIA</td><td>Anguilla</td></tr><tr><td>ATG</td><td>Antigua and Barbuda</td></tr></tbody></table><a name="HEADREF6"></a><h1>Math Typesetting</h1>
+<table><tbody><tr><th>Code</th><th>Country</th></tr><tr><td>AFG</td><td>Afghanistan</td></tr><tr><td>ALB</td><td>Albania</td></tr><tr><td>ALG</td><td>Algeria</td></tr><tr><td>ASA</td><td>American Samoa</td></tr><tr><td>AND</td><td>Andorra</td></tr><tr><td>ANG</td><td>Angola</td></tr><tr><td>AIA</td><td>Anguilla</td></tr><tr><td>ATG</td><td>Antigua and Barbuda</td></tr></tbody></table><a name="HEADREF7"></a><h1>Math Typesetting</h1>
 <p>You can typeset math expressions using different HTML type setting engines.</p>
 <div style="margin: 2em; background-color: #e0e0e0">
 <strong>
 ⚠️NOTE️️️⚠️</strong>
 <p>Right now, the preferred method of typesetting is to use KaTeX because it's more lightweight. MathJax 3 may change this (we're using an inline version of MathJax 2).</p>
 </div>
-<a name="HEADREF7"></a><h2>MathJax</h2>
+<a name="HEADREF8"></a><h2>MathJax</h2>
 <p>Add a MathJax TeX expression using mj inline/block tag:</p>
 <pre><code>```{mj}
 \frac{a}{b}
@@ -258,7 +295,7 @@ ATG,Antigua and Barbuda
 <p>Inline output: <span class="mathjax">$\frac{a}{b}$</span></p>
 <p>Block output:</p>
 <div class="mathjax">$$\frac{a}{b}
-$$</div><a name="HEADREF8"></a><h2>KaTeX</h2>
+$$</div><a name="HEADREF9"></a><h2>KaTeX</h2>
 <p>Add a KaTeX TeX expression using kt inline/block tag:</p>
 <pre><code>```{kt}
 \frac{a}{b}
@@ -267,8 +304,8 @@ $$</div><a name="HEADREF8"></a><h2>KaTeX</h2>
 <p>Inline output: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mi>a</mi><mi>b</mi></mfrac></mrow><annotation encoding="application/x-tex">\frac{a}{b}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.040392em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.695392em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">b</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">a</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></p>
 <p>Block output:</p>
 <span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mi>a</mi><mi>b</mi></mfrac></mrow><annotation encoding="application/x-tex">\frac{a}{b}
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.7935600000000003em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.10756em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">b</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">a</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span><a name="HEADREF9"></a><h1>Diagrams</h1>
-<a name="HEADREF10"></a><h2>GraphViz</h2>
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.7935600000000003em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.10756em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">b</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">a</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span><a name="HEADREF10"></a><h1>Diagrams</h1>
+<a name="HEADREF11"></a><h2>GraphViz</h2>
 <p>Generate Graphviz dot diagrams by using dot block tag:</p>
 <pre><code>```{dot}
 digraph {
@@ -279,7 +316,7 @@ digraph {
 ```
 </code></pre>
 <p>Output:</p>
-<p><img src="/.datafile_3676e9fd02036fca26175f5a20f2f640/diagram.svg" alt="Generated image"></p><a name="HEADREF11"></a><h2>PlantUML</h2>
+<p><img src="/.datafile_3676e9fd02036fca26175f5a20f2f640/diagram.svg" alt="Generated image"></p><a name="HEADREF12"></a><h2>PlantUML</h2>
 <p>Add a PlantUML diagram using the plantuml block tag:</p>
 <pre><code>```{plantuml}
 @startuml
@@ -297,7 +334,7 @@ class Enrollment {
 ```
 </code></pre>
 <p>Block output:</p>
-<p><img src="/.datafile_0721f17870b2d95de4ee8312368cf545/diagram.svg" alt="Generated image"></p><a name="HEADREF12"></a><h2>LaTeX Chemfig</h2>
+<p><img src="/.datafile_0721f17870b2d95de4ee8312368cf545/diagram.svg" alt="Generated image"></p><a name="HEADREF13"></a><h2>LaTeX Chemfig</h2>
 <p>Generate LaTeX chemfig diagrams by using chemfig block tag:</p>
 <pre><code>```{chemfig}
 \chemfig{Cl-[6]Co(&lt;:[3]H_2O)(&lt;[5]H_2O)(&lt;[7]H_2O)(&lt;:[9]H_2O)-[6]Cl}
@@ -305,7 +342,7 @@ class Enrollment {
 </code></pre>
 <p>Output:</p>
 <p><img src="/.datafile_8a11b88ce66567b990365be6b63b5843/diagram.svg" alt="Generated image"></p><p>All preamble and postamble text for the LaTeX document is automatically added by this extension -- only the chemfig LaTeX package is loaded.  For details on chemfig syntax, see <a href="https://en.wikibooks.org/w/index.php?title=LaTeX/Chemical_Graphics&amp;oldid=3452092">here</a>.</p>
-<a name="HEADREF13"></a><h1>Language Support</h1>
+<a name="HEADREF14"></a><h1>Language Support</h1>
 <p>You can generate output by passing in custom code to run in various programming languages. The code is built and run in an isolated container, so it should be safe. The container is set up such that...</p>
 <ul>
 <li><code>/input</code> is where the custom code and project files are located.</li>
@@ -318,7 +355,7 @@ class Enrollment {
 ⚠️NOTE️️️⚠️</strong>
 <p>This may be useful for generating custom graphs/diagrams, or for doing various computations.</p>
 </div>
-<a name="HEADREF14"></a><h2>Python</h2>
+<a name="HEADREF15"></a><h2>Python</h2>
 <p>Add an image or text generated via Python (miniconda) using the conda block tag:</p>
 <pre><code>```{python}
 f = open("/output/text.txt","w+")
@@ -339,7 +376,7 @@ plt.savefig("/output/out.svg", format="svg")
 </code></pre>
 <p>The Miniconda environment YAML and Python source code are separated by <code>----</code>.</p>
 <p>Block output:</p>
-<pre>hello world!</pre><p><img src="/.datafile_08460fa23c359f3c6d55b03fccbd6c06/out.svg" alt="Generated image"></p><a name="HEADREF15"></a><h2>Java</h2>
+<pre>hello world!</pre><p><img src="/.datafile_08460fa23c359f3c6d55b03fccbd6c06/out.svg" alt="Generated image"></p><a name="HEADREF16"></a><h2>Java</h2>
 <p>Add an image or text generated via Java (maven) using the java block tag:</p>
 <pre><code>```{java}
 import java.io.*;
@@ -405,7 +442,7 @@ public class Main {
 </code></pre>
 <p>The Maven POM XML and Java source code are separated by <code>----</code>.</p>
 <p>Block output:</p>
-<pre>hello world</pre><p><img src="/.datafile_addd9fc36eb3c16aee36da4c031318a2/output.svg" alt="Generated image"></p><a name="HEADREF16"></a><h2>NodeJS</h2>
+<pre>hello world</pre><p><img src="/.datafile_addd9fc36eb3c16aee36da4c031318a2/output.svg" alt="Generated image"></p><a name="HEADREF17"></a><h2>NodeJS</h2>
 <p>Add an image or text generated via NodeJS (npm) using the node block tag:</p>
 <pre><code>```{node}
 const fs = require('fs');
@@ -442,7 +479,7 @@ PImage.encodePNGToStream(img, fs.createWriteStream('/output/out.png')).then(() =
 </code></pre>
 <p>The NPM package JSON and Javascript source code are separated by <code>----</code>.</p>
 <p>Block output:</p>
-<pre>Hey there!</pre><p><img src="/.datafile_8301a82919ce8ed0e16298dcea8b0a0b/out.png" alt="Generated image"></p><a name="HEADREF17"></a><h1>Macro</h1>
+<pre>Hey there!</pre><p><img src="/.datafile_8301a82919ce8ed0e16298dcea8b0a0b/out.png" alt="Generated image"></p><a name="HEADREF18"></a><h1>Macro</h1>
 <p>Define a macro using the define-block and define-inline tags:</p>
 <pre><code>```{define-block}
 testmacrob
@@ -495,9 +532,9 @@ Some text before. `{testmacroa} hello` Some text after.
 mkdir /output/<span class="hljs-variable">$rand</span>
 npm start -- <span class="hljs-variable">$rand</span>
 </code></pre>
-<a name="HEADREF18"></a><h1>Standard Markdown</h1>
+<a name="HEADREF19"></a><h1>Standard Markdown</h1>
 <p>Standard Markdown syntax guide (adapted from https://github.com/tchapi/markdown-cheatsheet).</p>
-<a name="HEADREF19"></a><h2>Headers</h2>
+<a name="HEADREF20"></a><h2>Headers</h2>
 <pre><code># Heading 1
 ## Heading 2
 ### Heading 3
@@ -510,7 +547,7 @@ npm start -- <span class="hljs-variable">$rand</span>
 ⚠️NOTE️️️⚠️</strong>
 <p>Outputs left out so as to not pollute the table of contents.</p>
 </div>
-<a name="HEADREF20"></a><h2>Text Formatting</h2>
+<a name="HEADREF21"></a><h2>Text Formatting</h2>
 <p>Emphasized text:</p>
 <p><em>text</em> --&gt; <code>_text_</code> or <code>*text*</code></p>
 <p>Strong text:</p>
@@ -533,12 +570,12 @@ npm start -- <span class="hljs-variable">$rand</span>
 <hr>
 <pre><code>- - - -
 </code></pre>
-<a name="HEADREF21"></a><h2>Image</h2>
+<a name="HEADREF22"></a><h2>Image</h2>
 <p>Image:</p>
 <p><img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/MRNA_structure.svg" alt="Messenger RNA structure"></p>
 <pre><code>![Messenger RNA structure](https://upload.wikimedia.org/wikipedia/commons/b/ba/MRNA_structure.svg)
 </code></pre>
-<a name="HEADREF22"></a><h2>Lists</h2>
+<a name="HEADREF23"></a><h2>Lists</h2>
 <p>Unordered list:</p>
 <ul>
 <li>Some item
@@ -577,9 +614,9 @@ npm start -- <span class="hljs-variable">$rand</span>
         1. Some inner inner item
 1. Some other item
 </code></pre>
-<a name="HEADREF23"></a><h2>Table</h2>
+<a name="HEADREF24"></a><h2>Table</h2>
 <p>No flavour of markdown tables are supported. You can use CSV tables instead.</p>
-<a name="HEADREF24"></a><h2>Code</h2>
+<a name="HEADREF25"></a><h2>Code</h2>
 <p>Code can either be inline in a paragraph or as a standalone block. Only standalone blocks can have syntax highlighting.</p>
 <p>Inline code block example:</p>
 <p><code>inlineCode(arg1, arg2)</code> --&gt; <code>`inlineCode(arg1, arg2)`</code></p>
