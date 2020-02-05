@@ -27,7 +27,7 @@
 <li><a href="#HEADREF1">Page Title</a></li>
 <li><a href="#HEADREF2">Bookmarks</a></li>
 <li><a href="#HEADREF3">Image Annotations</a></li>
-<li><a href="#HEADREF4">Output</a></li>
+<li><a href="#HEADREF4">File Output</a></li>
 <li><a href="#HEADREF5">Notes</a></li>
 <li><a href="#HEADREF6">CSV Table</a></li>
 <li><a href="#HEADREF7">Math Typesetting</a></li>
@@ -211,42 +211,41 @@ poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
 <li><em>arrow x1 y1 x2 y2 ...</em> -- draw an arrow on the image (unit is percentage).</li>
 <li><em>text x_offset y_offset string</em> -- write a string on the image (unit is percentage).</li>
 </ul>
-<a name="HEADREF4"></a><h1>Output</h1>
+<a name="HEADREF4"></a><h1>File Output</h1>
 <p>Output text files using the output block tag:</p>
 <pre><code>```{output}
-set_lang&gt;java
-write&gt;    // This is my example code...
-set_file_strip&gt;[\s^\n]*//[^\n]*
-set_file_isolate&gt;\n([ ]+static boolean isBalanced.*?)\s+static boolean isCharged
-file&gt;InternalUtils.java
+InternalUtils.java
+java
+\n([ ]+static boolean isBalanced[\s\S]*?)\s+static boolean isCharged
 ```
 </code></pre>
 <p>Output:</p>
-<pre class="hljs"><code>    <span class="hljs-comment">// This is my example code...</span>
-    <span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isBalanced</span><span class="hljs-params">(ChemicalEquation ce)</span> </span>{
-        Multiset&lt;Element&gt; reactantElementBag = HashMultiset.create();
-        ce.reactants.items.stream()
-                .flatMap(i -&gt; nCopies(i.count, i.bond.items).stream())
-                .flatMap(i -&gt; i.stream())
-                .forEach(bu -&gt; reactantElementBag.add(bu.element, bu.count));
-        
-        Multiset&lt;Element&gt; productElementBag = HashMultiset.create();
-        ce.products.items.stream()
-                .flatMap(i -&gt; nCopies(i.count, i.bond.items).stream())
-                .flatMap(i -&gt; i.stream())
-                .forEach(bu -&gt; productElementBag.add(bu.element, bu.count));
-        
-        <span class="hljs-keyword">return</span> reactantElementBag.equals(productElementBag);
-    }
-</code></pre><p>The output block takes in commands, where each command performs some task or sets some internal variable...</p>
+<pre class="hljs"><code><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isBalanced</span><span class="hljs-params">(ChemicalEquation ce)</span> </span>{
+    Multiset&lt;Element&gt; reactantElementBag = HashMultiset.create();
+    ce.reactants.items.stream()
+            .flatMap(i -&gt; nCopies(i.count, i.bond.items).stream())
+            .flatMap(i -&gt; i.stream())
+            .forEach(bu -&gt; reactantElementBag.add(bu.element, bu.count));
+    
+    Multiset&lt;Element&gt; productElementBag = HashMultiset.create();
+    ce.products.items.stream()
+            .flatMap(i -&gt; nCopies(i.count, i.bond.items).stream())
+            .flatMap(i -&gt; i.stream())
+            .forEach(bu -&gt; productElementBag.add(bu.element, bu.count));
+    
+    <span class="hljs-keyword">return</span> reactantElementBag.equals(productElementBag);
+}</code></pre><p>The output block takes in the following lines...</p>
 <ul>
-<li><code>set_lang&gt;(.*)</code> will set the the syntax highlighter's language.</li>
-<li><code>write&gt;(.*)</code> will write out a single line to the output.</li>
-<li><code>file&gt;(.*)</code> will write out a file to the output.</li>
-<li><code>set_file_isolate&gt;(.*)</code> will set a regex such that subsequent the <code>file&gt;</code> commands will match against the regex and output group 1. The regex MUST have group 1. The regex has the s flag enabled -- dot (.) will match ALL characters (including new line characters).</li>
-<li><code>set_file_strip&gt;(.*)</code> will set a regex such that subsequent the <code>file&gt;</code> commands will strip matches from the string. The regex has the s flag enabled -- dot (.) will match ALL characters (including new line characters).</li>
+<li>1st line is the file path.</li>
+<li>2nd line (optional) is the language to use for highlighting syntax.</li>
+<li>3rd line (optional) is a regex that isolates the output to a specific portion of the file (capture group 1 is what get isolated).</li>
 </ul>
-<p>In the example above, the file is isolated to the method isBalanced and single line comments are stripped.</p>
+<p>The output will automatically be un-indented.</p>
+<div style="margin: 2em; background-color: #e0e0e0">
+<strong>
+⚠️NOTE️️️⚠️</strong>
+<p>Be aware that the isolation regex (line 3) does not use a DOT_ALL flag. That is, the <code>.</code> meta-character doesn't match new lines. If you want to match new lines, use something like <code>[\s\S]</code> instance.</p>
+</div>
 <a name="HEADREF5"></a><h1>Notes</h1>
 <p>Generate notes by using the note block tag:</p>
 <pre><code>```{note}
