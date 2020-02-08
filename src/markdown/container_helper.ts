@@ -147,12 +147,13 @@ function runContainer(
     cacheDir: string
 ) {
     // If input overrides available, copy inputs to tmp dir and apply overrides    
+    let tmpDir: string | null = null;
     if (inputOverrides.size !== 0) {
-        const newInputDir = FileSystem.mkdtempSync('/tmp/inputoverrides');
-        FileSystem.copySync(inputDir, newInputDir);
+        tmpDir = FileSystem.mkdtempSync('/tmp/inputoverrides');
+        FileSystem.copySync(inputDir, tmpDir);
         for (const e of inputOverrides.entries()) {
-            const overridePath = Path.normalize(Path.resolve(newInputDir, e[0]));
-            if (Path.relative(newInputDir, overridePath).startsWith('..')) {
+            const overridePath = Path.normalize(Path.resolve(tmpDir, e[0]));
+            if (Path.relative(tmpDir, overridePath).startsWith('..')) {
                 throw new Error(`Cannot inject outside of input directory: ${e[0]}`);
             }
             const overridePathDir = Path.dirname(overridePath);
@@ -165,7 +166,7 @@ function runContainer(
                 FileSystem.writeFileSync(overridePath, value);
             }
         }
-        inputDir = newInputDir;
+        inputDir = tmpDir;
     }
 
     // Create container helper
@@ -182,6 +183,11 @@ function runContainer(
         outputDir = ch.cachedOutputDir;
     } else { // If not, run container
         ch.run(extraVolumeMappings);
+    }
+
+    // Remove tmp directory if it was created
+    if (tmpDir !== null) {
+        FileSystem.removeSync(tmpDir);
     }
 
     return { updatedInputDir: inputDir, updatedOutputDir: outputDir };
