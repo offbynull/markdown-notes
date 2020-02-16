@@ -1,1 +1,1 @@
-FROM node:8.16-buster
+FROM node:12-alpine

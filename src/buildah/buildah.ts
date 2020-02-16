@@ -180,14 +180,14 @@ function createEnvIfNotExists(environmentDir: string) {
         FileSystem.writeFileSync(
             confFile,
             `
-            [registries.search]
-            registries = ['docker.io', 'registry.fedoraproject.org', 'quay.io', 'registry.access.redhat.com', 'registry.centos.org']
-            
-            [registries.insecure]
-            registries = []
+[registries.search]
+registries = ['docker.io']
 
-            [registries.block]
-            registries = []
+[registries.insecure]
+registries = []
+
+[registries.block]
+registries = []
             `,
             { encoding: 'utf8' }
         );

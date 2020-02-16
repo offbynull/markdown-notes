@@ -56,7 +56,7 @@ export class NodeExtension implements Extension {
         FileSystem.mkdirpSync(inputDir);
         FileSystem.mkdirpSync(outputDir);
 
-        FileSystem.writeFileSync(Path.resolve(containerDir, 'Dockerfile'), 'FROM node:8.16-buster\n');
+        FileSystem.writeFileSync(Path.resolve(containerDir, 'Dockerfile'), 'FROM node:12-alpine\n');
 
         const splitCode = (() => {
             const split = input.split(/^----$/gm);
