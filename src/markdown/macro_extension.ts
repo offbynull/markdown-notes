@@ -111,13 +111,7 @@ function macroApply(markdownIt: MarkdownIt, token: Token, context: ExtensionCont
     const macroData: MacroData = context.shared.get('macro') || new MacroData();
     context.shared.set('macro', macroData);
 
-    const content = (() => {
-        if (token.block) {
-            return token.content;
-        } else {
-            return token.content.trim();
-        }
-    })();
+    const content = token.content; // DO NOT TRIM THIS
     const name = token.type;
     const definition = (() => {
         if (token.block) {
