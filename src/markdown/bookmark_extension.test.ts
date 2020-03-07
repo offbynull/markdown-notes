@@ -1,4 +1,6 @@
-import { BookmarkRegexScanner, BookmarkScannerList } from "./bookmark_extension";
+import { BookmarkRegexScanner } from "./bookmark_regex_scanner";
+import { BookmarkRegexScannerCollection, BookmarkKey, NormalBookmarkEntry } from "./bookmark_regex_scanner_collection";
+
 
 test('must scan for bookmark', () => {
     const scanner = BookmarkRegexScanner.createFromLiteral('/(fgh)/');
@@ -54,10 +56,10 @@ test('must fail to create scanner if not a javascript regex literal', () => {
 
 
 test('must match the earliest match out of list', () => {
-    const scannerList = new BookmarkScannerList();
-    scannerList.addNormalBookmark('f(ghj)i', '', 'anchor1', false, false);
-    scannerList.addNormalBookmark('e(fgh)j', '', 'anchor2', false, false);
-    scannerList.addNormalBookmark('g(hji)k', '', 'anchor3', false, false);
+    const scannerList = new BookmarkRegexScannerCollection();
+    scannerList.addNormalBookmark(new BookmarkKey('f(ghj)i', ''), 'anchor1', false, false);
+    scannerList.addNormalBookmark(new BookmarkKey('e(fgh)j', ''), 'anchor2', false, false);
+    scannerList.addNormalBookmark(new BookmarkKey('g(hji)k', ''), 'anchor3', false, false);
     const ret = scannerList.scan('abcdefghjiklmnopqrstuvwxyz');
 
     if (ret === null) {
@@ -65,23 +67,22 @@ test('must match the earliest match out of list', () => {
     }
 
     expect(ret).toStrictEqual({
-        capture: {
-            fullIndex: 4,
-            fullMatch: 'efghj',
-            captureIndex: 5,
-            captureMatch: 'fgh',
-            capturePreamble: 'e',
-            capturePostamble: 'j',
-        },
+        fullIndex: 4,
+        fullMatch: 'efghj',
+        captureIndex: 5,
+        captureMatch: 'fgh',
+        capturePreamble: null,
+        capturePostamble: null,
+        key: new BookmarkKey('e(fgh)j', ''),
         anchorId: 'anchor2'
     });
 });
 
 test('must match the longest match if multiple earliest bookmarks', () => {
-    const scannerList = new BookmarkScannerList();
-    scannerList.addNormalBookmark('f(ghji)k', '', 'anchor1', false, false);
-    scannerList.addNormalBookmark('f(ghj)i', '', 'anchor2', false, false);
-    scannerList.addNormalBookmark('f(ghjik)l', '', 'anchor3', false, false);
+    const scannerList = new BookmarkRegexScannerCollection();
+    scannerList.addNormalBookmark(new BookmarkKey('f(ghji)k', ''), 'anchor1', false, false);
+    scannerList.addNormalBookmark(new BookmarkKey('f(ghj)i', ''), 'anchor2', false, false);
+    scannerList.addNormalBookmark(new BookmarkKey('f(ghjik)l', ''), 'anchor3', false, false);
     const ret = scannerList.scan('abcdefghjiklmnopqrstuvwxyz');
 
     if (ret === null) {
@@ -89,69 +90,205 @@ test('must match the longest match if multiple earliest bookmarks', () => {
     }
 
     expect(ret).toStrictEqual({
-        capture: {
-            captureIndex: 6,
-            captureMatch: "ghjik",
-            capturePreamble: 'f',
-            capturePostamble: 'l',
-            fullIndex: 5,
-            fullMatch: "fghjikl"
-        },
+        captureIndex: 6,
+        captureMatch: "ghjik",
+        capturePreamble: null,
+        capturePostamble: null,
+        fullIndex: 5,
+        fullMatch: "fghjikl",
+        key: new BookmarkKey('f(ghjik)l', ''),
         anchorId: 'anchor3'
     });
 });
 
 
 test('must match multiple times', () => {
-    const scannerList = new BookmarkScannerList();
-    scannerList.addNormalBookmark('(abc)', '', 'anchor1', false, false);
+    const scannerList = new BookmarkRegexScannerCollection();
+    scannerList.addNormalBookmark(new BookmarkKey('(abc)', ''), 'anchor1', false, false);
     expect(scannerList.scan('xxxabcxxx')).toStrictEqual({
-        capture: {
-            captureIndex: 3,
-            captureMatch: 'abc',
-            capturePreamble: '',
-            capturePostamble: '',
-            fullIndex: 3,
-            fullMatch: 'abc'
-        },
+        captureIndex: 3,
+        captureMatch: 'abc',
+        capturePreamble: null,
+        capturePostamble: null,
+        fullIndex: 3,
+        fullMatch: 'abc',
+        key: new BookmarkKey('(abc)', ''),
         anchorId: 'anchor1'
     });
     expect(scannerList.scan('xabcxxxxx')).toStrictEqual({
-        capture: {
-            captureIndex: 1,
-            captureMatch: 'abc',
-            capturePreamble: '',
-            capturePostamble: '',
-            fullIndex: 1,
-            fullMatch: 'abc'
-        },
+        captureIndex: 1,
+        captureMatch: 'abc',
+        capturePreamble: null,
+        capturePostamble: null,
+        fullIndex: 1,
+        fullMatch: 'abc',
+        key: new BookmarkKey('(abc)', ''),
         anchorId: 'anchor1'
     });
     expect(scannerList.scan('xxxxxabcx')).toStrictEqual({
-        capture: {
-            captureIndex: 5,
-            captureMatch: 'abc',
-            capturePreamble: '',
-            capturePostamble: '',
-            fullIndex: 5,
-            fullMatch: 'abc'
-        },
+        captureIndex: 5,
+        captureMatch: 'abc',
+        capturePreamble: null,
+        capturePostamble: null,
+        fullIndex: 5,
+        fullMatch: 'abc',
+        key: new BookmarkKey('(abc)', ''),
         anchorId: 'anchor1'
     });
 });
 
 test('must include preamble and postamble', () => {
-    const scannerList = new BookmarkScannerList();
-    scannerList.addNormalBookmark('23(abc)32', '', 'anchor1', false, false);
+    const scannerList = new BookmarkRegexScannerCollection();
+    scannerList.addNormalBookmark(new BookmarkKey('23(abc)32', ''), 'anchor1', true, true);
     expect(scannerList.scan('123abc32111')).toStrictEqual({
-        capture: {
-            captureIndex: 3,
-            captureMatch: 'abc',
-            capturePreamble: '23',
-            capturePostamble: '32',
-            fullIndex: 1,
-            fullMatch: '23abc32'
-        },
+        captureIndex: 3,
+        captureMatch: 'abc',
+        capturePreamble: '23',
+        capturePostamble: '32',
+        fullIndex: 1,
+        fullMatch: '23abc32',
+        key: new BookmarkKey('23(abc)32', ''),
         anchorId: 'anchor1'
     });
+});
+
+
+
+
+
+test('must ignore disabled bookmarks', () => {
+    const scannerList = new BookmarkRegexScannerCollection();
+    scannerList.addNormalBookmark(new BookmarkKey('f(ghj)i', ''), 'anchor1', false, false);
+    scannerList.addNormalBookmark(new BookmarkKey('e(fgh)j', ''), 'anchor2', false, false);
+    scannerList.addNormalBookmark(new BookmarkKey('g(hji)k', ''), 'anchor3', false, false);
+    scannerList.enableBookmark(new BookmarkKey('e(fgh)j', ''), false);
+    const ret = scannerList.scan('abcdefghjiklmnopqrstuvwxyz');
+
+    if (ret === null) {
+        throw 'Should not happen';
+    }
+
+    expect(ret).toStrictEqual({
+        fullIndex: 5,
+        fullMatch: 'fghji',
+        captureIndex: 6,
+        captureMatch: 'ghj',
+        capturePreamble: null,
+        capturePostamble: null,
+        key: new BookmarkKey('f(ghj)i', ''),
+        anchorId: 'anchor1'
+    });
+});
+
+
+
+
+
+
+
+
+
+
+test('must redirect bookmark', () => {
+    const scannerList = new BookmarkRegexScannerCollection();
+    scannerList.addNormalBookmark(new BookmarkKey('f(ghj)i', ''), 'anchor1', false, false);
+    scannerList.addNormalBookmark(new BookmarkKey('e(fgh)j', ''), 'anchor2', false, false);
+    scannerList.addNormalBookmark(new BookmarkKey('g(hji)k', ''), 'anchor3', false, false);
+    scannerList.redirectBookmark(
+        new BookmarkKey('e(fgh)j', ''),
+        new BookmarkKey('g(hji)k', '')
+    );
+    const ret = scannerList.scan('abcdefghjiklmnopqrstuvwxyz');
+
+    if (ret === null) {
+        throw 'Should not happen';
+    }
+
+    expect(ret).toStrictEqual({
+        fullIndex: 4,
+        fullMatch: 'efghj',
+        captureIndex: 5,
+        captureMatch: 'fgh',
+        capturePreamble: null,
+        capturePostamble: null,
+        key: new BookmarkKey('e(fgh)j', ''),
+        anchorId: 'anchor3'
+    });
+});
+
+test('must redirect bookmark multiple times', () => {
+    const scannerList = new BookmarkRegexScannerCollection();
+    scannerList.addNormalBookmark(new BookmarkKey('f(ghj)i', ''), 'anchor1', false, false);
+    scannerList.addNormalBookmark(new BookmarkKey('e(fgh)j', ''), 'anchor2', false, false);
+    scannerList.addNormalBookmark(new BookmarkKey('g(hji)k', ''), 'anchor3', false, false);
+    scannerList.redirectBookmark(
+        new BookmarkKey('e(fgh)j', ''),
+        new BookmarkKey('g(hji)k', '')
+    );
+    scannerList.redirectBookmark(
+        new BookmarkKey('g(hji)k', ''),
+        new BookmarkKey('f(ghj)i', '')
+    );
+    const ret = scannerList.scan('abcdefghjiklmnopqrstuvwxyz');
+
+    if (ret === null) {
+        throw 'Should not happen';
+    }
+
+    expect(ret).toStrictEqual({
+        fullIndex: 4,
+        fullMatch: 'efghj',
+        captureIndex: 5,
+        captureMatch: 'fgh',
+        capturePreamble: null,
+        capturePostamble: null,
+        key: new BookmarkKey('e(fgh)j', ''),
+        anchorId: 'anchor1'
+    });
+});
+
+test('must redirect bookmark to disabled destination bookmark', () => { // disabling a bookmark just means that the linker won't pick it up if it directly sees it
+    const scannerList = new BookmarkRegexScannerCollection();
+    scannerList.addNormalBookmark(new BookmarkKey('f(ghj)i', ''), 'anchor1', false, false);
+    scannerList.addNormalBookmark(new BookmarkKey('e(fgh)j', ''), 'anchor2', false, false);
+    scannerList.addNormalBookmark(new BookmarkKey('g(hji)k', ''), 'anchor3', false, false);
+    scannerList.enableBookmark(new BookmarkKey('g(hji)k', ''), false);
+    scannerList.redirectBookmark(
+        new BookmarkKey('e(fgh)j', ''),
+        new BookmarkKey('g(hji)k', '')
+    );
+    const ret = scannerList.scan('abcdefghjiklmnopqrstuvwxyz');
+
+    if (ret === null) {
+        throw 'Should not happen';
+    }
+
+    expect(ret).toStrictEqual({
+        fullIndex: 4,
+        fullMatch: 'efghj',
+        captureIndex: 5,
+        captureMatch: 'fgh',
+        capturePreamble: null,
+        capturePostamble: null,
+        key: new BookmarkKey('e(fgh)j', ''),
+        anchorId: 'anchor3'
+    });
+});
+
+test('must fail to redirect if in a cycle', () => {
+    const scannerList = new BookmarkRegexScannerCollection();
+    scannerList.addNormalBookmark(new BookmarkKey('f(ghj)i', ''), 'anchor1', false, false);
+    scannerList.addNormalBookmark(new BookmarkKey('e(fgh)j', ''), 'anchor2', false, false);
+    scannerList.addNormalBookmark(new BookmarkKey('g(hji)k', ''), 'anchor3', false, false);
+    scannerList.enableBookmark(new BookmarkKey('g(hji)k', ''), false);
+    scannerList.redirectBookmark(
+        new BookmarkKey('e(fgh)j', ''),
+        new BookmarkKey('g(hji)k', '')
+    );
+    scannerList.redirectBookmark(
+        new BookmarkKey('g(hji)k', ''),
+        new BookmarkKey('e(fgh)j', '')
+    );
+
+    expect(() => scannerList.scan('abcdefghjiklmnopqrstuvwxyz')).toThrow();
 });

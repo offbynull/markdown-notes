@@ -30,66 +30,132 @@ If you're using a block tag, make sure you put the title on a NEW line (not on t
 
 # Bookmarks
 
-You can automatically linkify text using the bm inline tag. It comes in 2 variants: simple and advanced.
+Bookmarks allow you to automatically create links in your markdown document using regex. That is, if a piece of text matches some regex pattern, it'll automatically link back to the point where that regex was declared.
 
-* `` `{bm} LITERAL` ``, where matches are made using basic case-insensitive text search.
-  
-  * `` `{bm} coke zero` `` -- `{bm} coke zero` will be the reference for coke zero, cOkE zErO, and coke zeros.
+If all you care about is quickly bookmarking a piece of text, the simplest usage of this tag is `` `{bm} <LABEL>` ``. For example, `` `{bm} coke zero` ``: `{bm} coke zero` will be the reference for coke zero, cOkE zErO, and coke zeros (it's case-insensitive).
 
-* `` `{bm} LABEL/REGEX/REGEX_FLAGS/SHOW_PRE/SHOW_POST` ``, where matches are made using a regex.
+If you care about more elaborate use-cases, the details below provide advance usage instructions.
 
-  REGEX must have exactly 1 capture group, where the text captured by that group is what gets rendered and linked. Matching text before/after group 1 may get rendered if SHOW_PRE/SHOW_POST is set to true (respectively).
+To create a bookmark, use the `{bm} bm` tag: `` `{bm} <LABEL>/<REGEX>/<REGEX_FLAGS>/<SHOW_PRE>/<SHOW_POST>` ``. This tag takes in 5 arguments...
 
-  SHOW_PRE and SHOW_POST may be omitted -- they default to false.
+ 1. `<LABEL>`: Text to output where the bookmark is _declared_.
+ 
+     That is, the place where you define this tag is the place that this label gets output (in bold).
 
-  * `` `{bm} this text/\b(dog)s?\b/i` `` -- `{bm} this text/\b(dog)s?\b/i` will be the reference for DOG and dogs but not doggy, doggo, or ddog.
-  * `` `{bm} this text/(carp\w+s?)/` `` -- `{bm} this text/(carp\w+s?)/` will be the reference for carps, carpenter, and carpenters, but not carp.
-  * `` `{bm} this text/hello\s+(world)/i` `` -- `{bm} this text/hello\s+(world)/i` will be the reference for hello world. Even though the word hello was specified and matched on, it won't be included in the output because it isn't in the capture group.
-  * `` `{bm} grams/\d+(grams|gram|g)\b/i/true/false` `` -- `{bm} grams/\b\d+(grams|gram|g)\b/i/true/false` will be the reference for a g, gram, or grams anytime it's following numbers: 12345g.
+ 2. `<REGEX>`: Regex used to match text in the document (_requires exactly 1 capture group_).
+ 
+     When text is matched, the text that gets captured by capture group 1 is the text that gets output and linkified. The portion matched before/after capture group 1 will be used for matching but won't be linkified, and depending on `SHOW_PRE`/`SHOW_POST` may or may not be output.
+
+ 3. `<REGEX_FLAGS>`: Regex flags to use for `<REGEX>`.
+ 
+    Currently only the i flag is supported (i = ignore case).
+
+ 4. `<SHOW_PRE>`: true/false indicating if text before `<REGEX>`'s capture group 1 should be output.
+
+ 5. `<SHOW_POST>`: true/false indicating if text after `<REGEX>`'s capture group 1 should be output.
+
+There are 2 short-hand forms for bookmarks:
+
+ * `` `{bm} <LABEL>` `` ⟶ `` `{bm} <LABEL>/(<LABEL>)/i/false/false` ``
+
+   This form is good for quickly bookmarking a piece of a text. It's intended for the most common cases: where you don't care about case sensitivity and you're just doing basic text search (no fancy regex constructs). It's using `<LABEL>` as both the label and the regex, where in the regex it's being wrapped in parenthesis such that the entire thing is capture group 1. It also defaults `<SHOW_PRE>` and `<SHOW_POST>` to false.
+
+ * `` `{bm} <LABEL>/<REGEX>/<REGEX_FLAGS>` `` ⟶ `` `{bm} <LABEL>/<REGEX>/<REGEX_FLAGS>/false/false` ``
+
+   This form essentially just defaults `<SHOW_PRE>` and `<SHOW_POST>` to false.
+
+Example usage / output:
+
+* `` `{bm} <LABEL>` ``
+  * `` `{bm} diet coke` ``: `{bm} diet coke` will be the reference for diet coke, dIeT cOKE, and diet cokes.
+* `` `{bm} <LABEL>/<REGEX>/<REGEX_FLAGS>` ``
+  * `` `{bm} this text/\b(dog)s?\b/i` ``: `{bm} this text/\b(dog)s?\b/i` will be the reference for DOG and dogs but not doggy, doggo, or ddog.
+  * `` `{bm} this text/(carp\w+s?)/` ``: `{bm} this text/(carp\w+s?)/` will be the reference for carps, carpenter, and carpenters, but not carp.
+  * `` `{bm} this text/hello\s+(world)/i` ``: `{bm} this text/hello\s+(world)/i` will be the reference for hello world. Even though the word hello was specified and matched on, it won't be included in the output because it isn't captured by `<REGEX>`'s capture group 1.
+* `` `{bm} <LABEL>/<REGEX>/<REGEX_FLAGS>/<SHOW_PRE>/<SHOW_POST>` ``
+  * `` `{bm} grams/\d+(grams|gram|g)\b/i/true/false` ``: `{bm} grams/\b\d+(grams|gram|g)\b/i/true/false` will be the reference for a g, gram, or grams anytime it's following numbers: 12345g.
 
 ```{note}
 Forward-slashes (`/`) are used to delimit arguments. If required, use back-slash to escape the delimiter (e.g. `\/`).
 ```
 
-In certain cases, multiple bookmarks may match a certain piece of text. To resolve this, the bookmark with the longest piece of text captured by the capture group is the one that gets linked to. For example, if the bookmarks `` `{bm} label1/Samsung (Galaxy)/i` `` and `` `{bm} label2/Samsung (Galaxy Smartphone)/i` `` matched on the text _Samsung Galaxy Smartphone Holder_, the second bookmark would get chosen because capture group 1 returns a longer piece of text.
+The sections below provide details on nuances of bookmarking (e.g. tie-breaking) as well as ancillary tags that help with bookmarking in large documents.
 
-If the length of the captured text between the matches are equal, an error is thrown and you'll need to find a way to disambiguate. Several options are available:
+## Tie-breaking
 
- * `` `{bm-delink} TEXT` `` -- Render the encapsulated text without bookmark links.
+In certain cases, multiple bookmarks may match a certain piece of text. To resolve this, the bookmark with the longest piece of text captured by capture group 1 is the one chosen. For example, if the bookmarks `` `{bm} label1/Samsung (Galaxy)/i/true/true` `` and `` `{bm} label2/Samsung (Galaxy Smartphone)/i/true/true` `` matched on the text **Samsung Galaxy Smartphone Holder**, the second bookmark would get chosen because capture group 1 returns a longer piece of text:
 
-   Example usage / output:
-   
-   ```
-   Bookmark `{bm} dominant allele`.
-    * Dominant allele should be linked back.
-    * `{bm-delink} Dominant allele` should NOT be linked back.
-   ```
+* `{bm} label1/Samsung (Galaxy)/i`
+* `{bm} label2/Samsung (Galaxy Smartphone)/i`
 
-   Bookmark `{bm} dominant allele`.
-    * Dominant allele should be linked back.
-    * `{bm-delink} Dominant allele` should NOT be linked back.
+The text Samsung Galaxy Smartphone Holder should link to label2 instead of label1.
 
- * `` `{bm-linker-off}` `` / `` `{bm-linker-on}` `` -- Turns off/on the linker entirely.
+If the length of the captured text between the matches are equal, an error is thrown and you'll need to find a way to disambiguate. The typical way to disambiguate is to have the regex check for a suffix that doesn't get output when rendered.
 
-   Example usage / output:
-   
-   ```
-   Bookmark `{bm} caffeine`.
-    * Caffeine should `{bm-linker-off}` be linked back.
-    * Caffeine should NOT be linked back.
-   
-   `{bm-linker-on}`
-   ```
+Example usage / output:
 
-   Bookmark `{bm} caffeine`.
-    * Caffeine should `{bm-linker-off}` be linked back.
-    * Caffeine should NOT be linked back.
-   
-   `{bm-linker-on}`
+```
+* `{bm} base/(base)_pH/i`
+* `{bm} base/(base)_DNA/i`
 
- * `` `{bm-ignore} TEXT` `` -- Render all instances of text without bookmark links.
+The word base_pH should link to the first bullet, while base_DNA should link to the second bullet.
+```
 
-   Example usage / output:
+* `{bm} base/(base)_pH/i`
+* `{bm} base/(base)_DNA/i`
+
+The word base_pH should link to the first bullet, while base_DNA should link to the second bullet.
+
+```{note}
+See bm-error for related disambiguation details.
+```
+
+## Skipping
+
+Using the `{bm} bm-skip` tag, you can render any text without bookmark handling. That is, if the text matches a bm / bm-error / bm-ignore tag, it won't matter. 
+
+Why is this useful? The bm-skip tag is typically used when some word matches a bookmark but that word is being used in a different context. For example, if I bookmarked Apple as a reference to the company that makes iPhones, I wouldn't want it to link text that was referring to apple as a fruit.
+
+Example usage / output:
+
+```
+A mechanical `{bm} crane` is very big.
+* The crane is lifting a truck (should be linked back)
+* The `{bm-skip} crane` is flying away (should NOT be linked back -- referring to bird).
+```
+
+A mechanical `{bm} crane` is very big.
+* The crane is lifting a truck (should be linked back)
+* The `{bm-skip} crane` is flying away (should NOT be linked back -- referring to bird).
+
+## Ignoring
+
+Using the `{bm} bm-ignore` tag, you can match a piece of text using regex and explicitly leave that text unlinked. That is, where the bm tag linkifies any text that it matches, the bm-ignore tag leaves any text it matches unlinked.
+
+Why's this useful? Imagine the following use-case: you've created a bookmark on the word product, but as a result you're also getting links back from words that contain the word product (links you don't want). For example, the word product gets linked back, but so does production, productive, byproduct.
+
+Rather than explicitly seeking out each instance of these unwanted links and wrapping them in a bm-skip tag, you can use the bm-ignore tag. For example:
+
+```
+`{bm} product`
+`{bm-ignore} production`
+`{bm-ignore} productive`
+`{bm-ignore} byproduct`
+...
+```
+
+If the word production, productive, or byproduct are matched, they'll be left unlinked.
+
+The bm-ignore tag's parameters are similar to the bm tag's parameters, except that there is no label: `` `{bm-ignore} <REGEX>/<REGEX_FLAGS>/<SHOW_PRE>/<SHOW_POST>` ``.
+
+Similarly, there are 2 short-hand forms:
+
+ * `` `{bm-ignore} <REGEX>` `` ⟶ `` `{bm} (<REGEX>)/i/false/false` `` (note that the regex is being wrapped in parenthesis)
+ * `` `{bm-ignore} <REGEX>/<REGEX_FLAGS>` `` ⟶ `` `{bm} <REGEX>/<REGEX_FLAGS>/false/false` ``
+
+Example usage / output:
+
+ * `` `{bm-ignore} <REGEX>` ``
    
    ```
    `{bm-ignore} recessive allele`
@@ -105,38 +171,174 @@ If the length of the captured text between the matches are equal, an error is th
     * The term allele should be linked back.
     * The term recessive allele should NOT be linked back.
 
- * `` `{bm-ignore} REGEX/REGEX_FLAGS` `` -- Render all instances of text matching the regex without bookmark links.
+ * `` `{bm-ignore} <REGEX>/<REGEX_FLAGS>` ``
+   
+   ```
+   `{bm-ignore} (basic)_norm/i`
+   Bookmark `{bm} basic/(basic)_pH/i` when suffix is _pH and `{bm} basic/(basic)_lang/i` when suffix is _lang, but ignore when suffix is _norm.
+    * The term basic_pH should be linked back to the _pH suffix.
+    * The term basic_lang should be linked back to the _lang suffix.
+    * The term basic_norm should NOT be linked back.
+   ```
+
+   `{bm-ignore} (basic)_norm/i`
+   Bookmark `{bm} basic/(basic)_pH/i` when suffix is _pH and `{bm} basic/(basic)_lang/i` when suffix is _lang, but ignore when suffix is _norm.
+    * The term basic_pH should be linked back to the _pH suffix.
+    * The term basic_lang should be linked back to the _lang suffix.
+    * The term basic_norm should NOT be linked back.
+
+## Erroring
+
+Using the `{bm} bm-error` tag, you can match a piece of text using regex and explicitly generate an error when a match is found. That is, where the bm tag linkifies any text that it matches, the bm-error tag crashes the application when it matches a piece of text.
+
+Why's this useful? Imagine the following use-case: you're writing a document on biology and chemistry. You have 2 sections in the document that the word base relates to: base as in the pH scale and base as in a nucleotide base. Since the word base is being used in 2 different contexts, you create bookmarks that explicitly look for a suffix:
+
+```
+`{bm} base/(base)_pH/i`
+`{bm} base/(base)_DNA/i`
+```
+
+As you continue writing your document, you never want the word base to be used by itself -- it should almost always refer to one of the 2 bookmarks. You can use the bm-error tag to explicitly stop you from using the word base by itself:
+
+```
+`{bm} base/(base)_pH/i`
+`{bm} base/(base)_DNA/i`
+`{bm-error} Use base_pH if referring to pH scale, base_DNA if referring to nucleotides, or base_NORM to leave as-is/(base)/i`
+```
+
+```{note}
+The bm-skip tag works on bm-error as well. That is, if a piece of text wrapped in a bm-skip tag that matches bm-error won't result in an error.
+```
+
+The bm-ignore tag's parameters are similar to the bm tag's parameters, except that label is replaced by the error message: `` `{bm-error} <ERROR_MSG>/<REGEX>/<REGEX_FLAGS>/<SHOW_PRE>/<SHOW_POST>` ``.
+
+Similarly, there are 2 short-hand forms:
+
+ * `` `{bm-error} <ERROR_MSG>/<REGEX>` `` ⟶ `` `{bm} <ERROR_MSG>/(<REGEX>)/i/false/false` `` (note that the regex is being wrapped in parenthesis)
+ * `` `{bm-error} <ERROR_MSG>/<REGEX>/<REGEX_FLAGS>` `` ⟶ `` `{bm} <ERROR_MSG>/<REGEX>/<REGEX_FLAGS>/false/false` ``
+
+```{note}
+Since bm-error tags don't render anything, what's the point of having `<SHOW_PRE>` and `<SHOW_POST>`? bm-error tags can be redirected via bm-link-redirect. That is, you can make temporarily make it so that rather than erroring out on a match, that matched text will instead link to another bm-error.
+```
+
+Example usage / output:
+
+```
+`` `{bm-error} Base is too ambiguous. Use either base_pH or base_nucleotide/\b(base)\b/i` ``
+* The term base_pH should be linked back to the _pH suffix.
+* The term base_nucleotide should be linked back to the _nucleotide suffix.
+* The term base should cause the render process to error.
+```
+
+OUTPUT NOT POSSIBLE BECAUSE THROWN ERROR WOULD CANCEL RENDER.
+
+## Redirecting
+
+A bm / bm-ignore / bm-error tag can be redirected to another bm / bm-ignore / bm-error tag using the `{bm} bm-redirect`, then reset back to normal using the `{bm} bm-reset` tag. That is, you can make it so that if the linker matches a piece of text, instead of performing the intended action, it'll perform the action for some other bookmark.
  
-   Note that the regex must have exactly 1 capture group. The text captured by that group is what gets rendered (similar to bm inline tag).
+The bm-direct tag takes in 4 arguments: `` `{bm-redirect} <SRC_REGEX>/<SRC_REGEX_FLAGS>/<DST_REGEX>/<DST_REGEX_FLAGS>` ``...
 
-   Example usage / output:
-   
-   ```
-   `{bm-ignore} (basic)_norm/i`
-   Bookmark `{bm} basic/(basic)_pH/i` when suffix is _pH and `{bm} basic/(basic)_lang/i` when suffix is _lang, but ignore when suffix is _norm.
-    * The term basic_pH should be linked back to the _pH suffix.
-    * The term basic_lang should be linked back to the _lang suffix.
-    * The term basic_norm should NOT be linked back.
-   ```
+ 1. `<SRC_REGEX>`: Regex used by tag being redirected from.
 
-   `{bm-ignore} (basic)_norm/i`
-   Bookmark `{bm} basic/(basic)_pH/i` when suffix is _pH and `{bm} basic/(basic)_lang/i` when suffix is _lang, but ignore when suffix is _norm.
-    * The term basic_pH should be linked back to the _pH suffix.
-    * The term basic_lang should be linked back to the _lang suffix.
-    * The term basic_norm should NOT be linked back.
+ 2. `<SRC_REGEX_FLAGS>`: Regex flags used by tag being redirected from.
 
- * `` `{bm-ambiguous} ERROR_MESSAGE/REGEX/REGEX_FLAGS` `` -- Throw error if any text matches.
+ 3. `<DST_REGEX>`: Regex used by tag being redirected to.
 
-   Example usage / output:
-   
-   ```
-   `` `{bm-ambiguous} Base is too ambiguous. Use either base_pH or base_nucleotide/\b(base)\b/i` ``
-    * The term base_pH should be linked back to the _pH suffix.
-    * The term base_nucleotide should be linked back to the _nucleotide suffix.
-    * The term base should cause the render process to error.
-   ```
+ 4. `<DST_REGEX_FLAGS>`: Regex flags used by tag being redirected to.
 
-   OUTPUT NOT POSSIBLE BECAUSE THROWN ERROR WOULD CANCEL RENDER.
+The bm-reset tag takes 2 arguments: `` `{bm-reset} <SRC_REGEX>/<SRC_REGEX_FLAGS>` ``...
+
+ 1. `<SRC_REGEX>`: Regex used by tag that's being redirected.
+
+ 2. `<SRC_REGEX_FLAGS>`: Regex flags used by tag that's being redirected.
+
+```{note}
+As you can probably infer, the key for bookmarking is regex + regex flags.
+```
+
+Why's this useful? Imagine the following use-case: you're writing a document on biology and chemistry. You have 2 sections in the document that the word base relates to: base as in the pH scale and base as in a nucleotide base. Since the word base is being used in 2 different contexts, you create bookmarks that explicitly look for a suffix:
+
+```
+`{bm-ignore} base`
+`{bm} base/(base)_pH/i`
+`{bm} base/(base)_DNA/i`
+```
+
+As you continue writing your document, the word base used in...
+* chemistry related text will very likely refer to the pH scale.
+* biology related text will very likely refer to nucleotides.
+
+Each section can redirect the word base to the appropriate bookmark, then reset it once that section is over.
+
+Example usage / output:
+
+```
+`{bm-ignore} product`
+
+* `{bm} product/(product)_MATH/i` (math multiplication)
+* `{bm} product/(product)_CHEM/i` (chemistry)
+
+`{bm-redirect} (product)/i/(product)_CHEM/i`
+
+Much of chemistry research is focused on the synthesis and characterization of beneficial products, as well as the detection and removal of undesirable products. Synthetic chemists can be subdivided into research chemists who design new chemicals and pioneer new methods for synthesizing chemicals, as well as process chemists who scale up chemical production and make it safer, more environmentally sustainable, and more efficient.[3] Other fields include natural product chemists who isolate products created by living organisms and then characterize and study these products.
+
+`{bm-reset} (product)/i`
+
+Every instance of product in paragraph above should be linked to the chemistry reference.
+```
+
+`{bm-ignore} product`
+
+* `{bm} product/(product)_MATH/i` (math multiplication)
+* `{bm} product/(product)_CHEM/i` (chemistry)
+
+`{bm-redirect} (product)/i/(product)_CHEM/i`
+
+Much of chemistry research is focused on the synthesis and characterization of beneficial products, as well as the detection and removal of undesirable products. Synthetic chemists can be subdivided into research chemists who design new chemicals and pioneer new methods for synthesizing chemicals, as well as process chemists who scale up chemical production and make it safer, more environmentally sustainable, and more efficient.[3] Other fields include natural product chemists who isolate products created by living organisms and then characterize and study these products.
+
+`{bm-reset} (product)/i`
+
+Every instance of product in paragraph above should be linked to the chemistry reference.
+
+## Disabling
+
+A bm / bm-ignore / bm-error tag can be temporarily disabled and then re-enabled using the bm-disable and bm-enable tags. Disabling a bookmark doesn't mean that other bookmarks can't redirect to it, it just means that the linker will ignore this bookmark when matching text.
+
+Why's this useful? Imagine that you set a bookmark match to produce an error (bm-error) but in certain cases you want to use that matched text without generating an error. Disabling allows for that.
+
+Example usage / output:
+
+```
+Bookmark `{bm} Sao Paulo`.
+* Sao Paulo should be linked back.
+* `{bm-disable} (Sao Paulo)/i` Sao Paulo should NOT be linked back `{bm-enable} (Sao Paulo)/i`.
+```
+
+Bookmark `{bm} Sao Paulo`.
+* Sao Paulo should be linked back.
+* `{bm-disable} (Sao Paulo)/i` Sao Paulo should NOT be linked back `{bm-enable} (Sao Paulo)/i`.
+
+## Disabling All
+
+The linker can be temporarily disabled and then re-enabled using the `{bm} bm-disable-all` and `{bm} bm-enable-all` tags. That is, disabling the linker turns off all text matching functionality: bm / bm-ignore / bm-error.
+
+Why's this useful? In certain cases you may have code / macro that's generating text. You may not know what that generated text is beforehand, meaning that the bookmark matches found in it may be unexpected / incorrect. Disabling all bookmark matches allows the text to be output as-is (no linkifying of the output).
+
+Example usage / output:
+
+```
+Bookmark `{bm} caffeine`.
+* Caffeine should `{bm-disable-all}` be linked back.
+* Caffeine should NOT be linked back.
+
+`{bm-enable-all}`
+```
+
+Bookmark `{bm} caffeine`.
+* Caffeine should `{bm-disable-all}` be linked back.
+* Caffeine should NOT be linked back.
+
+`{bm-enable-all}`
 
 # Image Annotations
 
