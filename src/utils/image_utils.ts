@@ -4,7 +4,7 @@ import FileSystem from 'fs-extra';
 
 function wrapImage(pathOrBuffer: string | Buffer) {
     const imgBuffer = pathOrBuffer instanceof Buffer ? pathOrBuffer : FileSystem.readFileSync(pathOrBuffer);
-    const imgData = ImageSize(imgBuffer);
+    const imgData = ImageSize.imageSize(imgBuffer);
     const imgMimeType = (() => {
         switch (imgData.type) {
             case 'svg':
@@ -23,6 +23,10 @@ function wrapImage(pathOrBuffer: string | Buffer) {
 
     const base64Data = imgBuffer.toString('base64');
     const dataUri = `data:${imgMimeType};base64,${base64Data}`;
+
+    if (imgData.width === undefined || imgData.height === undefined) {
+        throw Error('Undefined dimensions: ' + JSON.stringify(imgData));
+    }
 
     return {
         width: imgData.width,
