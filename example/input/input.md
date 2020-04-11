@@ -884,66 +884,47 @@ PImage.encodePNGToStream(img, fs.createWriteStream('/output/out.png')).then(() =
 
 # Macro
 
-Define a macro using the define-block and define-inline tags:
+You can define custom inline and block tags specific to your markdown environment (macros). When invoked, a custom tag pulls down a user-defined container (pulled from Dockerhub) and launches a custom script on it to process inputs from your markdown environment. The output of the container gets rendered as normal markdown as if it were normal markdown.
 
-````
-```{define-block}
-testmacrob
-macroa/
+A custom tag is defined by placing a special directory in the same directory as your input.md file. The name of the directory must start with either...
+
+ * `macro_block_` -- custom tag will be exposed as a block tag
+ * `macro_inline_` -- custom tag will be exposed as an inline tag
+ * `macro_all_` -- custom tag will be exposed as either a block or inline tag
+
+...followed by the name of the custom tag. So for example, a directory name `macro_block_mycustomtag` will get invoked whenever you use a block tag named `mycustomtag` in your input.md file.
+
+The structure of this special directory must be as follows:
+
+  * `[MACRO_DIR]/container`: a directory containing container setup files.
+  * `[MACRO_DIR]/container/Dockerfile`: a Dockerfile that sets up the container.
+  * `[MACRO_DIR]/container/*`: files/resources required by the `Dockerfile`.
+  * `[MACRO_DIR]/input`: a directory containing input files.
+  * `[MACRO_DIR]/input/run.sh`: a script that gets run when the container starts.
+  * `[MACRO_DIR]/input/*`: files/resources required by `run.sh` and/or whatever it invokes.
+  * `[MACRO_DIR]/settings.json`: a special settings file (described further below).
+
+The `settings.json` file can be used to pass in extra (shared) inputs to the container when it runs. For example, multiple tags may require the same shared piece of code. Rather than placing a copy of that code in each tag's `input/` directory, you can place a single copy in the root of your markdown environment and have each tag reference it:
+
+```json
+{
+    "copyInputs": [ "shared_dir1", "shared_dir2" ]  // Dirs in the root markdown environment that'll
+                                                    // be made available in the container's /input/
+                                                    // directory when it runs. 
+}
 ```
 
-```{define-inline}
-testmacroa
-macrob/
-```
-````
+Essentially, the `container` sub-directory contains the files required to setup the container and the `input` sub-directory contains the files to expose to the container. When the tag gets used, the launcher ...
 
-Apply a macro by using a tag with that macro's name (1st line of the macro definition):
+ * copies `[MACRO_ENV_PATH]/input` to `/input` on the container.
+ * copies `[MACRO_DIR]/settings.json` shared resources to `/input` on the container.
+ * stores tag data to `/input/input.data` on the container.
+ * launches `/input/run.sh` on the container.
+ * expects output markdown and any files required by it in `/output/output.md` on the container.
 
-````
-```{testmacrob}
-hello
-```
+Any other files generated inside the container's `/output` are assumed to be resources referenced by `/output/output.md` and as such will get copied over to the root markdown input directory. It's highly recommended that you place these resources in `/output/[RANDOM_OR_HASH_DIR]` instead of `/output`. Resources placed directly in `/output` may encounter name collisions when rendering.
 
-Some text before. `{testmacroa} hello` Some text after.
-````
-
-Output:
-
-```{define-block}
-testmacrob
-macroa/
-```
-
-```{define-inline}
-testmacroa
-macrob/
-```
-
-```{testmacrob}
-hello block
-```
-
-Some text before. `{testmacroa} hello inline` Some text after.
-
-When defining a macro, the...
- * 1st line is the name of the macro.
- * 2nd line is a path to the macro's environment (relative path under the root markdown input directory).
-   * `[MACRO_ENV_PATH]/container`: a directory containing container setup files.
-   * `[MACRO_ENV_PATH]/container/Dockerfile`: a Dockerfile that sets up the container.
-   * `[MACRO_ENV_PATH]/container/*`: files/resources required by the `Dockerfile`.
-   * `[MACRO_ENV_PATH]/input`: a directory containing input files.
-   * `[MACRO_ENV_PATH]/input/run.sh`: a script that gets run when the container starts.
-   * `[MACRO_ENV_PATH]/input/*`: files/resources required by `run.sh` and/or whatever it invokes.
- * remaining lines are paths to copy from the root input directory to the macro's input directory.
-
-When a macro gets used, its container runs. The container ...
- * will map `[MACRO_ENV_PATH]/input` to `/input` on the container.
- * will store input text to `/input/input.data` on the container.
- * will expect output markdown in `/output/output.md` on the container.
-
-Any other files generated inside `/output` are assumed to be resources referenced by `/output/output.md` and as such will get copied over to the root markdown input directory. It's highly recommended that you place these resources in `/output/[RANDOM_DIR]` instead of `/output`. Resources placed directly in `/output` may encounter name collisions when rendering.
-
+````{note}
 You can streamline the generation of `/output/[RANDOM_DIR]` via the shell -- for example:
 
 ```bash
@@ -955,6 +936,27 @@ rand=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13)
 mkdir /output/$rand
 npm start -- $rand
 ```
+````
+
+This sample file comes with a couple of simple macro examples that you can use as a reference. Each macro takes a piece of text and manipulates it to contain some extra markdown:
+
+````
+Output:
+
+```{testmacroblock}
+hello block
+```
+
+Some text before. `{testmacroinline} hello inline` Some text after.
+````
+
+Output:
+
+```{testmacroblock}
+hello block
+```
+
+Some text before. `{testmacroinline} hello inline` Some text after.
 
 # Standard Markdown
 

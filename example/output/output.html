@@ -663,50 +663,43 @@ PImage.encodePNGToStream(img, fs.createWriteStream('/output/out.png')).then(() =
 <p>The NPM package JSON and Javascript source code are separated by <code>----</code>.</p>
 <p>Block output:</p>
 <pre>Hey there!</pre><p><img src="/.datafile_c67408dd235f7380f9372def2196ea41/out.png" alt="Generated image"></p><a name="HEADREF25"></a><h1>Macro</h1>
-<p>Define a macro using the define-block and define-inline tags:</p>
-<pre><code>```{define-block}
-testmacrob
-macroa/
-```
-
-```{define-inline}
-testmacroa
-macrob/
-```
+<p>You can define custom inline and block tags specific to your markdown environment (macros). When invoked, a custom tag pulls down a user-defined container (pulled from Dockerhub) and launches a custom script on it to process inputs from your markdown environment. The output of the container gets rendered as normal markdown as if it were normal markdown.</p>
+<p>A custom tag is defined by placing a special directory in the same directory as your input.md file. The name of the directory must start with either...</p>
+<ul>
+<li><code>macro_block_</code> -- custom tag will be exposed as a block tag</li>
+<li><code>macro_inline_</code> -- custom tag will be exposed as an inline tag</li>
+<li><code>macro_all_</code> -- custom tag will be exposed as either a block or inline tag</li>
+</ul>
+<p>...followed by the name of the custom tag. So for example, a directory name <code>macro_block_mycustomtag</code> will get invoked whenever you use a block tag named <code>mycustomtag</code> in your input.md file.</p>
+<p>The structure of this special directory must be as follows:</p>
+<ul>
+<li><code>[MACRO_DIR]/container</code>: a directory containing container setup files.</li>
+<li><code>[MACRO_DIR]/container/Dockerfile</code>: a Dockerfile that sets up the container.</li>
+<li><code>[MACRO_DIR]/container/*</code>: files/resources required by the <code>Dockerfile</code>.</li>
+<li><code>[MACRO_DIR]/input</code>: a directory containing input files.</li>
+<li><code>[MACRO_DIR]/input/run.sh</code>: a script that gets run when the container starts.</li>
+<li><code>[MACRO_DIR]/input/*</code>: files/resources required by <code>run.sh</code> and/or whatever it invokes.</li>
+<li><code>[MACRO_DIR]/settings.json</code>: a special settings file (described further below).</li>
+</ul>
+<p>The <code>settings.json</code> file can be used to pass in extra (shared) inputs to the container when it runs. For example, multiple tags may require the same shared piece of code. Rather than placing a copy of that code in each tag's <code>input/</code> directory, you can place a single copy in the root of your markdown environment and have each tag reference it:</p>
+<pre class="hljs"><code>{
+    <span class="hljs-attr">"copyInputs"</span>: [ <span class="hljs-string">"shared_dir1"</span>, <span class="hljs-string">"shared_dir2"</span> ]  <span class="hljs-comment">// Dirs in the root markdown environment that'll</span>
+                                                    <span class="hljs-comment">// be made available in the container's /input/</span>
+                                                    <span class="hljs-comment">// directory when it runs. </span>
+}
 </code></pre>
-<p>Apply a macro by using a tag with that macro's name (1st line of the macro definition):</p>
-<pre><code>```{testmacrob}
-hello
-```
-
-Some text before. `{testmacroa} hello` Some text after.
-</code></pre>
-<p>Output:</p>
-<p>This is a BLOCK macro that outputs Markdown text with a link: <a href="http://www.google.com">hello block
-</a>!</p>
-<p>Some text before. This is an INLINE macro that outputs Markdown text with a link: <a href="http://www.google.com">hello inline</a>! Some text after.</p>
-<p>When defining a macro, the...</p>
+<p>Essentially, the <code>container</code> sub-directory contains the files required to setup the container and the <code>input</code> sub-directory contains the files to expose to the container. When the tag gets used, the launcher ...</p>
 <ul>
-<li>1st line is the name of the macro.</li>
-<li>2nd line is a path to the macro's environment (relative path under the root markdown input directory).
-<ul>
-<li><code>[MACRO_ENV_PATH]/container</code>: a directory containing container setup files.</li>
-<li><code>[MACRO_ENV_PATH]/container/Dockerfile</code>: a Dockerfile that sets up the container.</li>
-<li><code>[MACRO_ENV_PATH]/container/*</code>: files/resources required by the <code>Dockerfile</code>.</li>
-<li><code>[MACRO_ENV_PATH]/input</code>: a directory containing input files.</li>
-<li><code>[MACRO_ENV_PATH]/input/run.sh</code>: a script that gets run when the container starts.</li>
-<li><code>[MACRO_ENV_PATH]/input/*</code>: files/resources required by <code>run.sh</code> and/or whatever it invokes.</li>
+<li>copies <code>[MACRO_ENV_PATH]/input</code> to <code>/input</code> on the container.</li>
+<li>copies <code>[MACRO_DIR]/settings.json</code> shared resources to <code>/input</code> on the container.</li>
+<li>stores tag data to <code>/input/input.data</code> on the container.</li>
+<li>launches <code>/input/run.sh</code> on the container.</li>
+<li>expects output markdown and any files required by it in <code>/output/output.md</code> on the container.</li>
 </ul>
-</li>
-<li>remaining lines are paths to copy from the root input directory to the macro's input directory.</li>
-</ul>
-<p>When a macro gets used, its container runs. The container ...</p>
-<ul>
-<li>will map <code>[MACRO_ENV_PATH]/input</code> to <code>/input</code> on the container.</li>
-<li>will store input text to <code>/input/input.data</code> on the container.</li>
-<li>will expect output markdown in <code>/output/output.md</code> on the container.</li>
-</ul>
-<p>Any other files generated inside <code>/output</code> are assumed to be resources referenced by <code>/output/output.md</code> and as such will get copied over to the root markdown input directory. It's highly recommended that you place these resources in <code>/output/[RANDOM_DIR]</code> instead of <code>/output</code>. Resources placed directly in <code>/output</code> may encounter name collisions when rendering.</p>
+<p>Any other files generated inside the container's <code>/output</code> are assumed to be resources referenced by <code>/output/output.md</code> and as such will get copied over to the root markdown input directory. It's highly recommended that you place these resources in <code>/output/[RANDOM_OR_HASH_DIR]</code> instead of <code>/output</code>. Resources placed directly in <code>/output</code> may encounter name collisions when rendering.</p>
+<div style="margin: 2em; background-color: #e0e0e0">
+<strong>
+⚠️NOTE️️️⚠️</strong>
 <p>You can streamline the generation of <code>/output/[RANDOM_DIR]</code> via the shell -- for example:</p>
 <pre class="hljs"><code>rand=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13)
 <span class="hljs-comment"># Script should write markdown to /output/output.md</span>
@@ -716,6 +709,20 @@ Some text before. `{testmacroa} hello` Some text after.
 mkdir /output/<span class="hljs-variable">$rand</span>
 npm start -- <span class="hljs-variable">$rand</span>
 </code></pre>
+</div>
+<p>This sample file comes with a couple of simple macro examples that you can use as a reference. Each macro takes a piece of text and manipulates it to contain some extra markdown:</p>
+<pre><code>Output:
+
+```{testmacroblock}
+hello block
+```
+
+Some text before. `{testmacroinline} hello inline` Some text after.
+</code></pre>
+<p>Output:</p>
+<p>This is an BLOCK macro that outputs Markdown text with a link: <a href="http://www.google.com">hello block
+</a>!</p>
+<p>Some text before. This is a INLINE macro that outputs Markdown text with a link: <a href="http://www.google.com">hello inline</a>! Some text after.</p>
 <a name="HEADREF26"></a><h1>Standard Markdown</h1>
 <p>Standard Markdown syntax guide (adapted from https://github.com/tchapi/markdown-cheatsheet).</p>
 <a name="HEADREF27"></a><h2>Headers</h2>

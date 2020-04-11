@@ -46,24 +46,23 @@ export class TokenIdentifier {
     }
 }
 
-export type RuntimeProcessDefinition = (markdownIt: MarkdownIt, token: Token, context: ExtensionContext, state: StateCore) => void;
 export class ExtensionContext {
     public readonly realCachePath: string;
     public readonly realInputPath: string;
     public readonly realBasePath: string;
     public readonly htmlBasePath: string;
     public readonly shared: Map<string, any>;
-    public readonly runtimeBlockExtensions: Map<string, RuntimeProcessDefinition>;
-    public readonly runtimeInlineExtensions: Map<string, RuntimeProcessDefinition>;
 
-    public constructor(realCachePath: string, inputPath: string, realBasePath: string, htmlBasePath: string) {
+    public constructor(
+        realCachePath: string,
+        inputPath: string,
+        realBasePath: string,
+        htmlBasePath: string) {
         this.realCachePath = realCachePath;
         this.realInputPath = inputPath;
         this.realBasePath = realBasePath;
         this.htmlBasePath = htmlBasePath;
         this.shared = new Map();
-        this.runtimeBlockExtensions = new Map();
-        this.runtimeInlineExtensions = new Map();
     }
 
     public injectDir(sourcePath: string): string {
@@ -135,7 +134,7 @@ export class ExtenderConfig {
             if (obj === undefined) {
                 obj = new NameEntry(undefined, undefined);
             }
-            
+
             switch (tId.type) {
                 case Type.BLOCK:
                     if (obj.block !== undefined) {
@@ -262,18 +261,8 @@ export function extender(markdownIt: MarkdownIt, extenderConfig: ExtenderConfig)
                 token.info = token.info.slice(skipLen);
             } else {
                 const extensionEntries = extenderConfig.get(info);
-                const runtimeProcessor = context.runtimeBlockExtensions.get(info);
 
-                if (extensionEntries !== undefined && extensionEntries.block !== undefined && runtimeProcessor !== undefined) {
-                    throw new Error(`Unable to apply processor for ${info} because it overrides a hardcoded extension with the same name`);
-                }
-
-                if (runtimeProcessor !== undefined) {
-                    token.type = info;
-                    token.info = '';
-                    token.tag = '';
-                    runtimeProcessor(markdownIt, token, context, state);
-                } else if (extensionEntries !== undefined && extensionEntries.block !== undefined) { // if id is expected, keep it
+                if (extensionEntries !== undefined && extensionEntries.block !== undefined) { // if id is expected, keep it
                     token.type = info;
                     token.info = '';
                     token.tag = '';
@@ -319,19 +308,8 @@ export function extender(markdownIt: MarkdownIt, extenderConfig: ExtenderConfig)
                     token.content = token.content.slice(skipLen);
                 } else {
                     const extensionEntries = extenderConfig.get(info);
-                    const runtimeProcessor = context.runtimeInlineExtensions.get(info);
 
-                    if (extensionEntries !== undefined && extensionEntries.inline !== undefined && runtimeProcessor !== undefined) {
-                        throw new Error(`Unable to apply processor for ${info} because it overrides a hardcoded extension with the same name`);
-                    }
-
-                    if (runtimeProcessor !== undefined) {
-                        token.type = info;
-                        token.info = '';
-                        token.tag = '';
-                        token.content = token.content.slice(skipLen);
-                        runtimeProcessor(markdownIt, token, context, state);
-                    } else if (extensionEntries !== undefined && extensionEntries.inline !== undefined) { // if id is expected, keep it
+                    if (extensionEntries !== undefined && extensionEntries.inline !== undefined) { // if id is expected, keep it
                         token.type = info;
                         token.info = '';
                         token.tag = '';

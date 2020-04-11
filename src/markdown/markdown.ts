@@ -35,15 +35,16 @@ import { JavaExtension } from './java_extension';
 import { NodeExtension } from './node_extension';
 import { ImageExtension } from './image_extension';
 import { ChemfigExtension } from './chemfig_extension';
-import { MacroDefineExtension, MacroApplyNoopExtension } from './macro_extension';
 import { OutputExtension } from './output_extension';
+import { MacroDefinition } from './macro_helper';
+import { CustomMacroExtension } from './custom_macro_extension';
 
 export default class Markdown {
     private readonly markdownIt: MarkdownIt;
     private readonly htmlBasePath: string;
     private readonly realBasePath: string;
 
-    public constructor(realCachePath: string, realInputPath: string, htmlBasePath: string, realBasePath: string) {
+    public constructor(realCachePath: string, realInputPath: string, htmlBasePath: string, realBasePath: string, customMacroDefinitions: MacroDefinition[]) {
         this.markdownIt = new MarkdownIt('commonmark', {
             highlight: (str, lang) => { // This just applies highlight.js classes -- CSS for classes applied in another area
                 if (lang && HighlightJs.getLanguage(lang)) {
@@ -74,10 +75,12 @@ export default class Markdown {
         extenderConfig.register(new JavaExtension());
         extenderConfig.register(new NodeExtension());
         extenderConfig.register(new ChemfigExtension());
-        extenderConfig.register(new MacroDefineExtension());
-        extenderConfig.register(new MacroApplyNoopExtension());
+
+        for (const customMacroDefinition of customMacroDefinitions) {
+            extenderConfig.register(new CustomMacroExtension(customMacroDefinition));
+        }
+
         this.markdownIt.use(extender, extenderConfig);
-        // this.markdownIt.use(indexer);
     }
 
     public render(markdown: string): string {

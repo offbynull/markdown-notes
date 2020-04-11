@@ -3,6 +3,7 @@ import * as Process from 'process';
 import * as Path from 'path';
 import Markdown from './markdown/markdown';
 import { inlineHtml } from './utils/html_utils';
+import { macroScan } from './markdown/macro_helper';
 
 if (Process.argv.length !== 6) {
     throw 'Invalid arguments: ' + JSON.stringify(Process.argv);
@@ -29,7 +30,8 @@ FileSystem.copySync(inputPath, tempRenderPath);
 const mdInput = FileSystem.readFileSync(tempRenderPath + '/input.md', { encoding: 'utf8'});
 FileSystem.unlinkSync(tempRenderPath + '/input.md');
 
-const mdOutput = new Markdown(cachePath, inputPath, '', tempRenderPath).render(mdInput);
+const customMacroDefs = macroScan(inputPath);
+const mdOutput = new Markdown(cachePath, inputPath, '', tempRenderPath, customMacroDefs).render(mdInput);
 if (pack) {
     // Inline rendered file
     inlineHtml(mdOutput, tempRenderPath, (inlineOutput) => {

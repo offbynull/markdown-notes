@@ -18,7 +18,7 @@ afterEach(() => {
 });
 
 test('must run conda', () => {
-    const md = new Markdown(cachePath, inputPath, '', tempRenderPath);
+    const md = new Markdown(cachePath, inputPath, '', tempRenderPath, []);
     const output = md.render(
         `
 \`\`\`{conda}
