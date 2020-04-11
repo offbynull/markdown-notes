@@ -35,36 +35,30 @@
 <li><a href="#HEADREF8">Disabling</a></li>
 <li><a href="#HEADREF9">Disabling All</a></li>
 </ul>
-<li><a href="#HEADREF10">Image Annotations</a></li>
-<li><a href="#HEADREF11">File Output</a></li>
-<li><a href="#HEADREF12">Notes</a></li>
-<li><a href="#HEADREF13">CSV Table</a></li>
-<li><a href="#HEADREF14">Math Typesetting</a></li>
+<li><a href="#HEADREF10">Math Typesetting</a></li>
 <ul>
-<li><a href="#HEADREF15">MathJax</a></li>
-<li><a href="#HEADREF16">KaTeX</a></li>
+<li><a href="#HEADREF11">MathJax</a></li>
+<li><a href="#HEADREF12">KaTeX</a></li>
 </ul>
-<li><a href="#HEADREF17">Diagrams</a></li>
+<li><a href="#HEADREF13">Image Annotations</a></li>
+<li><a href="#HEADREF14">File Output</a></li>
+<li><a href="#HEADREF15">CSV Table</a></li>
+<li><a href="#HEADREF16">Macro</a></li>
+<li><a href="#HEADREF17">Macro Example: Note</a></li>
 <ul>
-<li><a href="#HEADREF18">GraphViz</a></li>
-<li><a href="#HEADREF19">PlantUML</a></li>
-<li><a href="#HEADREF20">LaTeX Chemfig</a></li>
+<li><a href="#HEADREF18">Macro Example: GraphViz</a></li>
+<li><a href="#HEADREF19">Macro Example: PlantUML</a></li>
+<li><a href="#HEADREF20">Macro Example: Svgbob</a></li>
+<li><a href="#HEADREF21">Macro Example: LaTeX Chemfig</a></li>
 </ul>
-<li><a href="#HEADREF21">Language Support</a></li>
+<li><a href="#HEADREF22">Standard Markdown</a></li>
 <ul>
-<li><a href="#HEADREF22">Python</a></li>
-<li><a href="#HEADREF23">Java</a></li>
-<li><a href="#HEADREF24">NodeJS</a></li>
-</ul>
-<li><a href="#HEADREF25">Macro</a></li>
-<li><a href="#HEADREF26">Standard Markdown</a></li>
-<ul>
-<li><a href="#HEADREF27">Headers</a></li>
-<li><a href="#HEADREF28">Text Formatting</a></li>
-<li><a href="#HEADREF29">Image</a></li>
-<li><a href="#HEADREF30">Lists</a></li>
-<li><a href="#HEADREF31">Table</a></li>
-<li><a href="#HEADREF32">Code</a></li>
+<li><a href="#HEADREF23">Headers</a></li>
+<li><a href="#HEADREF24">Text Formatting</a></li>
+<li><a href="#HEADREF25">Image</a></li>
+<li><a href="#HEADREF26">Lists</a></li>
+<li><a href="#HEADREF27">Table</a></li>
+<li><a href="#HEADREF28">Code</a></li>
 </ul>
 </ul>
 </div>
@@ -132,9 +126,8 @@ Markdown Example!
 </ul>
 </li>
 </ul>
-<div style="margin: 2em; background-color: #e0e0e0">
-<strong>
-⚠️NOTE️️️⚠️</strong>
+<div style="margin:2em; background-color: #e0e0e0;">
+<p><strong>⚠️NOTE️️️⚠️</strong></p>
 <p>Forward-slashes (<code>/</code>) are used to delimit arguments. If required, use back-slash to escape the delimiter (e.g. <code>\/</code>).</p>
 </div>
 <p>The sections below provide details on nuances of bookmarking (e.g. tie-breaking) as well as ancillary tags that help with bookmarking in large documents.</p>
@@ -157,9 +150,8 @@ The word base_pH should link to the first bullet, while base_DNA should link to 
 <li><a name="BOOKMARK10"></a><strong>base</strong></li>
 </ul>
 <p>The word <a href="#BOOKMARK9">base</a> should link to the first bullet, while <a href="#BOOKMARK10">base</a> should link to the second bullet.</p>
-<div style="margin: 2em; background-color: #e0e0e0">
-<strong>
-⚠️NOTE️️️⚠️</strong>
+<div style="margin:2em; background-color: #e0e0e0;">
+<p><strong>⚠️NOTE️️️⚠️</strong></p>
 <p>See <a href="#BOOKMARK20">bm-error</a> for related disambiguation details.</p>
 </div>
 <a name="HEADREF4"></a><h2>Skipping</h2>
@@ -238,9 +230,8 @@ Bookmark <a name="BOOKMARK18"></a><strong>basic</strong> when suffix is _pH and 
 `{bm} base/(base)_DNA/i`
 `{bm-error} Use base_pH if referring to pH scale, base_DNA if referring to nucleotides, or base_NORM to leave as-is/(base)/i`
 </code></pre>
-<div style="margin: 2em; background-color: #e0e0e0">
-<strong>
-⚠️NOTE️️️⚠️</strong>
+<div style="margin:2em; background-color: #e0e0e0;">
+<p><strong>⚠️NOTE️️️⚠️</strong></p>
 <p>The <a href="#BOOKMARK11">bm-skip</a> tag works on <a href="#BOOKMARK20">bm-error</a> as well. That is, if a piece of text wrapped in a <a href="#BOOKMARK11">bm-skip</a> tag that matches <a href="#BOOKMARK20">bm-error</a> won't result in an error.</p>
 </div>
 <p>The <a href="#BOOKMARK13">bm-ignore</a> tag's parameters are similar to the <a href="#BOOKMARK1">bm</a> tag's parameters, except that label is replaced by the error message: <code>`{bm-error} &lt;ERROR_MSG&gt;/&lt;REGEX&gt;/&lt;REGEX_FLAGS&gt;/&lt;SHOW_PRE&gt;/&lt;SHOW_POST&gt;`</code>.</p>
@@ -249,9 +240,8 @@ Bookmark <a name="BOOKMARK18"></a><strong>basic</strong> when suffix is _pH and 
 <li><code>`{bm-error} &lt;ERROR_MSG&gt;/&lt;REGEX&gt;`</code> ⟶ <code>`{bm} &lt;ERROR_MSG&gt;/(&lt;REGEX&gt;)/i/false/false`</code> (note that the regex is being wrapped in parenthesis)</li>
 <li><code>`{bm-error} &lt;ERROR_MSG&gt;/&lt;REGEX&gt;/&lt;REGEX_FLAGS&gt;`</code> ⟶ <code>`{bm} &lt;ERROR_MSG&gt;/&lt;REGEX&gt;/&lt;REGEX_FLAGS&gt;/false/false`</code></li>
 </ul>
-<div style="margin: 2em; background-color: #e0e0e0">
-<strong>
-⚠️NOTE️️️⚠️</strong>
+<div style="margin:2em; background-color: #e0e0e0;">
+<p><strong>⚠️NOTE️️️⚠️</strong></p>
 <p>Since <a href="#BOOKMARK20">bm-error</a> tags don't render anything, what's the point of having <code>&lt;SHOW_PRE&gt;</code> and <code>&lt;SHOW_POST&gt;</code>? <a href="#BOOKMARK20">bm-error</a> tags can be redirected via <a href="#BOOKMARK1">bm</a>-link-redirect. That is, you can make temporarily make it so that rather than erroring out on a match, that matched text will instead link to another <a href="#BOOKMARK20">bm-error</a>.</p>
 </div>
 <p>Example usage / output:</p>
@@ -287,9 +277,8 @@ Bookmark <a name="BOOKMARK18"></a><strong>basic</strong> when suffix is _pH and 
 <p><code>&lt;SRC_REGEX_FLAGS&gt;</code>: Regex flags used by tag that's being redirected.</p>
 </li>
 </ol>
-<div style="margin: 2em; background-color: #e0e0e0">
-<strong>
-⚠️NOTE️️️⚠️</strong>
+<div style="margin:2em; background-color: #e0e0e0;">
+<p><strong>⚠️NOTE️️️⚠️</strong></p>
 <p>As you can probably infer, the key for bookmarking is regex + regex flags.</p>
 </div>
 <p>Why's this useful? Imagine the following use-case: you're writing a document on biology and chemistry. You have 2 sections in the document that the word base relates to: base as in the pH scale and base as in a nucleotide base. Since the word base is being used in 2 different contexts, you create bookmarks that explicitly look for a suffix:</p>
@@ -355,7 +344,43 @@ Every instance of product in paragraph above should be linked to the chemistry r
 <li>Caffeine should NOT be linked back.</li>
 </ul>
 <p></p>
-<a name="HEADREF10"></a><h1>Image Annotations</h1>
+<a name="HEADREF10"></a><h1>Math Typesetting</h1>
+<p>You can typeset math expressions using different HTML type setting engines.</p>
+<div style="margin:2em; background-color: #e0e0e0;">
+<p><strong>⚠️NOTE️️️⚠️</strong></p>
+<p>Right now, the preferred method of typesetting is to use KaTeX because it's more lightweight. MathJax 3 may change this (we're using an inline version of MathJax 2).</p>
+</div>
+<a name="HEADREF11"></a><h2>MathJax</h2>
+<p>Add a MathJax TeX expression using mj inline/block tag:</p>
+<pre><code>```{mj}
+\frac{a}{b}
+```
+</code></pre>
+<p>Inline output: <span class="mathjax">$\frac{a}{b}$</span></p>
+<p>Block output:</p>
+<div class="mathjax">$$\frac{a}{b}
+$$</div><a name="HEADREF12"></a><h2>KaTeX</h2>
+<p>Add a KaTeX TeX expression using kt inline/block tag:</p>
+<pre><code>```{kt}
+\frac{a}{b}
+```
+</code></pre>
+<p>Inline output: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mi>a</mi><mi>b</mi></mfrac></mrow><annotation encoding="application/x-tex">\frac{a}{b}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.040392em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.695392em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">b</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">a</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></p>
+<p>Block output:</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mi>a</mi><mi>b</mi></mfrac></mrow><annotation encoding="application/x-tex">\frac{a}{b}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.7935600000000003em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.10756em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">b</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">a</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span><a name="HEADREF13"></a><h1>Image Annotations</h1>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
 <p>You can include local images and annotate / scale / crop them using the img block tag:</p>
 <pre><code>```{img}
 201903_Ribosome.svg
@@ -395,7 +420,19 @@ poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
 <li><em>arrow x1 y1 x2 y2 ...</em> -- draw an arrow on the image (unit is percentage).</li>
 <li><em>text x_offset y_offset string</em> -- write a string on the image (unit is percentage).</li>
 </ul>
-<a name="HEADREF11"></a><h1>File Output</h1>
+<a name="HEADREF14"></a><h1>File Output</h1>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
 <p>Output text files using the output block tag:</p>
 <pre><code>```{output}
 InternalUtils.java
@@ -425,28 +462,23 @@ java
 <li>3rd line (optional) is a regex that isolates the output to a specific portion of the file (capture group 1 is what get isolated).</li>
 </ul>
 <p>The output will automatically be un-indented.</p>
-<div style="margin: 2em; background-color: #e0e0e0">
-<strong>
-⚠️NOTE️️️⚠️</strong>
+<div style="margin:2em; background-color: #e0e0e0;">
+<p><strong>⚠️NOTE️️️⚠️</strong></p>
 <p>Be aware that the isolation regex (line 3) does not use a DOT_ALL flag. That is, the <code>.</code> meta-character doesn't match new lines. If you want to match new lines, use something like <code>[\s\S]</code> instance.</p>
 </div>
-<a name="HEADREF12"></a><h1>Notes</h1>
-<p>Generate notes by using the note block tag:</p>
-<pre><code>```{note}
-This is a custom note.
-
-![Image Example](https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Generic_Camera_Icon.svg/200px-Generic_Camera_Icon.svg.png)
-```
-</code></pre>
-<p>Output:</p>
-<div style="margin: 2em; background-color: #e0e0e0">
-<strong>
-⚠️NOTE️️️⚠️</strong>
-<p>This is a custom note.</p>
-<p><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Generic_Camera_Icon.svg/200px-Generic_Camera_Icon.svg.png" alt="Image Example"></p>
-</div>
-<p><strong>TODO</strong>: Add CSS styling for this.</p>
-<a name="HEADREF13"></a><h1>CSV Table</h1>
+<a name="HEADREF15"></a><h1>CSV Table</h1>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
+<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
 <p>Add a table using the CSV block tag:</p>
 <pre><code>```{csv}
 !!{ "firstLineHeader": true }
@@ -462,207 +494,7 @@ ATG,Antigua and Barbuda
 ```
 </code></pre>
 <p>Block output:</p>
-<table><tbody><tr><th>Code</th><th>Country</th></tr><tr><td>AFG</td><td>Afghanistan</td></tr><tr><td>ALB</td><td>Albania</td></tr><tr><td>ALG</td><td>Algeria</td></tr><tr><td>ASA</td><td>American Samoa</td></tr><tr><td>AND</td><td>Andorra</td></tr><tr><td>ANG</td><td>Angola</td></tr><tr><td>AIA</td><td>Anguilla</td></tr><tr><td>ATG</td><td>Antigua and Barbuda</td></tr></tbody></table><a name="HEADREF14"></a><h1>Math Typesetting</h1>
-<p>You can typeset math expressions using different HTML type setting engines.</p>
-<div style="margin: 2em; background-color: #e0e0e0">
-<strong>
-⚠️NOTE️️️⚠️</strong>
-<p>Right now, the preferred method of typesetting is to use KaTeX because it's more lightweight. MathJax 3 may change this (we're using an inline version of MathJax 2).</p>
-</div>
-<a name="HEADREF15"></a><h2>MathJax</h2>
-<p>Add a MathJax TeX expression using mj inline/block tag:</p>
-<pre><code>```{mj}
-\frac{a}{b}
-```
-</code></pre>
-<p>Inline output: <span class="mathjax">$\frac{a}{b}$</span></p>
-<p>Block output:</p>
-<div class="mathjax">$$\frac{a}{b}
-$$</div><a name="HEADREF16"></a><h2>KaTeX</h2>
-<p>Add a KaTeX TeX expression using kt inline/block tag:</p>
-<pre><code>```{kt}
-\frac{a}{b}
-```
-</code></pre>
-<p>Inline output: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mi>a</mi><mi>b</mi></mfrac></mrow><annotation encoding="application/x-tex">\frac{a}{b}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.040392em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.695392em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">b</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">a</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></p>
-<p>Block output:</p>
-<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mi>a</mi><mi>b</mi></mfrac></mrow><annotation encoding="application/x-tex">\frac{a}{b}
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.7935600000000003em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.10756em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">b</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">a</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span><a name="HEADREF17"></a><h1>Diagrams</h1>
-<a name="HEADREF18"></a><h2>GraphViz</h2>
-<p>Generate Graphviz dot diagrams by using dot block tag:</p>
-<pre><code>```{dot}
-digraph {
-  a -&gt; b;
-  b -&gt; c;
-  b -&gt; d;
-}
-```
-</code></pre>
-<p>Output:</p>
-<p><img src="/.datafile_3676e9fd02036fca26175f5a20f2f640/diagram.svg" alt="Generated image"></p><a name="HEADREF19"></a><h2>PlantUML</h2>
-<p>Add a PlantUML diagram using the plantuml block tag:</p>
-<pre><code>```{plantuml}
-@startuml
-class Student {
-  Name
-}
-Student "0..*" - "1..*" Course
-(Student, Course) .. Enrollment
-
-class Enrollment {
-  drop()
-  cancel()
-}
-@enduml
-```
-</code></pre>
-<p>Block output:</p>
-<p><img src="/.datafile_0721f17870b2d95de4ee8312368cf545/diagram.svg" alt="Generated image"></p><a name="HEADREF20"></a><h2>LaTeX Chemfig</h2>
-<p>Generate LaTeX chemfig diagrams by using chemfig block tag:</p>
-<pre><code>```{chemfig}
-\chemfig{Cl-[6]Co(&lt;:[3]H_2O)(&lt;[5]H_2O)(&lt;[7]H_2O)(&lt;:[9]H_2O)-[6]Cl}
-```
-</code></pre>
-<p>Output:</p>
-<p><img src="/.datafile_8a11b88ce66567b990365be6b63b5843/diagram.svg" alt="Generated image"></p><p>All preamble and postamble text for the LaTeX document is automatically added by this extension -- only the chemfig LaTeX package is loaded.  For details on chemfig syntax, see <a href="https://en.wikibooks.org/w/index.php?title=LaTeX/Chemical_Graphics&amp;oldid=3452092">here</a>.</p>
-<a name="HEADREF21"></a><h1>Language Support</h1>
-<p>You can generate output by passing in custom code to run in various programming languages. The code is built and run in an isolated container, so it should be safe. The container is set up such that...</p>
-<ul>
-<li><code>/input</code> is where the custom code and project files are located.</li>
-<li><code>/output</code> is where the output of the custom code is written.</li>
-<li><code>/files</code> is where markdown input files are located (read-only).</li>
-</ul>
-<p>Your custom code must generate exactly 1 file in the  <code>/output</code> directory . That file must end in either <code>.txt</code>, <code>.csv</code>, <code>.svg</code>, <code>.png</code>, <code>.gif</code>, <code>.jpg</code>, or <code>.jpeg</code> -- the extension defines how the file gets displayed in the final markup.</p>
-<div style="margin: 2em; background-color: #e0e0e0">
-<strong>
-⚠️NOTE️️️⚠️</strong>
-<p>This may be useful for generating custom graphs/diagrams, or for doing various computations.</p>
-</div>
-<a name="HEADREF22"></a><h2>Python</h2>
-<p>Add an image or text generated via Python (miniconda) using the conda block tag:</p>
-<pre><code>```{python}
-f = open("/output/text.txt","w+")
-f.write("hello world!")
-f.close()
-```
-
-```{python}
-dependencies:
-  - python=3.7
-  - matplotlib=3.1
-----
-import matplotlib.pyplot as plt
-plt.plot([1, 2, 3, 4])
-plt.ylabel('some numbers')
-plt.savefig("/output/out.svg", format="svg")
-```
-</code></pre>
-<p>The Miniconda environment YAML and Python source code are separated by <code>----</code>.</p>
-<p>Block output:</p>
-<pre>hello world!</pre><p><img src="/.datafile_08460fa23c359f3c6d55b03fccbd6c06/out.svg" alt="Generated image"></p><a name="HEADREF23"></a><h2>Java</h2>
-<p>Add an image or text generated via Java (maven) using the java block tag:</p>
-<pre><code>```{java}
-import java.io.*;
-import java.nio.charset.*;
-import java.nio.file.*;
-import java.util.*;
-
-public class Main {
-  public static void main(String[] args) {
-    Files.write(Paths.get("/output/text.txt"), "hello world".getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
-  }
-}
-```
-
-```{java}
-&lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
-  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
-  &lt;groupId&gt;unused&lt;/groupId&gt;
-  &lt;artifactId&gt;unused&lt;/artifactId&gt;
-  &lt;version&gt;unused&lt;/version&gt;
-  
-  &lt;properties&gt;
-    &lt;maven.compiler.source&gt;12&lt;/maven.compiler.source&gt;
-    &lt;maven.compiler.target&gt;12&lt;/maven.compiler.target&gt;
-  &lt;/properties&gt;
-
-  &lt;dependencies&gt;
-    &lt;dependency&gt;
-      &lt;groupId&gt;org.apache.xmlgraphics&lt;/groupId&gt;
-      &lt;artifactId&gt;batik-all&lt;/artifactId&gt;
-      &lt;version&gt;1.11&lt;/version&gt;
-    &lt;/dependency&gt;
-  &lt;/dependencies&gt;
-&lt;/project&gt;
-----
-import java.awt.*;
-import java.io.*;
-import org.apache.batik.svggen.SVGGraphics2D;
-import org.apache.batik.dom.GenericDOMImplementation;
-import org.w3c.dom.Document;
-import org.w3c.dom.DOMImplementation;
-
-public class Main {
-
-  public static void main(String[] args) throws IOException {
-    DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
-
-    String svgNS = "http://www.w3.org/2000/svg";
-    Document document = domImpl.createDocument(svgNS, "svg", null);
-
-    SVGGraphics2D svgGenerator = new SVGGraphics2D(document);
-    svgGenerator.setPaint(Color.red);
-    svgGenerator.fill(new Rectangle(10, 10, 100, 100));
-
-    try (FileOutputStream fos = new FileOutputStream("/output/output.svg");
-        Writer out = new OutputStreamWriter(fos, "UTF-8")) {
-      svgGenerator.stream(out, true);
-    }
-  }
-}
-```
-</code></pre>
-<p>The Maven POM XML and Java source code are separated by <code>----</code>.</p>
-<p>Block output:</p>
-<pre>hello world</pre><p><img src="/.datafile_addd9fc36eb3c16aee36da4c031318a2/output.svg" alt="Generated image"></p><a name="HEADREF24"></a><h2>NodeJS</h2>
-<p>Add an image or text generated via NodeJS (npm) using the node block tag:</p>
-<pre><code>```{node}
-const fs = require('fs');
-fs.writeFileSync("/output/output.txt", "Hey there!", { encoding: 'utf8' });
-```
-
-```{node}
-{
-  "scripts": {
-    "start": "node code.js"
-  },
-  "dependencies": {
-    "pureimage": "0.1.6"
-  }
-}
-----
-const fs = require('fs');
-const PImage = require('pureimage');
-
-var img = PImage.make(100,100);
-var ctx = img.getContext('2d');
-ctx.fillStyle = '#00ff00';
-ctx.beginPath();
-ctx.arc(50,50,40,0,Math.PI*2,true); // Outer circle
-ctx.closePath();
-ctx.fill();
-
-PImage.encodePNGToStream(img, fs.createWriteStream('/output/out.png')).then(() =&gt; {
-    console.log("wrote out the png file to out.png");
-}).catch((e)=&gt;{
-    console.log("there was an error writing");
-});
-```
-</code></pre>
-<p>The NPM package JSON and Javascript source code are separated by <code>----</code>.</p>
-<p>Block output:</p>
-<pre>Hey there!</pre><p><img src="/.datafile_c67408dd235f7380f9372def2196ea41/out.png" alt="Generated image"></p><a name="HEADREF25"></a><h1>Macro</h1>
+<table><tbody><tr><th>Code</th><th>Country</th></tr><tr><td>AFG</td><td>Afghanistan</td></tr><tr><td>ALB</td><td>Albania</td></tr><tr><td>ALG</td><td>Algeria</td></tr><tr><td>ASA</td><td>American Samoa</td></tr><tr><td>AND</td><td>Andorra</td></tr><tr><td>ANG</td><td>Angola</td></tr><tr><td>AIA</td><td>Anguilla</td></tr><tr><td>ATG</td><td>Antigua and Barbuda</td></tr></tbody></table><a name="HEADREF16"></a><h1>Macro</h1>
 <p>You can define custom inline and block tags specific to your markdown environment (macros). When invoked, a custom tag pulls down a user-defined container (pulled from Dockerhub) and launches a custom script on it to process inputs from your markdown environment. The output of the container gets rendered as normal markdown as if it were normal markdown.</p>
 <p>A custom tag is defined by placing a special directory in the same directory as your input.md file. The name of the directory must start with either...</p>
 <ul>
@@ -697,9 +529,8 @@ PImage.encodePNGToStream(img, fs.createWriteStream('/output/out.png')).then(() =
 <li>expects output markdown and any files required by it in <code>/output/output.md</code> on the container.</li>
 </ul>
 <p>Any other files generated inside the container's <code>/output</code> are assumed to be resources referenced by <code>/output/output.md</code> and as such will get copied over to the root markdown input directory. It's highly recommended that you place these resources in <code>/output/[RANDOM_OR_HASH_DIR]</code> instead of <code>/output</code>. Resources placed directly in <code>/output</code> may encounter name collisions when rendering.</p>
-<div style="margin: 2em; background-color: #e0e0e0">
-<strong>
-⚠️NOTE️️️⚠️</strong>
+<div style="margin:2em; background-color: #e0e0e0;">
+<p><strong>⚠️NOTE️️️⚠️</strong></p>
 <p>You can streamline the generation of <code>/output/[RANDOM_DIR]</code> via the shell -- for example:</p>
 <pre class="hljs"><code>rand=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13)
 <span class="hljs-comment"># Script should write markdown to /output/output.md</span>
@@ -723,9 +554,94 @@ Some text before. `{testmacroinline} hello inline` Some text after.
 <p>This is an BLOCK macro that outputs Markdown text with a link: <a href="http://www.google.com">hello block
 </a>!</p>
 <p>Some text before. This is a INLINE macro that outputs Markdown text with a link: <a href="http://www.google.com">hello inline</a>! Some text after.</p>
-<a name="HEADREF26"></a><h1>Standard Markdown</h1>
+<a name="HEADREF17"></a><h1>Macro Example: Note</h1>
+<p>Input:</p>
+<pre><code>```{note}
+This is a custom note.
+
+![Image Example](https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Generic_Camera_Icon.svg/200px-Generic_Camera_Icon.svg.png)
+```
+</code></pre>
+<p>Output:</p>
+<div style="margin:2em; background-color: #e0e0e0;">
+<p><strong>⚠️NOTE️️️⚠️</strong></p>
+<p>This is a custom note.</p>
+<p><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Generic_Camera_Icon.svg/200px-Generic_Camera_Icon.svg.png" alt="Image Example"></p>
+</div>
+<a name="HEADREF18"></a><h2>Macro Example: GraphViz</h2>
+<p>Input:</p>
+<pre><code>```{dot}
+digraph {
+  a -&gt; b;
+  b -&gt; c;
+  b -&gt; d;
+}
+```
+</code></pre>
+<p>Output:</p>
+<p><img src="dot_59d63763e988a01556f092eca0b19207.svg" alt="Dot diagram"></p>
+<a name="HEADREF19"></a><h2>Macro Example: PlantUML</h2>
+<p>Input:</p>
+<pre><code>```{plantuml}
+@startuml
+class Student {
+  Name
+}
+Student "0..*" - "1..*" Course
+(Student, Course) .. Enrollment
+
+class Enrollment {
+  drop()
+  cancel()
+}
+@enduml
+```
+</code></pre>
+<p>Output:</p>
+<p><img src="puml_2e593481102b7152ad361c0ae50622e8.svg" alt="PlantUML diagram"></p>
+<a name="HEADREF20"></a><h2>Macro Example: Svgbob</h2>
+<p>Input:</p>
+<pre><code>```{svgbob}
+    .----.        .----.
+   /      \      /      \            .-----+-----+-----.
+  +        +----+        +----.      |     |     |     |          .-----+-----+-----+-----+
+   \      /      \      /      \     |     |     |     |         /     /     /     /     /
+    +----+        +----+        +    +-----+-----+-----+        +-----+-----+-----+-----+
+   /      \      /      \      /     |     |     |     |       /     /     /     /     /
+  +        +----+        +----+      |     |     |     |      +-----+-----+-----+-----+
+   \      /      \      /      \     +-----+-----+-----+     /     /     /     /     /
+    '----+        +----+        +    |     |     |     |    +-----+-----+-----+-----+
+          \      /      \      /     |     |     |     |   /     /     /     /     /
+           '----'        '----'      '-----+-----+-----'  '-----+-----+-----+-----+
+
+
+
+
+
+       ___     ___      .---+---+---+---+---.     .---+---+---+---.  .---.   .---.
+   ___/   \___/   \     |   |   |   |   |   |    / \ / \ / \ / \ /   |   +---+   |
+  /   \___/   \___/     +---+---+---+---+---+   +---+---+---+---+    +---+   +---+
+  \___/   \___/   \     |   |   |   |   |   |    \ / \ / \ / \ / \   |   +---+   |
+  /   \___/   \___/     +---+---+---+---+---+     +---+---+---+---+  +---+   +---+
+  \___/   \___/   \     |   |   |   |   |   |    / \ / \ / \ / \ /   |   +---+   |
+      \___/   \___/     '---+---+---+---+---'   '---+---+---+---'    '---'   '---'
+
+```
+</code></pre>
+<p>Output:</p>
+<p><img src="svgbob_2abe3d0062e88646df38279d10271f117d9c3ae6.svg" alt="Kroki diagram output"></p>
+<a name="HEADREF21"></a><h2>Macro Example: LaTeX Chemfig</h2>
+<p>Input:</p>
+<pre><code>```{chemfig}
+\chemfig{Cl-[6]Co(&lt;:[3]H_2O)(&lt;[5]H_2O)(&lt;[7]H_2O)(&lt;:[9]H_2O)-[6]Cl}
+```
+</code></pre>
+<p>Output:</p>
+<p><img src="chemfig_22454110f0d60b9cc0cbf57e5f88ff9a.svg" alt="Chemfig diagram"></p>
+<p>All preamble and postamble text for the LaTeX document is automatically added by this extension -- only the chemfig LaTeX package is loaded.  For details on chemfig syntax, see <a href="https://en.wikibooks.org/w/index.php?title=LaTeX/Chemical_Graphics&amp;oldid=3452092">here</a>.</p>
+<a name="HEADREF22"></a><h1>Standard Markdown</h1>
 <p>Standard Markdown syntax guide (adapted from https://github.com/tchapi/markdown-cheatsheet).</p>
-<a name="HEADREF27"></a><h2>Headers</h2>
+<a name="HEADREF23"></a><h2>Headers</h2>
 <pre><code># Heading 1
 ## Heading 2
 ### Heading 3
@@ -733,12 +649,11 @@ Some text before. `{testmacroinline} hello inline` Some text after.
 ##### Heading 5
 ###### Heading 6
 </code></pre>
-<div style="margin: 2em; background-color: #e0e0e0">
-<strong>
-⚠️NOTE️️️⚠️</strong>
+<div style="margin:2em; background-color: #e0e0e0;">
+<p><strong>⚠️NOTE️️️⚠️</strong></p>
 <p>Outputs left out so as to not pollute the table of contents.</p>
 </div>
-<a name="HEADREF28"></a><h2>Text Formatting</h2>
+<a name="HEADREF24"></a><h2>Text Formatting</h2>
 <p>Emphasized text:</p>
 <p><em>text</em> --&gt; <code>_text_</code> or <code>*text*</code></p>
 <p>Strong text:</p>
@@ -761,12 +676,12 @@ Some text before. `{testmacroinline} hello inline` Some text after.
 <hr>
 <pre><code>- - - -
 </code></pre>
-<a name="HEADREF29"></a><h2>Image</h2>
+<a name="HEADREF25"></a><h2>Image</h2>
 <p>Image:</p>
 <p><img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/MRNA_structure.svg" alt="Messenger RNA structure"></p>
 <pre><code>![Messenger RNA structure](https://upload.wikimedia.org/wikipedia/commons/b/ba/MRNA_structure.svg)
 </code></pre>
-<a name="HEADREF30"></a><h2>Lists</h2>
+<a name="HEADREF26"></a><h2>Lists</h2>
 <p>Unordered list:</p>
 <ul>
 <li>Some item
@@ -805,9 +720,9 @@ Some text before. `{testmacroinline} hello inline` Some text after.
         1. Some inner inner item
 1. Some other item
 </code></pre>
-<a name="HEADREF31"></a><h2>Table</h2>
+<a name="HEADREF27"></a><h2>Table</h2>
 <p>No flavour of markdown tables are supported. You can use CSV tables instead.</p>
-<a name="HEADREF32"></a><h2>Code</h2>
+<a name="HEADREF28"></a><h2>Code</h2>
 <p>Code can either be inline in a paragraph or as a standalone block. Only standalone blocks can have syntax highlighting.</p>
 <p>Inline code block example:</p>
 <p><code>inlineCode(arg1, arg2)</code> --&gt; <code>`inlineCode(arg1, arg2)`</code></p>

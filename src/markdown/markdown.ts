@@ -23,18 +23,12 @@ import { JSDOM } from 'jsdom';
 import { extender, ExtenderConfig } from './extender_plugin';
 import { TocExtension } from './table_of_contents_extension';
 import { BookmarkExtension, BookmarkReferenceIgnoreExtension, BookmarkLinkerControllerExtension } from './bookmark_extension';
-import { DotExtension } from './dot_graph_extension';
 import { NoteExtension } from './note_extension';
 import { MathJaxExtension } from './mathjax_extension';
 import { TitleExtension } from './title_extension';
 import { KatexExtension } from './katex_extension';
-import { PlantUmlExtension } from './plantuml_extension';
 import { CsvExtension } from './csv_extension';
-import { PythonExtension } from './python_extension';
-import { JavaExtension } from './java_extension';
-import { NodeExtension } from './node_extension';
 import { ImageExtension } from './image_extension';
-import { ChemfigExtension } from './chemfig_extension';
 import { OutputExtension } from './output_extension';
 import { MacroDefinition } from './macro_helper';
 import { CustomMacroExtension } from './custom_macro_extension';
@@ -63,18 +57,11 @@ export default class Markdown {
         extenderConfig.register(new BookmarkLinkerControllerExtension());
         extenderConfig.register(new BookmarkReferenceIgnoreExtension());
         extenderConfig.register(new TocExtension());
-        extenderConfig.register(new DotExtension());
-        extenderConfig.register(new NoteExtension());
         extenderConfig.register(new OutputExtension());
         extenderConfig.register(new ImageExtension());
         extenderConfig.register(new MathJaxExtension());
         extenderConfig.register(new KatexExtension());
-        extenderConfig.register(new PlantUmlExtension());
         extenderConfig.register(new CsvExtension());
-        extenderConfig.register(new PythonExtension());
-        extenderConfig.register(new JavaExtension());
-        extenderConfig.register(new NodeExtension());
-        extenderConfig.register(new ChemfigExtension());
 
         for (const customMacroDefinition of customMacroDefinitions) {
             extenderConfig.register(new CustomMacroExtension(customMacroDefinition));

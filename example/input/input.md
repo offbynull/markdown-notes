@@ -340,7 +340,76 @@ Bookmark `{bm} caffeine`.
 
 `{bm-enable-all}`
 
+# Math Typesetting
+
+You can typeset math expressions using different HTML type setting engines.
+
+```{note}
+Right now, the preferred method of typesetting is to use KaTeX because it's more lightweight. MathJax 3 may change this (we're using an inline version of MathJax 2).
+```
+
+## MathJax
+
+Add a MathJax TeX expression using mj inline/block tag:
+
+````
+```{mj}
+\frac{a}{b}
+```
+````
+
+Inline output: `{mj} \frac{a}{b}`
+
+Block output:
+
+```{mj}
+\frac{a}{b}
+```
+
+## KaTeX
+
+Add a KaTeX TeX expression using kt inline/block tag:
+
+
+````
+```{kt}
+\frac{a}{b}
+```
+````
+
+Inline output: `{kt} \frac{a}{b}`
+
+Block output:
+
+```{kt}
+\frac{a}{b}
+```
+
 # Image Annotations
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
 
 You can include local images and annotate / scale / crop them using the img block tag:
 
@@ -402,6 +471,30 @@ Subsequent lines are commands that you can use to manipulate and annotate the im
 
 # File Output
 
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
 Output text files using the output block tag:
 
 ````
@@ -431,29 +524,31 @@ The output will automatically be un-indented.
 Be aware that the isolation regex (line 3) does not use a DOT_ALL flag. That is, the `.` meta-character doesn't match new lines. If you want to match new lines, use something like `[\s\S]` instance.
 ```
 
-# Notes
-
-Generate notes by using the note block tag:
-
-````
-```{note}
-This is a custom note.
-
-![Image Example](https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Generic_Camera_Icon.svg/200px-Generic_Camera_Icon.svg.png)
-```
-````
-
-Output:
-
-```{note}
-This is a custom note.
-
-![Image Example](https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Generic_Camera_Icon.svg/200px-Generic_Camera_Icon.svg.png)
-```
-
-**TODO**: Add CSS styling for this.
-
 # CSV Table
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
+
+**TODO**: Make this into a macro definition rather than having it baked in.
 
 Add a table using the CSV block tag:
 
@@ -485,401 +580,6 @@ AND,Andorra
 ANG,Angola
 AIA,Anguilla
 ATG,Antigua and Barbuda
-```
-
-# Math Typesetting
-
-You can typeset math expressions using different HTML type setting engines.
-
-```{note}
-Right now, the preferred method of typesetting is to use KaTeX because it's more lightweight. MathJax 3 may change this (we're using an inline version of MathJax 2).
-```
-
-## MathJax
-
-Add a MathJax TeX expression using mj inline/block tag:
-
-````
-```{mj}
-\frac{a}{b}
-```
-````
-
-Inline output: `{mj} \frac{a}{b}`
-
-Block output:
-
-```{mj}
-\frac{a}{b}
-```
-
-## KaTeX
-
-Add a KaTeX TeX expression using kt inline/block tag:
-
-
-````
-```{kt}
-\frac{a}{b}
-```
-````
-
-Inline output: `{kt} \frac{a}{b}`
-
-Block output:
-
-```{kt}
-\frac{a}{b}
-```
-
-# Diagrams
-
-## GraphViz
-
-Generate Graphviz dot diagrams by using dot block tag:
-
-````
-```{dot}
-digraph {
-  a -> b;
-  b -> c;
-  b -> d;
-}
-```
-````
-
-Output:
-
-```{dot}
-digraph {
-  a -> b;
-  b -> c;
-  b -> d;
-}
-```
-
-## PlantUML
-
-Add a PlantUML diagram using the plantuml block tag:
-
-````
-```{plantuml}
-@startuml
-class Student {
-  Name
-}
-Student "0..*" - "1..*" Course
-(Student, Course) .. Enrollment
-
-class Enrollment {
-  drop()
-  cancel()
-}
-@enduml
-```
-````
-
-Block output:
-
-```{plantuml}
-@startuml
-class Student {
-  Name
-}
-Student "0..*" - "1..*" Course
-(Student, Course) .. Enrollment
-
-class Enrollment {
-  drop()
-  cancel()
-}
-@enduml
-```
-
-## LaTeX Chemfig
-
-Generate LaTeX chemfig diagrams by using chemfig block tag:
-
-````
-```{chemfig}
-\chemfig{Cl-[6]Co(<:[3]H_2O)(<[5]H_2O)(<[7]H_2O)(<:[9]H_2O)-[6]Cl}
-```
-````
-
-Output:
-
-```{chemfig}
-\chemfig{Cl-[6]Co(<:[3]H_2O)(<[5]H_2O)(<[7]H_2O)(<:[9]H_2O)-[6]Cl}
-```
-
-All preamble and postamble text for the LaTeX document is automatically added by this extension -- only the chemfig LaTeX package is loaded.  For details on chemfig syntax, see [here](https://en.wikibooks.org/w/index.php?title=LaTeX/Chemical_Graphics&oldid=3452092).
-
-# Language Support
-
-You can generate output by passing in custom code to run in various programming languages. The code is built and run in an isolated container, so it should be safe. The container is set up such that...
-
- * `/input` is where the custom code and project files are located.
- * `/output` is where the output of the custom code is written.
- * `/files` is where markdown input files are located (read-only).
-
-Your custom code must generate exactly 1 file in the  `/output` directory . That file must end in either `.txt`, `.csv`, `.svg`, `.png`, `.gif`, `.jpg`, or `.jpeg` -- the extension defines how the file gets displayed in the final markup.
-
-```{note}
-This may be useful for generating custom graphs/diagrams, or for doing various computations.
-```
-
-## Python
-
-Add an image or text generated via Python (miniconda) using the conda block tag:
-
-````
-```{python}
-f = open("/output/text.txt","w+")
-f.write("hello world!")
-f.close()
-```
-
-```{python}
-dependencies:
-  - python=3.7
-  - matplotlib=3.1
-----
-import matplotlib.pyplot as plt
-plt.plot([1, 2, 3, 4])
-plt.ylabel('some numbers')
-plt.savefig("/output/out.svg", format="svg")
-```
-````
-
-The Miniconda environment YAML and Python source code are separated by `----`.
-
-Block output:
-
-```{python}
-f = open("/output/text.txt","w+")
-f.write("hello world!")
-f.close()
-```
-
-```{python}
-dependencies:
-  - python=3.7
-  - matplotlib=3.1
-----
-import matplotlib.pyplot as plt
-plt.plot([1, 2, 3, 4])
-plt.ylabel('some numbers')
-plt.savefig("/output/out.svg", format="svg")
-```
-
-## Java
-
-Add an image or text generated via Java (maven) using the java block tag:
-
-````
-```{java}
-import java.io.*;
-import java.nio.charset.*;
-import java.nio.file.*;
-import java.util.*;
-
-public class Main {
-  public static void main(String[] args) {
-    Files.write(Paths.get("/output/text.txt"), "hello world".getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
-  }
-}
-```
-
-```{java}
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>unused</groupId>
-  <artifactId>unused</artifactId>
-  <version>unused</version>
-  
-  <properties>
-    <maven.compiler.source>12</maven.compiler.source>
-    <maven.compiler.target>12</maven.compiler.target>
-  </properties>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-all</artifactId>
-      <version>1.11</version>
-    </dependency>
-  </dependencies>
-</project>
-----
-import java.awt.*;
-import java.io.*;
-import org.apache.batik.svggen.SVGGraphics2D;
-import org.apache.batik.dom.GenericDOMImplementation;
-import org.w3c.dom.Document;
-import org.w3c.dom.DOMImplementation;
-
-public class Main {
-
-  public static void main(String[] args) throws IOException {
-    DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
-
-    String svgNS = "http://www.w3.org/2000/svg";
-    Document document = domImpl.createDocument(svgNS, "svg", null);
-
-    SVGGraphics2D svgGenerator = new SVGGraphics2D(document);
-    svgGenerator.setPaint(Color.red);
-    svgGenerator.fill(new Rectangle(10, 10, 100, 100));
-
-    try (FileOutputStream fos = new FileOutputStream("/output/output.svg");
-        Writer out = new OutputStreamWriter(fos, "UTF-8")) {
-      svgGenerator.stream(out, true);
-    }
-  }
-}
-```
-````
-
-The Maven POM XML and Java source code are separated by `----`.
-
-Block output:
-
-```{java}
-import java.io.*;
-import java.nio.charset.*;
-import java.nio.file.*;
-import java.util.*;
-
-public class Main {
-  public static void main(String[] args) throws Throwable {
-    Files.write(Paths.get("/output/text.txt"), "hello world".getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
-  }
-}
-```
-
-```{java}
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>unused</groupId>
-  <artifactId>unused</artifactId>
-  <version>unused</version>
-  
-  <properties>
-    <maven.compiler.source>12</maven.compiler.source>
-    <maven.compiler.target>12</maven.compiler.target>
-  </properties>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-all</artifactId>
-      <version>1.11</version>
-    </dependency>
-  </dependencies>
-</project>
-----
-import java.awt.*;
-import java.io.*;
-import org.apache.batik.svggen.SVGGraphics2D;
-import org.apache.batik.dom.GenericDOMImplementation;
-import org.w3c.dom.Document;
-import org.w3c.dom.DOMImplementation;
-
-public class Main {
-
-  public static void main(String[] args) throws IOException {
-    DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
-
-    String svgNS = "http://www.w3.org/2000/svg";
-    Document document = domImpl.createDocument(svgNS, "svg", null);
-
-    SVGGraphics2D svgGenerator = new SVGGraphics2D(document);
-    svgGenerator.setPaint(Color.red);
-    svgGenerator.fill(new Rectangle(10, 10, 100, 100));
-
-    try (FileOutputStream fos = new FileOutputStream("/output/output.svg");
-        Writer out = new OutputStreamWriter(fos, "UTF-8")) {
-      svgGenerator.stream(out, true);
-    }
-  }
-}
-```
-
-## NodeJS
-
-Add an image or text generated via NodeJS (npm) using the node block tag:
-
-````
-```{node}
-const fs = require('fs');
-fs.writeFileSync("/output/output.txt", "Hey there!", { encoding: 'utf8' });
-```
-
-```{node}
-{
-  "scripts": {
-    "start": "node code.js"
-  },
-  "dependencies": {
-    "pureimage": "0.1.6"
-  }
-}
-----
-const fs = require('fs');
-const PImage = require('pureimage');
-
-var img = PImage.make(100,100);
-var ctx = img.getContext('2d');
-ctx.fillStyle = '#00ff00';
-ctx.beginPath();
-ctx.arc(50,50,40,0,Math.PI*2,true); // Outer circle
-ctx.closePath();
-ctx.fill();
-
-PImage.encodePNGToStream(img, fs.createWriteStream('/output/out.png')).then(() => {
-    console.log("wrote out the png file to out.png");
-}).catch((e)=>{
-    console.log("there was an error writing");
-});
-```
-````
-
-The NPM package JSON and Javascript source code are separated by `----`.
-
-Block output:
-
-```{node}
-const fs = require('fs');
-fs.writeFileSync("/output/output.txt", "Hey there!", { encoding: 'utf8' });
-```
-
-```{node}
-{
-  "scripts": {
-    "start": "node code.js"
-  },
-  "dependencies": {
-    "pureimage": "0.1.6"
-  }
-}
-----
-const fs = require('fs');
-const PImage = require('pureimage');
-
-var img = PImage.make(100,100);
-var ctx = img.getContext('2d');
-ctx.fillStyle = '#00ff00';
-ctx.beginPath();
-ctx.arc(50,50,40,0,Math.PI*2,true); // Outer circle
-ctx.closePath();
-ctx.fill();
-
-PImage.encodePNGToStream(img, fs.createWriteStream('/output/out.png')).then(() => {
-    console.log("wrote out the png file to out.png");
-}).catch((e)=>{
-    console.log("there was an error writing");
-});
 ```
 
 # Macro
@@ -957,6 +657,168 @@ hello block
 ```
 
 Some text before. `{testmacroinline} hello inline` Some text after.
+
+# Macro Example: Note
+
+Input:
+
+````
+```{note}
+This is a custom note.
+
+![Image Example](https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Generic_Camera_Icon.svg/200px-Generic_Camera_Icon.svg.png)
+```
+````
+
+Output:
+
+```{note}
+This is a custom note.
+
+![Image Example](https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Generic_Camera_Icon.svg/200px-Generic_Camera_Icon.svg.png)
+```
+
+## Macro Example: GraphViz
+
+Input:
+
+````
+```{dot}
+digraph {
+  a -> b;
+  b -> c;
+  b -> d;
+}
+```
+````
+
+Output:
+
+```{dot}
+digraph {
+  a -> b;
+  b -> c;
+  b -> d;
+}
+```
+
+## Macro Example: PlantUML
+
+Input:
+
+````
+```{plantuml}
+@startuml
+class Student {
+  Name
+}
+Student "0..*" - "1..*" Course
+(Student, Course) .. Enrollment
+
+class Enrollment {
+  drop()
+  cancel()
+}
+@enduml
+```
+````
+
+Output:
+
+```{plantuml}
+@startuml
+class Student {
+  Name
+}
+Student "0..*" - "1..*" Course
+(Student, Course) .. Enrollment
+
+class Enrollment {
+  drop()
+  cancel()
+}
+@enduml
+```
+
+## Macro Example: Svgbob
+
+Input:
+
+````
+```{svgbob}
+    .----.        .----.
+   /      \      /      \            .-----+-----+-----.
+  +        +----+        +----.      |     |     |     |          .-----+-----+-----+-----+
+   \      /      \      /      \     |     |     |     |         /     /     /     /     /
+    +----+        +----+        +    +-----+-----+-----+        +-----+-----+-----+-----+
+   /      \      /      \      /     |     |     |     |       /     /     /     /     /
+  +        +----+        +----+      |     |     |     |      +-----+-----+-----+-----+
+   \      /      \      /      \     +-----+-----+-----+     /     /     /     /     /
+    '----+        +----+        +    |     |     |     |    +-----+-----+-----+-----+
+          \      /      \      /     |     |     |     |   /     /     /     /     /
+           '----'        '----'      '-----+-----+-----'  '-----+-----+-----+-----+
+
+
+
+
+
+       ___     ___      .---+---+---+---+---.     .---+---+---+---.  .---.   .---.
+   ___/   \___/   \     |   |   |   |   |   |    / \ / \ / \ / \ /   |   +---+   |
+  /   \___/   \___/     +---+---+---+---+---+   +---+---+---+---+    +---+   +---+
+  \___/   \___/   \     |   |   |   |   |   |    \ / \ / \ / \ / \   |   +---+   |
+  /   \___/   \___/     +---+---+---+---+---+     +---+---+---+---+  +---+   +---+
+  \___/   \___/   \     |   |   |   |   |   |    / \ / \ / \ / \ /   |   +---+   |
+      \___/   \___/     '---+---+---+---+---'   '---+---+---+---'    '---'   '---'
+
+```
+````
+
+Output:
+
+```{svgbob}
+    .----.        .----.
+   /      \      /      \            .-----+-----+-----.
+  +        +----+        +----.      |     |     |     |          .-----+-----+-----+-----+
+   \      /      \      /      \     |     |     |     |         /     /     /     /     /
+    +----+        +----+        +    +-----+-----+-----+        +-----+-----+-----+-----+
+   /      \      /      \      /     |     |     |     |       /     /     /     /     /
+  +        +----+        +----+      |     |     |     |      +-----+-----+-----+-----+
+   \      /      \      /      \     +-----+-----+-----+     /     /     /     /     /
+    '----+        +----+        +    |     |     |     |    +-----+-----+-----+-----+
+          \      /      \      /     |     |     |     |   /     /     /     /     /
+           '----'        '----'      '-----+-----+-----'  '-----+-----+-----+-----+
+
+
+
+
+
+       ___     ___      .---+---+---+---+---.     .---+---+---+---.  .---.   .---.
+   ___/   \___/   \     |   |   |   |   |   |    / \ / \ / \ / \ /   |   +---+   |
+  /   \___/   \___/     +---+---+---+---+---+   +---+---+---+---+    +---+   +---+
+  \___/   \___/   \     |   |   |   |   |   |    \ / \ / \ / \ / \   |   +---+   |
+  /   \___/   \___/     +---+---+---+---+---+     +---+---+---+---+  +---+   +---+
+  \___/   \___/   \     |   |   |   |   |   |    / \ / \ / \ / \ /   |   +---+   |
+      \___/   \___/     '---+---+---+---+---'   '---+---+---+---'    '---'   '---'
+
+````
+
+## Macro Example: LaTeX Chemfig
+
+Input:
+
+````
+```{chemfig}
+\chemfig{Cl-[6]Co(<:[3]H_2O)(<[5]H_2O)(<[7]H_2O)(<:[9]H_2O)-[6]Cl}
+```
+````
+
+Output:
+
+```{chemfig}
+\chemfig{Cl-[6]Co(<:[3]H_2O)(<[5]H_2O)(<[7]H_2O)(<:[9]H_2O)-[6]Cl}
+```
+
+All preamble and postamble text for the LaTeX document is automatically added by this extension -- only the chemfig LaTeX package is loaded.  For details on chemfig syntax, see [here](https://en.wikibooks.org/w/index.php?title=LaTeX/Chemical_Graphics&oldid=3452092).
 
 # Standard Markdown
 

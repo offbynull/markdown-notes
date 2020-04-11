@@ -1,0 +1,1 @@
+python /input/Main.py < /input/input.data > /output/output.md
