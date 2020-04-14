@@ -586,13 +586,13 @@ ATG,Antigua and Barbuda
 
 You can define custom inline and block tags specific to your markdown environment (macros). When invoked, a custom tag pulls down a user-defined container (pulled from Dockerhub) and launches a custom script on it to process inputs from your markdown environment. The output of the container gets rendered as normal markdown as if it were normal markdown.
 
-A custom tag is defined by placing a special directory in the same directory as your input.md file. The name of the directory must start with either...
+A custom tag is defined by placing a special directory in the same directory as your input.md file. The name of the directory must end with either...
 
  * `macro_block_` -- custom tag will be exposed as a block tag
  * `macro_inline_` -- custom tag will be exposed as an inline tag
  * `macro_all_` -- custom tag will be exposed as either a block or inline tag
 
-...followed by the name of the custom tag. So for example, a directory name `macro_block_mycustomtag` will get invoked whenever you use a block tag named `mycustomtag` in your input.md file.
+...followed by the name of the custom tag. So for example, a directory name `mycustomtag_macro_block` will get invoked whenever you use a block tag named `mycustomtag` in your input.md file.
 
 The structure of this special directory must be as follows:
 

@@ -38,19 +38,19 @@ export function macroScan(dir: string): MacroDefinition[] {
     const childDirs = FileSystem.readdirSync(dir)
         .filter(c => FileSystem.lstatSync(Path.resolve(dir, c)).isDirectory());
     for (const childDir of childDirs) {
-        const scanRes = childDir.match(/^macro_(block|inline|all)_(.*)$/);
+        const scanRes = childDir.match(/^(.*)_macro_(block|inline|all)$/);
         if (scanRes === null) {
             continue;
         }
 
-        const name = scanRes[2];
+        const name = scanRes[1];
         if (/^[a-z0-9]+$/i.test(name) === false) {
             throw new Error('Macro definition name must contain 1 or more alphanumeric characters: ' + name)
         }
         macroDirectoryCheck(dir, childDir);
 
         const type = (() => {
-            switch (scanRes[1]) {
+            switch (scanRes[2]) {
                 case 'block':
                     return MacroType.BLOCK;
                 case 'inline':

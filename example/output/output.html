@@ -496,13 +496,13 @@ ATG,Antigua and Barbuda
 <p>Block output:</p>
 <table><tbody><tr><th>Code</th><th>Country</th></tr><tr><td>AFG</td><td>Afghanistan</td></tr><tr><td>ALB</td><td>Albania</td></tr><tr><td>ALG</td><td>Algeria</td></tr><tr><td>ASA</td><td>American Samoa</td></tr><tr><td>AND</td><td>Andorra</td></tr><tr><td>ANG</td><td>Angola</td></tr><tr><td>AIA</td><td>Anguilla</td></tr><tr><td>ATG</td><td>Antigua and Barbuda</td></tr></tbody></table><a name="HEADREF16"></a><h1>Macro</h1>
 <p>You can define custom inline and block tags specific to your markdown environment (macros). When invoked, a custom tag pulls down a user-defined container (pulled from Dockerhub) and launches a custom script on it to process inputs from your markdown environment. The output of the container gets rendered as normal markdown as if it were normal markdown.</p>
-<p>A custom tag is defined by placing a special directory in the same directory as your input.md file. The name of the directory must start with either...</p>
+<p>A custom tag is defined by placing a special directory in the same directory as your input.md file. The name of the directory must end with either...</p>
 <ul>
 <li><code>macro_block_</code> -- custom tag will be exposed as a block tag</li>
 <li><code>macro_inline_</code> -- custom tag will be exposed as an inline tag</li>
 <li><code>macro_all_</code> -- custom tag will be exposed as either a block or inline tag</li>
 </ul>
-<p>...followed by the name of the custom tag. So for example, a directory name <code>macro_block_mycustomtag</code> will get invoked whenever you use a block tag named <code>mycustomtag</code> in your input.md file.</p>
+<p>...followed by the name of the custom tag. So for example, a directory name <code>mycustomtag_macro_block</code> will get invoked whenever you use a block tag named <code>mycustomtag</code> in your input.md file.</p>
 <p>The structure of this special directory must be as follows:</p>
 <ul>
 <li><code>[MACRO_DIR]/container</code>: a directory containing container setup files.</li>
@@ -553,7 +553,7 @@ Some text before. `{testmacroinline} hello inline` Some text after.
 <p>Output:</p>
 <p>This is an BLOCK macro that outputs Markdown text with a link: <a href="http://www.google.com">hello block
 </a>!</p>
-<p>Some text before. This is a INLINE macro that outputs Markdown text with a link: <a href="http://www.google.com">hello inline</a>! Some text after.</p>
+<p>Some text before. <code>{testmacroinline} hello inline</code> Some text after.</p>
 <a name="HEADREF17"></a><h1>Macro Example: Note</h1>
 <p>Input:</p>
 <pre><code>```{note}
