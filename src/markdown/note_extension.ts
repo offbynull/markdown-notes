@@ -27,22 +27,23 @@ export class NoteExtension implements Extension {
         new TokenIdentifier('note', Type.BLOCK)
     ];
 
-    public process(markdownIt: MarkdownIt, token: Token, context: ExtensionContext, state: StateCore) {
+    public process(markdownIt: MarkdownIt, token: Token, context: ExtensionContext, state: Object) {
         const content = token.content;
 
         const newTokens: Token[] = [];
-        (state as StateBlock).md.block.parse(content, state.md, state.env, newTokens);
+        const stateSb = state as StateBlock
+        stateSb.md.block.parse(content, stateSb.md, stateSb.env, newTokens);
 
         let newToken;
 
-        newToken = state.push('note_open', 'div', 1);
+        newToken = stateSb.push('note_open', 'div', 1);
         newToken.attrSet('style', 'margin: 2em; background-color: #e0e0e0');
-        newToken = state.push('notepreamb_open', 'strong', 1);
-        newToken = state.push('text', '', 0);
+        newToken = stateSb.push('notepreamb_open', 'strong', 1);
+        newToken = stateSb.push('text', '', 0);
         newToken.content = '⚠️NOTE️️️⚠️';
-        newToken = state.push('notepreamb_open', 'strong', -1);        
-        newTokens.forEach(t => state.tokens.push(t));
-        newToken = state.push('note_close', 'div', -1);
+        newToken = stateSb.push('notepreamb_open', 'strong', -1);        
+        newTokens.forEach(t => stateSb.tokens.push(t));
+        newToken = stateSb.push('note_close', 'div', -1);
     }
 
     // public render(markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext): string {

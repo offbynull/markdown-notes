@@ -24,6 +24,8 @@ import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_p
 import { runMarkdownGeneratingContainer } from './container_helper';
 import { MacroDefinition, MacroType, macroDirectoryCheck } from './macro_helper';
 import StateCore from 'markdown-it/lib/rules_core/state_core';
+import StateInline from 'markdown-it/lib/rules_inline/state_inline';
+import StateBlock from 'markdown-it/lib/rules_block/state_block';
 
 export class CustomMacroExtension implements Extension {
     public readonly tokenIds: ReadonlyArray<TokenIdentifier>;
@@ -48,7 +50,7 @@ export class CustomMacroExtension implements Extension {
         this.definition = definition;
     }
 
-    public process(markdownIt: MarkdownIt, token: Token, context: ExtensionContext, state: StateCore): void {
+    public process(markdownIt: MarkdownIt, token: Token, context: ExtensionContext, state: StateInline | StateBlock): void {
         const content = token.content; // DO NOT TRIM THIS
         const name = token.type;
         const definition = this.definition;

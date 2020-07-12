@@ -18,11 +18,14 @@
 
 import Path from 'path';
 import FileSystemExtras from 'fs-extra';
-import MarkdownIt, { RuleBlock, RuleInline } from 'markdown-it';
+import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
-import StateCore from 'markdown-it/lib/rules_core/state_core';
 import { JSDOM } from 'jsdom';
 import { md5 } from '../utils/hash_utils';
+import { RuleInline } from 'markdown-it/lib/parser_inline';
+import { RuleBlock } from 'markdown-it/lib/parser_block';
+import StateBlock from 'markdown-it/lib/rules_block/state_block';
+import StateInline from 'markdown-it/lib/rules_inline/state_inline';
 
 export enum Type {
     BLOCK = 'block',
@@ -87,7 +90,7 @@ export class ExtensionContext {
 
 export interface Extension {
     readonly tokenIds: ReadonlyArray<TokenIdentifier>;
-    process?: (markdownIt: MarkdownIt, token: Token, context: ExtensionContext, state: StateCore) => void;
+    process?: (markdownIt: MarkdownIt, token: Token, context: ExtensionContext, state: StateInline | StateBlock) => void;
     postProcess?: (markdownIt: MarkdownIt, tokens: Token[], context: ExtensionContext) => void;
     render?: (markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext) => string;
     postHtml?: (dom: JSDOM, context: ExtensionContext) => JSDOM;
@@ -174,8 +177,8 @@ export class ExtenderConfig {
     }
 }
 
-function findRule<S extends StateCore>(markdownIt: MarkdownIt, name: string, rules: MarkdownIt.Rule<S>[]): MarkdownIt.Rule<S> {
-    let ret: MarkdownIt.Rule<S> | undefined;
+function findRule<R extends RuleInline | RuleBlock>(markdownIt: MarkdownIt, name: string, rules: R[]): R {
+    let ret: R | undefined;
     for (const rule of rules) {
         if (rule.name === name) {
             ret = rule;
@@ -237,7 +240,7 @@ export function extender(markdownIt: MarkdownIt, extenderConfig: ExtenderConfig)
     const blockRules = markdownIt.block.ruler.getRules('');
     const oldFenceRule = findRule(markdownIt, 'fence', blockRules);
     // @ts-ignore the typedef for RuleBlock is incorrect
-    const newFenceRule: RuleBlock = function(state, startLine, endLine, silent): boolean | void {
+    const newFenceRule: RuleBlock = function(state, startLine, endLine, silent): boolean {
         const beforeTokenLen = state.tokens.length;
         // @ts-ignore the typedef for RuleBlock is incorrect
         let ret = oldFenceRule(state, startLine, endLine, silent);
@@ -281,7 +284,7 @@ export function extender(markdownIt: MarkdownIt, extenderConfig: ExtenderConfig)
     // Augment inline backticks rule to call the extension processor with the matching name.
     const inlineRules = markdownIt.inline.ruler.getRules('');
     const oldBacktickRule: RuleInline = findRule(markdownIt, 'backtick', inlineRules);
-    const newBacktickRule: RuleInline = function(state, silent): boolean | void {
+    const newBacktickRule: RuleInline = function(state, silent): boolean {
         const beforeTokenLen = state.tokens.length;
         let ret = oldBacktickRule(state, silent);
         if (ret !== true) {

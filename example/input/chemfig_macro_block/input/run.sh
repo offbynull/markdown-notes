@@ -12,7 +12,7 @@ dvisvgm input.dvi
 if [ ! $? -eq 0 ]; then
     exit 1
 fi
-mv input.svg /output/$NAME
+mv input-1.svg /output/$NAME
 cd /
 rm -rf /tmp/work
 
