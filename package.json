@@ -31,7 +31,7 @@
     "@types/colors": "^1.2.1",
     "@types/csv-parse": "^1.2.2",
     "@types/escape-html": "1.0.0",
-    "@types/fs-extra": "^8.1.0",
+    "@types/fs-extra": "^8.1.1",
     "@types/highlight.js": "^9.12.4",
     "@types/image-size": "^0.8.0",
     "@types/jest": "^26.0.4",

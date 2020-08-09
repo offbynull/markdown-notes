@@ -101,6 +101,27 @@ test('must match the longest match if multiple earliest bookmarks', () => {
     });
 });
 
+test('must match the longest match on the TOTAL if the capture group 1 has the same length', () => {
+    const scannerList = new BookmarkRegexScannerCollection();
+    scannerList.addNormalBookmark(new BookmarkKey('f(ghji)k', ''), 'anchor1', false, false);
+    scannerList.addNormalBookmark(new BookmarkKey('f(ghji)', ''), 'anchor2', false, false);
+    const ret = scannerList.scan('abcdefghjiklmnopqrstuvwxyz');
+
+    if (ret === null) {
+        throw 'Should not happen';
+    }
+
+    expect(ret).toStrictEqual({
+        captureIndex: 6,
+        captureMatch: "ghji",
+        capturePreamble: null,
+        capturePostamble: null,
+        fullIndex: 5,
+        fullMatch: "fghjik",
+        key: new BookmarkKey('f(ghji)k', ''),
+        anchorId: 'anchor1'
+    });
+});
 
 test('must match multiple times', () => {
     const scannerList = new BookmarkRegexScannerCollection();

@@ -138,7 +138,12 @@ Markdown Example!
 <li><a name="BOOKMARK8"></a><strong>label2</strong></li>
 </ul>
 <p>The text <a href="#BOOKMARK8">Galaxy Smartphone</a> Holder should link to label2 instead of label1.</p>
-<p>If the length of the captured text between the matches are equal, an error is thrown and you'll need to find a way to disambiguate. The typical way to disambiguate is to have the regex check for a suffix that doesn't get output when rendered.</p>
+<p>If the length between capture group 1s is the same, the longest piece of text overall is the one that's chosen. For example, if the bookmarks <code>`{bm} label3/Google (Pixel)/i/true/true`</code> and <code>`{bm} label4/Google (Pixel) 4a/i/true/true`</code> matched on the text <strong>Google <a href="#BOOKMARK10">Pixel</a> 4a Holder</strong>, the second bookmark would get chosen because both capture group 1s have the same length but the overall captured text from the second bookmark is larger:</p>
+<ul>
+<li><a name="BOOKMARK9"></a><strong>label3</strong></li>
+<li><a name="BOOKMARK10"></a><strong>label4</strong></li>
+</ul>
+<p>If the length of the overall text between the matches is the same, an error is thrown and you'll need to find a way to disambiguate. The typical way to disambiguate is to have the regex check for a suffix that doesn't get output when rendered.</p>
 <p>Example usage / output:</p>
 <pre><code>* `{bm} base/(base)_pH/i`
 * `{bm} base/(base)_DNA/i`
@@ -146,31 +151,31 @@ Markdown Example!
 The word base_pH should link to the first bullet, while base_DNA should link to the second bullet.
 </code></pre>
 <ul>
-<li><a name="BOOKMARK9"></a><strong>base</strong></li>
-<li><a name="BOOKMARK10"></a><strong>base</strong></li>
+<li><a name="BOOKMARK11"></a><strong>base</strong></li>
+<li><a name="BOOKMARK12"></a><strong>base</strong></li>
 </ul>
-<p>The word <a href="#BOOKMARK9">base</a> should link to the first bullet, while <a href="#BOOKMARK10">base</a> should link to the second bullet.</p>
+<p>The word <a href="#BOOKMARK11">base</a> should link to the first bullet, while <a href="#BOOKMARK12">base</a> should link to the second bullet.</p>
 <div style="margin:2em; background-color: #e0e0e0;">
 <p><strong>⚠️NOTE️️️⚠️</strong></p>
-<p>See <a href="#BOOKMARK20">bm-error</a> for related disambiguation details.</p>
+<p>See <a href="#BOOKMARK22">bm-error</a> for related disambiguation details.</p>
 </div>
 <a name="HEADREF4"></a><h2>Skipping</h2>
-<p>Using the <a name="BOOKMARK11"></a><strong>bm-skip</strong> tag, you can render any text without bookmark handling. That is, if the text matches a <a href="#BOOKMARK1">bm</a> / <a href="#BOOKMARK20">bm-error</a> / <a href="#BOOKMARK13">bm-ignore</a> tag, it won't matter.</p>
-<p>Why is this useful? The <a href="#BOOKMARK11">bm-skip</a> tag is typically used when some word matches a bookmark but that word is being used in a different context. For example, if I bookmarked Apple as a reference to the company that makes iPhones, I wouldn't want it to link text that was referring to apple as a fruit.</p>
+<p>Using the <a name="BOOKMARK13"></a><strong>bm-skip</strong> tag, you can render any text without bookmark handling. That is, if the text matches a <a href="#BOOKMARK1">bm</a> / <a href="#BOOKMARK22">bm-error</a> / <a href="#BOOKMARK15">bm-ignore</a> tag, it won't matter.</p>
+<p>Why is this useful? The <a href="#BOOKMARK13">bm-skip</a> tag is typically used when some word matches a bookmark but that word is being used in a different context. For example, if I bookmarked Apple as a reference to the company that makes iPhones, I wouldn't want it to link text that was referring to apple as a fruit.</p>
 <p>Example usage / output:</p>
 <pre><code>A mechanical `{bm} crane` is very big.
 * The crane is lifting a truck (should be linked back)
 * The `{bm-skip} crane` is flying away (should NOT be linked back -- referring to bird).
 </code></pre>
-<p>A mechanical <a name="BOOKMARK12"></a><strong>crane</strong> is very big.</p>
+<p>A mechanical <a name="BOOKMARK14"></a><strong>crane</strong> is very big.</p>
 <ul>
-<li>The <a href="#BOOKMARK12">crane</a> is lifting a truck (should be linked back)</li>
+<li>The <a href="#BOOKMARK14">crane</a> is lifting a truck (should be linked back)</li>
 <li>The crane is flying away (should NOT be linked back -- referring to bird).</li>
 </ul>
 <a name="HEADREF5"></a><h2>Ignoring</h2>
-<p>Using the <a name="BOOKMARK13"></a><strong>bm-ignore</strong> tag, you can match a piece of text using regex and explicitly leave that text unlinked. That is, where the <a href="#BOOKMARK1">bm</a> tag linkifies any text that it matches, the <a href="#BOOKMARK13">bm-ignore</a> tag leaves any text it matches unlinked.</p>
+<p>Using the <a name="BOOKMARK15"></a><strong>bm-ignore</strong> tag, you can match a piece of text using regex and explicitly leave that text unlinked. That is, where the <a href="#BOOKMARK1">bm</a> tag linkifies any text that it matches, the <a href="#BOOKMARK15">bm-ignore</a> tag leaves any text it matches unlinked.</p>
 <p>Why's this useful? Imagine the following use-case: you've created a bookmark on the word product, but as a result you're also getting links back from words that contain the word product (links you don't want). For example, the word product gets linked back, but so does production, productive, byproduct.</p>
-<p>Rather than explicitly seeking out each instance of these unwanted links and wrapping them in a <a href="#BOOKMARK11">bm-skip</a> tag, you can use the <a href="#BOOKMARK13">bm-ignore</a> tag. For example:</p>
+<p>Rather than explicitly seeking out each instance of these unwanted links and wrapping them in a <a href="#BOOKMARK13">bm-skip</a> tag, you can use the <a href="#BOOKMARK15">bm-ignore</a> tag. For example:</p>
 <pre><code>`{bm} product`
 `{bm-ignore} production`
 `{bm-ignore} productive`
@@ -178,7 +183,7 @@ The word base_pH should link to the first bullet, while base_DNA should link to 
 ...
 </code></pre>
 <p>If the word production, productive, or byproduct are matched, they'll be left unlinked.</p>
-<p>The <a href="#BOOKMARK13">bm-ignore</a> tag's parameters are similar to the <a href="#BOOKMARK1">bm</a> tag's parameters, except that there is no label: <code>`{bm-ignore} &lt;REGEX&gt;/&lt;REGEX_FLAGS&gt;/&lt;SHOW_PRE&gt;/&lt;SHOW_POST&gt;`</code>.</p>
+<p>The <a href="#BOOKMARK15">bm-ignore</a> tag's parameters are similar to the <a href="#BOOKMARK1">bm</a> tag's parameters, except that there is no label: <code>`{bm-ignore} &lt;REGEX&gt;/&lt;REGEX_FLAGS&gt;/&lt;SHOW_PRE&gt;/&lt;SHOW_POST&gt;`</code>.</p>
 <p>Similarly, there are 2 short-hand forms:</p>
 <ul>
 <li><code>`{bm-ignore} &lt;REGEX&gt;`</code> ⟶ <code>`{bm} (&lt;REGEX&gt;)/i/false/false`</code> (note that the regex is being wrapped in parenthesis)</li>
@@ -195,10 +200,10 @@ Bookmark `{bm} recessive` and `{bm} allele`, but ignore both of them together.
  * The term recessive allele should NOT be linked back.
 </code></pre>
 <p>
-Bookmark <a name="BOOKMARK15"></a><strong>recessive</strong> and <a name="BOOKMARK16"></a><strong>allele</strong>, but ignore both of them together.</p>
+Bookmark <a name="BOOKMARK17"></a><strong>recessive</strong> and <a name="BOOKMARK18"></a><strong>allele</strong>, but ignore both of them together.</p>
 <ul>
-<li>The term <a href="#BOOKMARK15">recessive</a> should be linked back.</li>
-<li>The term <a href="#BOOKMARK16">allele</a> should be linked back.</li>
+<li>The term <a href="#BOOKMARK17">recessive</a> should be linked back.</li>
+<li>The term <a href="#BOOKMARK18">allele</a> should be linked back.</li>
 <li>The term recessive allele should NOT be linked back.</li>
 </ul>
 </li>
@@ -211,30 +216,30 @@ Bookmark `{bm} basic/(basic)_pH/i` when suffix is _pH and `{bm} basic/(basic)_la
  * The term basic_norm should NOT be linked back.
 </code></pre>
 <p>
-Bookmark <a name="BOOKMARK18"></a><strong>basic</strong> when suffix is _pH and <a name="BOOKMARK19"></a><strong>basic</strong> when suffix is _lang, but ignore when suffix is _norm.</p>
+Bookmark <a name="BOOKMARK20"></a><strong>basic</strong> when suffix is _pH and <a name="BOOKMARK21"></a><strong>basic</strong> when suffix is _lang, but ignore when suffix is _norm.</p>
 <ul>
-<li>The term <a href="#BOOKMARK18">basic</a> should be linked back to the _pH suffix.</li>
-<li>The term <a href="#BOOKMARK19">basic</a> should be linked back to the _lang suffix.</li>
+<li>The term <a href="#BOOKMARK20">basic</a> should be linked back to the _pH suffix.</li>
+<li>The term <a href="#BOOKMARK21">basic</a> should be linked back to the _lang suffix.</li>
 <li>The term basic should NOT be linked back.</li>
 </ul>
 </li>
 </ul>
 <a name="HEADREF6"></a><h2>Erroring</h2>
-<p>Using the <a name="BOOKMARK20"></a><strong>bm-error</strong> tag, you can match a piece of text using regex and explicitly generate an error when a match is found. That is, where the <a href="#BOOKMARK1">bm</a> tag linkifies any text that it matches, the <a href="#BOOKMARK20">bm-error</a> tag crashes the application when it matches a piece of text.</p>
+<p>Using the <a name="BOOKMARK22"></a><strong>bm-error</strong> tag, you can match a piece of text using regex and explicitly generate an error when a match is found. That is, where the <a href="#BOOKMARK1">bm</a> tag linkifies any text that it matches, the <a href="#BOOKMARK22">bm-error</a> tag crashes the application when it matches a piece of text.</p>
 <p>Why's this useful? Imagine the following use-case: you're writing a document on biology and chemistry. You have 2 sections in the document that the word base relates to: base as in the pH scale and base as in a nucleotide base. Since the word base is being used in 2 different contexts, you create bookmarks that explicitly look for a suffix:</p>
 <pre><code>`{bm} base/(base)_pH/i`
 `{bm} base/(base)_DNA/i`
 </code></pre>
-<p>As you continue writing your document, you never want the word base to be used by itself -- it should almost always refer to one of the 2 bookmarks. You can use the <a href="#BOOKMARK20">bm-error</a> tag to explicitly stop you from using the word base by itself:</p>
+<p>As you continue writing your document, you never want the word base to be used by itself -- it should almost always refer to one of the 2 bookmarks. You can use the <a href="#BOOKMARK22">bm-error</a> tag to explicitly stop you from using the word base by itself:</p>
 <pre><code>`{bm} base/(base)_pH/i`
 `{bm} base/(base)_DNA/i`
 `{bm-error} Use base_pH if referring to pH scale, base_DNA if referring to nucleotides, or base_NORM to leave as-is/(base)/i`
 </code></pre>
 <div style="margin:2em; background-color: #e0e0e0;">
 <p><strong>⚠️NOTE️️️⚠️</strong></p>
-<p>The <a href="#BOOKMARK11">bm-skip</a> tag works on <a href="#BOOKMARK20">bm-error</a> as well. That is, if a piece of text wrapped in a <a href="#BOOKMARK11">bm-skip</a> tag that matches <a href="#BOOKMARK20">bm-error</a> won't result in an error.</p>
+<p>The <a href="#BOOKMARK13">bm-skip</a> tag works on <a href="#BOOKMARK22">bm-error</a> as well. That is, if a piece of text wrapped in a <a href="#BOOKMARK13">bm-skip</a> tag that matches <a href="#BOOKMARK22">bm-error</a> won't result in an error.</p>
 </div>
-<p>The <a href="#BOOKMARK13">bm-ignore</a> tag's parameters are similar to the <a href="#BOOKMARK1">bm</a> tag's parameters, except that label is replaced by the error message: <code>`{bm-error} &lt;ERROR_MSG&gt;/&lt;REGEX&gt;/&lt;REGEX_FLAGS&gt;/&lt;SHOW_PRE&gt;/&lt;SHOW_POST&gt;`</code>.</p>
+<p>The <a href="#BOOKMARK15">bm-ignore</a> tag's parameters are similar to the <a href="#BOOKMARK1">bm</a> tag's parameters, except that label is replaced by the error message: <code>`{bm-error} &lt;ERROR_MSG&gt;/&lt;REGEX&gt;/&lt;REGEX_FLAGS&gt;/&lt;SHOW_PRE&gt;/&lt;SHOW_POST&gt;`</code>.</p>
 <p>Similarly, there are 2 short-hand forms:</p>
 <ul>
 <li><code>`{bm-error} &lt;ERROR_MSG&gt;/&lt;REGEX&gt;`</code> ⟶ <code>`{bm} &lt;ERROR_MSG&gt;/(&lt;REGEX&gt;)/i/false/false`</code> (note that the regex is being wrapped in parenthesis)</li>
@@ -242,7 +247,7 @@ Bookmark <a name="BOOKMARK18"></a><strong>basic</strong> when suffix is _pH and 
 </ul>
 <div style="margin:2em; background-color: #e0e0e0;">
 <p><strong>⚠️NOTE️️️⚠️</strong></p>
-<p>Since <a href="#BOOKMARK20">bm-error</a> tags don't render anything, what's the point of having <code>&lt;SHOW_PRE&gt;</code> and <code>&lt;SHOW_POST&gt;</code>? <a href="#BOOKMARK20">bm-error</a> tags can be redirected via <a href="#BOOKMARK1">bm</a>-link-redirect. That is, you can make temporarily make it so that rather than erroring out on a match, that matched text will instead link to another <a href="#BOOKMARK20">bm-error</a>.</p>
+<p>Since <a href="#BOOKMARK22">bm-error</a> tags don't render anything, what's the point of having <code>&lt;SHOW_PRE&gt;</code> and <code>&lt;SHOW_POST&gt;</code>? <a href="#BOOKMARK22">bm-error</a> tags can be redirected via <a href="#BOOKMARK1">bm</a>-link-redirect. That is, you can make temporarily make it so that rather than erroring out on a match, that matched text will instead link to another <a href="#BOOKMARK22">bm-error</a>.</p>
 </div>
 <p>Example usage / output:</p>
 <pre><code>`` `{bm-error} Base is too ambiguous. Use either base_pH or base_nucleotide/\b(base)\b/i` ``
@@ -252,7 +257,7 @@ Bookmark <a name="BOOKMARK18"></a><strong>basic</strong> when suffix is _pH and 
 </code></pre>
 <p>OUTPUT NOT POSSIBLE BECAUSE THROWN ERROR WOULD CANCEL RENDER.</p>
 <a name="HEADREF7"></a><h2>Redirecting</h2>
-<p>A <a href="#BOOKMARK1">bm</a> / <a href="#BOOKMARK13">bm-ignore</a> / <a href="#BOOKMARK20">bm-error</a> tag can be redirected to another <a href="#BOOKMARK1">bm</a> / <a href="#BOOKMARK13">bm-ignore</a> / <a href="#BOOKMARK20">bm-error</a> tag using the <a name="BOOKMARK21"></a><strong>bm-redirect</strong>, then reset back to normal using the <a name="BOOKMARK22"></a><strong>bm-reset</strong> tag. That is, you can make it so that if the linker matches a piece of text, instead of performing the intended action, it'll perform the action for some other bookmark.</p>
+<p>A <a href="#BOOKMARK1">bm</a> / <a href="#BOOKMARK15">bm-ignore</a> / <a href="#BOOKMARK22">bm-error</a> tag can be redirected to another <a href="#BOOKMARK1">bm</a> / <a href="#BOOKMARK15">bm-ignore</a> / <a href="#BOOKMARK22">bm-error</a> tag using the <a name="BOOKMARK23"></a><strong>bm-redirect</strong>, then reset back to normal using the <a name="BOOKMARK24"></a><strong>bm-reset</strong> tag. That is, you can make it so that if the linker matches a piece of text, instead of performing the intended action, it'll perform the action for some other bookmark.</p>
 <p>The <a href="#BOOKMARK1">bm</a>-direct tag takes in 4 arguments: <code>`{bm-redirect} &lt;SRC_REGEX&gt;/&lt;SRC_REGEX_FLAGS&gt;/&lt;DST_REGEX&gt;/&lt;DST_REGEX_FLAGS&gt;`</code>...</p>
 <ol>
 <li>
@@ -268,7 +273,7 @@ Bookmark <a name="BOOKMARK18"></a><strong>basic</strong> when suffix is _pH and 
 <p><code>&lt;DST_REGEX_FLAGS&gt;</code>: Regex flags used by tag being redirected to.</p>
 </li>
 </ol>
-<p>The <a href="#BOOKMARK22">bm-reset</a> tag takes 2 arguments: <code>`{bm-reset} &lt;SRC_REGEX&gt;/&lt;SRC_REGEX_FLAGS&gt;`</code>...</p>
+<p>The <a href="#BOOKMARK24">bm-reset</a> tag takes 2 arguments: <code>`{bm-reset} &lt;SRC_REGEX&gt;/&lt;SRC_REGEX_FLAGS&gt;`</code>...</p>
 <ol>
 <li>
 <p><code>&lt;SRC_REGEX&gt;</code>: Regex used by tag that's being redirected.</p>
@@ -308,28 +313,28 @@ Every instance of product in paragraph above should be linked to the chemistry r
 </code></pre>
 <p></p>
 <ul>
-<li><a name="BOOKMARK24"></a><strong>product</strong> (math multiplication)</li>
-<li><a name="BOOKMARK25"></a><strong>product</strong> (chemistry)</li>
+<li><a name="BOOKMARK26"></a><strong>product</strong> (math multiplication)</li>
+<li><a name="BOOKMARK27"></a><strong>product</strong> (chemistry)</li>
 </ul>
 <p></p>
-<p>Much of chemistry research is focused on the synthesis and characterization of beneficial <a href="#BOOKMARK25">product</a>s, as well as the detection and removal of undesirable <a href="#BOOKMARK25">product</a>s. Synthetic chemists can be subdivided into research chemists who design new chemicals and pioneer new methods for synthesizing chemicals, as well as process chemists who scale up chemical <a href="#BOOKMARK25">product</a>ion and make it safer, more environmentally sustainable, and more efficient.[3] Other fields include natural <a href="#BOOKMARK25">product</a> chemists who isolate <a href="#BOOKMARK25">product</a>s created by living organisms and then characterize and study these <a href="#BOOKMARK25">product</a>s.</p>
+<p>Much of chemistry research is focused on the synthesis and characterization of beneficial <a href="#BOOKMARK27">product</a>s, as well as the detection and removal of undesirable <a href="#BOOKMARK27">product</a>s. Synthetic chemists can be subdivided into research chemists who design new chemicals and pioneer new methods for synthesizing chemicals, as well as process chemists who scale up chemical <a href="#BOOKMARK27">product</a>ion and make it safer, more environmentally sustainable, and more efficient.[3] Other fields include natural <a href="#BOOKMARK27">product</a> chemists who isolate <a href="#BOOKMARK27">product</a>s created by living organisms and then characterize and study these <a href="#BOOKMARK27">product</a>s.</p>
 <p></p>
 <p>Every instance of product in paragraph above should be linked to the chemistry reference.</p>
 <a name="HEADREF8"></a><h2>Disabling</h2>
-<p>A <a href="#BOOKMARK1">bm</a> / <a href="#BOOKMARK13">bm-ignore</a> / <a href="#BOOKMARK20">bm-error</a> tag can be temporarily disabled and then re-enabled using the <a href="#BOOKMARK1">bm</a>-disable and <a href="#BOOKMARK1">bm</a>-enable tags. Disabling a bookmark doesn't mean that other bookmarks can't redirect to it, it just means that the linker will ignore this bookmark when matching text.</p>
-<p>Why's this useful? Imagine that you set a bookmark match to produce an error (<a href="#BOOKMARK20">bm-error</a>) but in certain cases you want to use that matched text without generating an error. Disabling allows for that.</p>
+<p>A <a href="#BOOKMARK1">bm</a> / <a href="#BOOKMARK15">bm-ignore</a> / <a href="#BOOKMARK22">bm-error</a> tag can be temporarily disabled and then re-enabled using the <a href="#BOOKMARK1">bm</a>-disable and <a href="#BOOKMARK1">bm</a>-enable tags. Disabling a bookmark doesn't mean that other bookmarks can't redirect to it, it just means that the linker will ignore this bookmark when matching text.</p>
+<p>Why's this useful? Imagine that you set a bookmark match to produce an error (<a href="#BOOKMARK22">bm-error</a>) but in certain cases you want to use that matched text without generating an error. Disabling allows for that.</p>
 <p>Example usage / output:</p>
 <pre><code>Bookmark `{bm} Sao Paulo`.
 * Sao Paulo should be linked back.
 * `{bm-disable} (Sao Paulo)/i` Sao Paulo should NOT be linked back `{bm-enable} (Sao Paulo)/i`.
 </code></pre>
-<p>Bookmark <a name="BOOKMARK26"></a><strong>Sao Paulo</strong>.</p>
+<p>Bookmark <a name="BOOKMARK28"></a><strong>Sao Paulo</strong>.</p>
 <ul>
-<li><a href="#BOOKMARK26">Sao Paulo</a> should be linked back.</li>
+<li><a href="#BOOKMARK28">Sao Paulo</a> should be linked back.</li>
 <li> Sao Paulo should NOT be linked back .</li>
 </ul>
 <a name="HEADREF9"></a><h2>Disabling All</h2>
-<p>The linker can be temporarily disabled and then re-enabled using the <a name="BOOKMARK27"></a><strong>bm-disable-all</strong> and <a name="BOOKMARK28"></a><strong>bm-enable-all</strong> tags. That is, disabling the linker turns off all text matching functionality: <a href="#BOOKMARK1">bm</a> / <a href="#BOOKMARK13">bm-ignore</a> / <a href="#BOOKMARK20">bm-error</a>.</p>
+<p>The linker can be temporarily disabled and then re-enabled using the <a name="BOOKMARK29"></a><strong>bm-disable-all</strong> and <a name="BOOKMARK30"></a><strong>bm-enable-all</strong> tags. That is, disabling the linker turns off all text matching functionality: <a href="#BOOKMARK1">bm</a> / <a href="#BOOKMARK15">bm-ignore</a> / <a href="#BOOKMARK22">bm-error</a>.</p>
 <p>Why's this useful? In certain cases you may have code / macro that's generating text. You may not know what that generated text is beforehand, meaning that the bookmark matches found in it may be unexpected / incorrect. Disabling all bookmark matches allows the text to be output as-is (no linkifying of the output).</p>
 <p>Example usage / output:</p>
 <pre><code>Bookmark `{bm} caffeine`.
@@ -338,9 +343,9 @@ Every instance of product in paragraph above should be linked to the chemistry r
 
 `{bm-enable-all}`
 </code></pre>
-<p>Bookmark <a name="BOOKMARK29"></a><strong>caffeine</strong>.</p>
+<p>Bookmark <a name="BOOKMARK31"></a><strong>caffeine</strong>.</p>
 <ul>
-<li><a href="#BOOKMARK29">Caffeine</a> should  be linked back.</li>
+<li><a href="#BOOKMARK31">Caffeine</a> should  be linked back.</li>
 <li>Caffeine should NOT be linked back.</li>
 </ul>
 <p></p>

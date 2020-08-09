@@ -90,7 +90,12 @@ In certain cases, multiple bookmarks may match a certain piece of text. To resol
 
 The text Samsung Galaxy Smartphone Holder should link to label2 instead of label1.
 
-If the length of the captured text between the matches are equal, an error is thrown and you'll need to find a way to disambiguate. The typical way to disambiguate is to have the regex check for a suffix that doesn't get output when rendered.
+If the length between capture group 1s is the same, the longest piece of text overall is the one that's chosen. For example, if the bookmarks `` `{bm} label3/Google (Pixel)/i/true/true` `` and `` `{bm} label4/Google (Pixel) 4a/i/true/true` `` matched on the text **Google Pixel 4a Holder**, the second bookmark would get chosen because both capture group 1s have the same length but the overall captured text from the second bookmark is larger:
+
+* `{bm} label3/Google (Pixel)/i/true/true`
+* `{bm} label4/Google (Pixel) 4a/i/true/true`
+
+If the length of the overall text between the matches is the same, an error is thrown and you'll need to find a way to disambiguate. The typical way to disambiguate is to have the regex check for a suffix that doesn't get output when rendered.
 
 Example usage / output:
 

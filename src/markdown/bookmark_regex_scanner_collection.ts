@@ -141,13 +141,18 @@ export class BookmarkRegexScannerCollection {
         
         // Sort by earliest matches on the capture group
         filterMatches = filterMatches.slice().sort((a, b) => a.capture.captureIndex < b.capture.captureIndex ? -1 : 1);
-        const earliestMatchIdx = filterMatches[0].capture.captureIndex;
-        filterMatches = filterMatches.filter(m => m.capture.captureIndex === earliestMatchIdx);
+        const earliestCaptureMatchIdx = filterMatches[0].capture.captureIndex;
+        filterMatches = filterMatches.filter(m => m.capture.captureIndex === earliestCaptureMatchIdx);
 
         // Sort by longest matches on the capture group
-        filterMatches = filterMatches.slice().sort((a, b) => a.capture.captureMatch > b.capture.captureMatch ? -1 : 1);
-        const longestMatchIdx = filterMatches[0].capture.captureMatch.length;
-        filterMatches = filterMatches.filter(m => m.capture.captureMatch.length === longestMatchIdx);
+        filterMatches = filterMatches.slice().sort((a, b) => a.capture.captureMatch.length > b.capture.captureMatch.length ? -1 : 1);
+        const longestCaptureMatchIdx = filterMatches[0].capture.captureMatch.length;
+        filterMatches = filterMatches.filter(m => m.capture.captureMatch.length === longestCaptureMatchIdx);
+
+        // Sort by longest matches on full capture
+        filterMatches = filterMatches.slice().sort((a, b) => a.capture.fullMatch.length > b.capture.fullMatch.length ? -1 : 1);
+        const longestFullMatchIdx = filterMatches[0].capture.fullMatch.length;
+        filterMatches = filterMatches.filter(m => m.capture.fullMatch.length === longestFullMatchIdx);
 
         // If any of the remaining matches were error matches, only return the error match if nothing else was matched. For example, imagine the following markup...
         //    `{bm} base/(base)_nucleotide/i`
