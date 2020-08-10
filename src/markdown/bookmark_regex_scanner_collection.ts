@@ -138,11 +138,11 @@ export class BookmarkRegexScannerCollection {
 
 
         let filterMatches = matches;
-        
-        // Sort by earliest matches on the capture group
-        filterMatches = filterMatches.slice().sort((a, b) => a.capture.captureIndex < b.capture.captureIndex ? -1 : 1);
-        const earliestCaptureMatchIdx = filterMatches[0].capture.captureIndex;
-        filterMatches = filterMatches.filter(m => m.capture.captureIndex === earliestCaptureMatchIdx);
+
+        // Sort by earliest matches on the full capture
+        filterMatches = filterMatches.slice().sort((a, b) => a.capture.fullIndex < b.capture.fullIndex ? -1 : 1);
+        const earliestFullMatchIdx = filterMatches[0].capture.captureIndex;
+        filterMatches = filterMatches.filter(m => m.capture.captureIndex === earliestFullMatchIdx);
 
         // Sort by longest matches on the capture group
         filterMatches = filterMatches.slice().sort((a, b) => a.capture.captureMatch.length > b.capture.captureMatch.length ? -1 : 1);
