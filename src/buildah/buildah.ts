@@ -140,6 +140,7 @@ export function launchContainer(environmentDir: string, containerName: string, c
 
     const args: string[] = [];
     args.push('--network=host');
+    args.push('--pid=host');
     if (volumeMappings !== undefined) {
         for (const volumeMapping of volumeMappings) {
             const volMode = (() => {

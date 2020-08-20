@@ -93,8 +93,8 @@ let activeChildExitMarker = { flag: false };
 inputWatcher.on('change', () => {
     if (activeChildProc !== undefined && activeChildProc.connected) {
         console.log('Render process killed (' + activeChildProc.pid + ')');
-        activeChildProc.kill('SIGKILL');
         killProcessHierarchy('' + activeChildProc.pid);
+        activeChildProc.kill('SIGKILL');
         activeChildExitMarker.flag = true;
     }
 
@@ -179,8 +179,8 @@ inputWatcher.emit('change'); // Trigger fake change to replace the placeholder w
     Process.on(eventType as any, () => {
         console.log(`Performing cleanup (${eventType})...`);
         if (activeChildProc !== undefined) {
-            activeChildProc.kill('SIGKILL');
             killProcessHierarchy('' + activeChildProc.pid);
+            activeChildProc.kill('SIGKILL');
         }
         Process.exit(1);
     });
