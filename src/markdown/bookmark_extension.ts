@@ -36,7 +36,13 @@ export class BookmarkLinkerControllerExtension implements Extension {
         new TokenIdentifier('bm-redirect', Type.INLINE),
         new TokenIdentifier('bm-reset', Type.INLINE),
         new TokenIdentifier('bm-disable', Type.INLINE),
-        new TokenIdentifier('bm-enable', Type.INLINE),
+        new TokenIdentifier('bm-enable', Type.INLINE)
+    ];
+}
+
+export class BookmarkReferenceTargetExtension implements Extension {
+    public readonly tokenIds: ReadonlyArray<TokenIdentifier> = [
+        new TokenIdentifier('bm-target', Type.INLINE)
     ];
 }
 
@@ -260,10 +266,10 @@ export class BookmarkExtension implements Extension {
             } else if (token.type === 'bm-enable') {
                 const broken = breakOnSlashes(token.content);
                 if (broken.length !== 2) {
-                    throw 'Incorrect number of arguments in bm-link-enable tag: ' + JSON.stringify(broken) + '\n'
+                    throw 'Incorrect number of arguments in bm-enable tag: ' + JSON.stringify(broken) + '\n'
                         + '------\n'
                         + 'Examples:\n'
-                        + '  `{bm-link-enable} (existing\\s+regex1)/i`\n'
+                        + '  `{bm-enable} (existing\\s+regex1)/i`\n'
                         + 'Tag arguments are delimited using forward slash (\). Use \\ to escape the delimiter (\\/).';
                 }
                 const key = new BookmarkKey(broken[0], broken[1]);
@@ -271,10 +277,10 @@ export class BookmarkExtension implements Extension {
             } else if (token.type === 'bm-disable') {
                 const broken = breakOnSlashes(token.content);
                 if (broken.length !== 2) {
-                    throw 'Incorrect number of arguments in bm-link-disable tag: ' + JSON.stringify(broken) + '\n'
+                    throw 'Incorrect number of arguments in bm-disable tag: ' + JSON.stringify(broken) + '\n'
                         + '------\n'
                         + 'Examples:\n'
-                        + '  `{bm-link-disable} (existing\\s+regex1)/i`\n'
+                        + '  `{bm-disable} (existing\\s+regex1)/i`\n'
                         + 'Tag arguments are delimited using forward slash (\). Use \\ to escape the delimiter (\\/).';
                 }
                 const key = new BookmarkKey(broken[0], broken[1]);
@@ -282,10 +288,10 @@ export class BookmarkExtension implements Extension {
             } else if (token.type === 'bm-redirect') {
                 const broken = breakOnSlashes(token.content);
                 if (broken.length !== 4) {
-                    throw 'Incorrect number of arguments in bm-link-redirect tag: ' + JSON.stringify(broken) + '\n'
+                    throw 'Incorrect number of arguments in bm-redirect tag: ' + JSON.stringify(broken) + '\n'
                         + '------\n'
                         + 'Examples:\n'
-                        + '  `{bm-link-redirect} (existing\\s+regex1)/i/(existing\\s+regex2)/i`\n'
+                        + '  `{bm-redirect} (existing\\s+regex1)/i/(existing\\s+regex2)/i`\n'
                         + 'Tag arguments are delimited using forward slash (\). Use \\ to escape the delimiter (\\/).';
                 }
                 const fromKey = new BookmarkKey(broken[0], broken[1]);
@@ -295,10 +301,10 @@ export class BookmarkExtension implements Extension {
             } else if (token.type === 'bm-reset') {
                 const broken = breakOnSlashes(token.content);
                 if (broken.length !== 2) {
-                    throw 'Incorrect number of arguments in bm-link-reset tag: ' + JSON.stringify(broken) + '\n'
+                    throw 'Incorrect number of arguments in bm-reset tag: ' + JSON.stringify(broken) + '\n'
                         + '------\n'
                         + 'Examples:\n'
-                        + '  `{bm-link-reset} (existing\\s+regex1)/i`\n'
+                        + '  `{bm-reset} (existing\\s+regex1)/i`\n'
                         + 'Tag arguments are delimited using forward slash (\). Use \\ to escape the delimiter (\\/).';
                 }
                 const key = new BookmarkKey(broken[0], broken[1]);
@@ -307,7 +313,7 @@ export class BookmarkExtension implements Extension {
             }
 
             // Process
-            if (token.type !== 'text') {
+            if (token.type !== 'text' && token.type !== 'bm-target') {
                 if (token.children !== null) {
                     this.postProcess(markdownIt, token.children, context)
                 }
@@ -315,88 +321,116 @@ export class BookmarkExtension implements Extension {
             }
 
 
-            // At this point, this is an entire block of text -- if bookmarker is off, skip it
+            // At this point, you're outputting and linking text -- if bookmarker is off, skip it
             if (bookmarkData.linkerActive === false) {
                 continue;
             }
 
-            // Scan the token and recursively break it up based on the bookmarks identified
-            let content = token.content;
-            let replacementTokens: Token[] = [];                
-            while (true) {
-                const scanResult = bookmarkData.scanner.scan(content);
-                if (scanResult === null) {
-                    const lastToken = (() => {
-                        if (replacementTokens.length === 0) { // if nothing was modified, so just keep the original token (we want to be as pure as possible)
-                            return token
-                        } else { // if something was modified, add the remaining content as a new token
-                            const finalToken = new Token('text', '', 0);
-                            finalToken.content = content;
-                            return finalToken;
-                        }
-                    })();
-                    replacementTokens.push(lastToken);
-                    break;
+            let replacementTokens: Token[] = [];
+            if (token.type === 'bm-target') {
+                // Output a piece of text but link it to a bookmark that doesn't belong to
+                const broken = breakOnSlashes(token.content);
+                if (broken.length !== 3) {
+                    throw 'Incorrect number of arguments in bm-target tag: ' + JSON.stringify(broken) + '\n'
+                        + '------\n'
+                        + 'Examples:\n'
+                        + '  `{bm-target} text to link/(existing\\s+regex1)/i`\n'
+                        + 'Tag arguments are delimited using forward slash (\). Use \\ to escape the delimiter (\\/).';
+                }
+                const text = broken[0];
+                const key = new BookmarkKey(broken[1], broken[2]);
+                const anchorId = bookmarkData.scanner.getNormalBookmarkAnchorId(key);
+
+                if (anchorId === null) {
+                    throw 'No anchor ID for bookmark (is the bookmark from a bm-ignore tag?)\n'
+                        + '\n'
+                        + 'Regex: ' + key.regex + '\n'
+                        + 'Flags: ' + key.flags + '\n';
                 }
 
-                const startMatchIdx = scanResult.fullIndex;
-                const endMatchIdx = scanResult.fullIndex + scanResult.fullMatch.length;
-
-                const preText = content.substring(0, startMatchIdx);
-                const capturePreambleText = scanResult.capturePreamble;
-                const captureText = scanResult.captureMatch;
-                const capturePostambleText = scanResult.capturePostamble;
-                const postText = content.substring(endMatchIdx);
-
-                const bookmarkTokens = (() => {
-                    if (scanResult.anchorId === null) {    // if null this was an ignore marker, just put the text back in and move on.
-                        const bookmarkTokens: Token[] = [];
-                        // pre text
-                        bookmarkTokens.push(new Token('text', '', 0));
-                        bookmarkTokens[bookmarkTokens.length - 1].content = preText;
-                        // capture preamble text
-                        if (capturePreambleText !== null) {
-                            bookmarkTokens.push(new Token('text', '', 0)); 
-                            bookmarkTokens[bookmarkTokens.length - 1].content = capturePreambleText;
-                        }
-                        // capture link text
-                        bookmarkTokens.push(new Token('text', '', 0));
-                        bookmarkTokens[bookmarkTokens.length - 1].content = captureText;
-                        // capture postamble text
-                        if (capturePostambleText !== null) {
-                            bookmarkTokens.push(new Token('text', '', 0));
-                            bookmarkTokens[bookmarkTokens.length - 1].content = capturePostambleText;
-                        }
-                        return bookmarkTokens;
-                    } else {                               // if not null this was an normal marker, add the bookmark link
-                        const bookmarkTokens: Token[] = [];
-                        // pre text
-                        bookmarkTokens.push(new Token('text', '', 0));
-                        bookmarkTokens[bookmarkTokens.length - 1].content = preText;
-                        // capture preamble text
-                        if (capturePreambleText !== null) {
-                            bookmarkTokens.push(new Token('text', '', 0)); 
-                            bookmarkTokens[bookmarkTokens.length - 1].content = capturePreambleText;
-                        }
-                        // capture link start
-                        bookmarkTokens.push(new Token('bookmark_link_open', 'a', 1));
-                        bookmarkTokens[bookmarkTokens.length - 1].attrSet('href', '#' + markdownIt.utils.escapeHtml(scanResult.anchorId));
-                        // capture link text
-                        bookmarkTokens.push(new Token('text', '', 0));
-                        bookmarkTokens[bookmarkTokens.length - 1].content = captureText;
-                        // capture link end
-                        bookmarkTokens.push(new Token('bookmark_link_close', 'a', -1));
-                        // capture postamble text
-                        if (capturePostambleText !== null) {
-                            bookmarkTokens.push(new Token('text', '', 0));
-                            bookmarkTokens[bookmarkTokens.length - 1].content = capturePostambleText;
-                        }
-                        return bookmarkTokens;
+                replacementTokens.push(new Token('bookmark_link_open', 'a', 1));
+                replacementTokens[replacementTokens.length - 1].attrSet('href', '#' + markdownIt.utils.escapeHtml(anchorId));
+                replacementTokens.push(new Token('text', '', 0));
+                replacementTokens[replacementTokens.length - 1].content = text;
+                replacementTokens.push(new Token('bookmark_link_close', 'a', -1));
+            } else if (token.type == 'text') {
+                // Scan the token and recursively break it up based on the bookmarks identified
+                let content = token.content;
+                while (true) {
+                    const scanResult = bookmarkData.scanner.scan(content);
+                    if (scanResult === null) {
+                        const lastToken = (() => {
+                            if (replacementTokens.length === 0) { // if nothing was modified, so just keep the original token (we want to be as pure as possible)
+                                return token
+                            } else { // if something was modified, add the remaining content as a new token
+                                const finalToken = new Token('text', '', 0);
+                                finalToken.content = content;
+                                return finalToken;
+                            }
+                        })();
+                        replacementTokens.push(lastToken);
+                        break;
                     }
-                })();
 
-                replacementTokens = replacementTokens.concat(bookmarkTokens);
-                content = postText;
+                    const startMatchIdx = scanResult.fullIndex;
+                    const endMatchIdx = scanResult.fullIndex + scanResult.fullMatch.length;
+
+                    const preText = content.substring(0, startMatchIdx);
+                    const capturePreambleText = scanResult.capturePreamble;
+                    const captureText = scanResult.captureMatch;
+                    const capturePostambleText = scanResult.capturePostamble;
+                    const postText = content.substring(endMatchIdx);
+
+                    const bookmarkTokens = (() => {
+                        if (scanResult.anchorId === null) {    // if null this was an ignore marker, just put the text back in and move on.
+                            const bookmarkTokens: Token[] = [];
+                            // pre text
+                            bookmarkTokens.push(new Token('text', '', 0));
+                            bookmarkTokens[bookmarkTokens.length - 1].content = preText;
+                            // capture preamble text
+                            if (capturePreambleText !== null) {
+                                bookmarkTokens.push(new Token('text', '', 0)); 
+                                bookmarkTokens[bookmarkTokens.length - 1].content = capturePreambleText;
+                            }
+                            // capture link text
+                            bookmarkTokens.push(new Token('text', '', 0));
+                            bookmarkTokens[bookmarkTokens.length - 1].content = captureText;
+                            // capture postamble text
+                            if (capturePostambleText !== null) {
+                                bookmarkTokens.push(new Token('text', '', 0));
+                                bookmarkTokens[bookmarkTokens.length - 1].content = capturePostambleText;
+                            }
+                            return bookmarkTokens;
+                        } else {                               // if not null this was an normal marker, add the bookmark link
+                            const bookmarkTokens: Token[] = [];
+                            // pre text
+                            bookmarkTokens.push(new Token('text', '', 0));
+                            bookmarkTokens[bookmarkTokens.length - 1].content = preText;
+                            // capture preamble text
+                            if (capturePreambleText !== null) {
+                                bookmarkTokens.push(new Token('text', '', 0)); 
+                                bookmarkTokens[bookmarkTokens.length - 1].content = capturePreambleText;
+                            }
+                            // capture link start
+                            bookmarkTokens.push(new Token('bookmark_link_open', 'a', 1));
+                            bookmarkTokens[bookmarkTokens.length - 1].attrSet('href', '#' + markdownIt.utils.escapeHtml(scanResult.anchorId));
+                            // capture link text
+                            bookmarkTokens.push(new Token('text', '', 0));
+                            bookmarkTokens[bookmarkTokens.length - 1].content = captureText;
+                            // capture link end
+                            bookmarkTokens.push(new Token('bookmark_link_close', 'a', -1));
+                            // capture postamble text
+                            if (capturePostambleText !== null) {
+                                bookmarkTokens.push(new Token('text', '', 0));
+                                bookmarkTokens[bookmarkTokens.length - 1].content = capturePostambleText;
+                            }
+                            return bookmarkTokens;
+                        }
+                    })();
+
+                    replacementTokens = replacementTokens.concat(bookmarkTokens);
+                    content = postText;
+                }
             }
 
             // Replace in full tokens

@@ -223,7 +223,7 @@ Similarly, there are 2 short-hand forms:
  * `` `{bm-error} <ERROR_MSG>/<REGEX>/<REGEX_FLAGS>` `` ⟶ `` `{bm} <ERROR_MSG>/<REGEX>/<REGEX_FLAGS>/false/false` ``
 
 ```{note}
-Since bm-error tags don't render anything, what's the point of having `<SHOW_PRE>` and `<SHOW_POST>`? bm-error tags can be redirected via bm-link-redirect. That is, you can make temporarily make it so that rather than erroring out on a match, that matched text will instead link to another bm-error.
+Since bm-error tags don't render anything, what's the point of having `<SHOW_PRE>` and `<SHOW_POST>`? bm-error tags can be redirected via bm-redirect. That is, you can make temporarily make it so that rather than erroring out on a match, that matched text will instead link to another bm-error.
 ```
 
 Example usage / output:
@@ -239,7 +239,7 @@ OUTPUT NOT POSSIBLE BECAUSE THROWN ERROR WOULD CANCEL RENDER.
 
 ## Redirecting
 
-A bm / bm-ignore / bm-error tag can be redirected to another bm / bm-ignore / bm-error tag using the `{bm} bm-redirect`, then reset back to normal using the `{bm} bm-reset` tag. That is, you can make it so that if the linker matches a piece of text, instead of performing the intended action, it'll perform the action for some other bookmark.
+A bm / bm-ignore / bm-error tag can be redirected to another bm / bm-ignore / bm-error tag using `{bm} bm-redirect`, then reset back to normal using the `{bm} bm-reset` tag. That is, you can make it so that if the linker matches a piece of text, instead of performing the intended action, it'll perform the action for some other bookmark.
  
 The bm-direct tag takes in 4 arguments: `` `{bm-redirect} <SRC_REGEX>/<SRC_REGEX_FLAGS>/<DST_REGEX>/<DST_REGEX_FLAGS>` ``...
 
@@ -304,6 +304,39 @@ Much of chemistry research is focused on the synthesis and characterization of b
 `{bm-reset} (product)/i`
 
 Every instance of product in paragraph above should be linked to the chemistry reference.
+
+## Targeting
+
+Any piece of text can be directed directed to a bm tag it wasn't intended for using `{bm} bm-target`. That is, you can make it so that a piece of text specifically links to some other bookmark that wouldn't normally link that piece of text.
+ 
+The bm-direct tag takes in 3 arguments: `` `{bm-target} <OUTPUT>/<REGEX>/<REGEX_FLAGS>` ``...
+
+ 1. `<OUTPUT>`: Text to output and linkify.
+
+ 2. `<REGEX>`: Regex used by the bm tag being targeted.
+
+ 3. `<REGEX_FLAGS>`: Regex flags used by the bm tag being targeted.
+
+
+```{note}
+This ONLY works for linking text to bm tags, not bm-ignore/bm-error. bm-ignore explicitly doesn't link the regex it searches for and bm-error throws an error if it sees the regex it's searching for.
+```
+
+Why's this useful? For the same reason as bm-redirect. A single one-off piece of text can be easily redirected to a bookmark that it wasn't intended for.
+
+Example usage / output:
+
+```
+`{bm} junk bookmark`
+
+* this should point to junk bookmark.
+* this one should also point to `{bm-target} the bookmark above/(junk bookmark)/i`.
+```
+
+`{bm} junk bookmark`
+
+* this should point to junk bookmark.
+* this one should also point to `{bm-target} the bookmark above/(junk bookmark)/i`.
 
 ## Disabling
 

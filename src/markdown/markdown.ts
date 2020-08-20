@@ -22,7 +22,7 @@ import HighlightJs from 'highlight.js';
 import { JSDOM } from 'jsdom';
 import { extender, ExtenderConfig } from './extender_plugin';
 import { TocExtension } from './table_of_contents_extension';
-import { BookmarkExtension, BookmarkReferenceIgnoreExtension, BookmarkLinkerControllerExtension } from './bookmark_extension';
+import { BookmarkExtension, BookmarkReferenceIgnoreExtension, BookmarkLinkerControllerExtension, BookmarkReferenceTargetExtension } from './bookmark_extension';
 import { NoteExtension } from './note_extension';
 import { MathJaxExtension } from './mathjax_extension';
 import { TitleExtension } from './title_extension';
@@ -55,6 +55,7 @@ export default class Markdown {
         extenderConfig.register(new TitleExtension());
         extenderConfig.register(new BookmarkExtension());
         extenderConfig.register(new BookmarkLinkerControllerExtension());
+        extenderConfig.register(new BookmarkReferenceTargetExtension());
         extenderConfig.register(new BookmarkReferenceIgnoreExtension());
         extenderConfig.register(new TocExtension());
         extenderConfig.register(new OutputExtension());

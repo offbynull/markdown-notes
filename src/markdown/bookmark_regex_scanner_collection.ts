@@ -116,6 +116,25 @@ export class BookmarkRegexScannerCollection {
         fromFound.entry.redirectKey = toKey;
     }
 
+    public getNormalBookmarkAnchorId(key: BookmarkKey): string | null {
+        const found = this.entries.find(e => e.entry.origKey.regex === key.regex && e.entry.origKey.flags === key.flags);
+        if (found === undefined) {
+            throw 'Unable to get anchor ID because bookmark does not exist\n'
+                + '\n'
+                + 'Regex: ' + key.regex + '\n'
+                + 'Flags: ' + key.flags + '\n';
+        }
+
+        if (!(found.entry instanceof NormalBookmarkEntry)) {
+            throw 'Unable to get anchor ID because bookmark is not a normal bookmark\n'
+                + '\n'
+                + 'Regex: ' + key.regex + '\n'
+                + 'Flags: ' + key.flags + '\n';
+        }
+
+        return found.entry.anchorId;
+    }
+
     public scan(text: string): ScanResult | null {
         const matches: CaptureEntry[] = [];
         for (const entry of this.entries) {
