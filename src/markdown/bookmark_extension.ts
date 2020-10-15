@@ -19,13 +19,12 @@
 import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import { Extension, TokenIdentifier, Type, ExtensionContext } from './extender_plugin';
-import { breakOnSlashes } from '../utils/parse_helpers';
+import { breakOnSlashes, combineWithSlashes } from '../utils/parse_helpers';
 import { BookmarkRegexScannerCollection, BookmarkKey } from './bookmark_regex_scanner_collection';
 
 class BookmarkData {
     public readonly scanner = new BookmarkRegexScannerCollection(); // bookmark regex to entry
     public readonly anchorIdToLabel = new Map<string, string>(); // anchor id to label
-    public nextId = 0;
     public linkerActive: boolean = true;
 }
 
@@ -68,8 +67,7 @@ export class BookmarkExtension implements Extension {
         const bookmarkData: BookmarkData = context.shared.get('bookmark') || new BookmarkData();
         context.shared.set('bookmark', bookmarkData);
 
-        const anchorId = "BOOKMARK" + bookmarkData.nextId;
-        bookmarkData.nextId++;
+        let anchorId;
 
         switch (token.type) {
             case 'bm': {
@@ -110,6 +108,7 @@ export class BookmarkExtension implements Extension {
                                 + 'Tag arguments are delimited using forward slash (\). Use \\ to escape the delimiter (\\/).';
                     }
                 })();
+                anchorId = 'BM_' + combineWithSlashes([info.regex, info.flags]);
                 bookmarkData.scanner.addNormalBookmark(
                     new BookmarkKey(info.regex, info.flags),
                     anchorId,
@@ -158,6 +157,7 @@ export class BookmarkExtension implements Extension {
                     }
                 })();
                 // what's the point of having showPreamble/showPostamble for errors? it allows you to redirect the error to a normal bookmark
+                anchorId = 'BME_' + combineWithSlashes([info.regex, info.flags]);
                 bookmarkData.scanner.addErrorBookmark(
                     new BookmarkKey(info.regex, info.flags),
                     info.showPreamble,
@@ -200,6 +200,7 @@ export class BookmarkExtension implements Extension {
                                 + 'Tag arguments are delimited using forward slash (\). Use \\ to escape the delimiter (\\/).';
                     }
                 })();
+                anchorId = 'BMI_' + combineWithSlashes([info.regex, info.flags]);
                 bookmarkData.scanner.addNormalBookmark(
                     new BookmarkKey(info.regex, info.flags),
                     null,
@@ -413,7 +414,7 @@ export class BookmarkExtension implements Extension {
                             }
                             // capture link start
                             bookmarkTokens.push(new Token('bookmark_link_open', 'a', 1));
-                            bookmarkTokens[bookmarkTokens.length - 1].attrSet('href', '#' + markdownIt.utils.escapeHtml(scanResult.anchorId));
+                            bookmarkTokens[bookmarkTokens.length - 1].attrSet('href', '#' + encodeURIComponent(scanResult.anchorId));
                             // capture link text
                             bookmarkTokens.push(new Token('text', '', 0));
                             bookmarkTokens[bookmarkTokens.length - 1].content = captureText;
@@ -451,6 +452,6 @@ export class BookmarkExtension implements Extension {
         if (label === undefined) {
             return '';
         }
-        return `<a name="${markdownIt.utils.escapeHtml(anchorId)}"></a><strong>${markdownIt.utils.escapeHtml(label)}</strong>`;
+        return `<a name="${encodeURIComponent(anchorId)}"></a><strong>${markdownIt.utils.escapeHtml(label)}</strong>`;
     }
 }

@@ -23,3 +23,14 @@ export function breakOnSlashes(input: string) {
 
     return ret;
 }
+
+export function combineWithSlashes(input: string[]) {
+    let current = '';
+    for (const [idx, val] of input.entries()) {
+        current += val.replace('/', '\\/')
+        if (idx < input.length - 1) {
+            current += '/'
+        }
+    }
+    return current;
+}

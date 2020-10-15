@@ -22,7 +22,7 @@ import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_p
 
 class TocData {
     public readonly headingAnchors: Map<Token, string> = new Map<Token, string>();
-    public nextId: number = 0;
+    public readonly anchors: Set<string> = new Set<string>();
 }
 
 export class TocExtension implements Extension {
@@ -40,9 +40,18 @@ export class TocExtension implements Extension {
 
             if (token.type === 'heading_open') {
                 // Generate anchor ID
-                const anchorId = 'HEADREF' + tocData.nextId;
-                tocData.nextId++;
-                tocData.headingAnchors.set(token, anchorId);
+                let anchorId;
+                let counter = 0;
+                while (true) {
+                    anchorId = 'H' + (counter > 0 ? counter : '') + '_' + tokens[tokenIdx+1].content; // +1 because the text is in the next token
+                    if (tocData.anchors.has(anchorId)) {
+                        counter++;
+                        continue;
+                    }
+                    tocData.anchors.add(anchorId);
+                    tocData.headingAnchors.set(token, anchorId);
+                    break;
+                }
 
                 // Put in custom token just before the heading -- will get translated to anchor when rendered
                 //   (Alternatively, you can add in a link_open and link_close tag instead of a custom token)
@@ -73,7 +82,7 @@ export class TocExtension implements Extension {
     private renderTocAnchor(markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext): string {
         const tocAnchorToken = tokens[tokenIdx];
         const tocAnchorId = tocAnchorToken.info;
-        return '<a name="' + markdownIt.utils.escapeHtml(tocAnchorId) + '"></a>';
+        return '<a name="' + encodeURIComponent(tocAnchorId) + '"></a>';
     }
 
     private renderToc(markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext): string {
@@ -118,7 +127,7 @@ export class TocExtension implements Extension {
                     throw 'Unable to find anchor for token';
                 }
                 ret += '<li>'
-                    + '<a href="#' + markdownIt.utils.escapeHtml(anchorId) + '">'
+                    + '<a href="#' + encodeURIComponent(anchorId) + '">'
                     + markdownIt.utils.escapeHtml(token.content)
                     + '</a>'
                     + '</li>\n';

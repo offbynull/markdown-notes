@@ -237,11 +237,11 @@ Example usage / output:
 
 OUTPUT NOT POSSIBLE BECAUSE THROWN ERROR WOULD CANCEL RENDER.
 
-## Redirecting
+## Redirecting (all instances)
 
 A bm / bm-ignore / bm-error tag can be redirected to another bm / bm-ignore / bm-error tag using `{bm} bm-redirect`, then reset back to normal using the `{bm} bm-reset` tag. That is, you can make it so that if the linker matches a piece of text, instead of performing the intended action, it'll perform the action for some other bookmark.
  
-The bm-direct tag takes in 4 arguments: `` `{bm-redirect} <SRC_REGEX>/<SRC_REGEX_FLAGS>/<DST_REGEX>/<DST_REGEX_FLAGS>` ``...
+The bm-redirect tag takes in 4 arguments: `` `{bm-redirect} <SRC_REGEX>/<SRC_REGEX_FLAGS>/<DST_REGEX>/<DST_REGEX_FLAGS>` ``...
 
  1. `<SRC_REGEX>`: Regex used by tag being redirected from.
 
@@ -305,11 +305,11 @@ Much of chemistry research is focused on the synthesis and characterization of b
 
 Every instance of product in paragraph above should be linked to the chemistry reference.
 
-## Targeting
+## Redirecting (single instance)
 
 Any piece of text can be directed directed to a bm tag it wasn't intended for using `{bm} bm-target`. That is, you can make it so that a piece of text specifically links to some other bookmark that wouldn't normally link that piece of text.
  
-The bm-direct tag takes in 3 arguments: `` `{bm-target} <OUTPUT>/<REGEX>/<REGEX_FLAGS>` ``...
+The bm-target tag takes in 3 arguments: `` `{bm-target} <OUTPUT>/<REGEX>/<REGEX_FLAGS>` ``...
 
  1. `<OUTPUT>`: Text to output and linkify.
 
