@@ -43,10 +43,10 @@
 </ul>
 <li><a href="#H_Image%20Annotations">Image Annotations</a></li>
 <li><a href="#H_File%20Output">File Output</a></li>
-<li><a href="#H_CSV%20Table">CSV Table</a></li>
 <li><a href="#H_Macro">Macro</a></li>
 <ul>
 <li><a href="#H_Macro%20Example%3A%20Note">Macro Example: Note</a></li>
+<li><a href="#H_CSV%20Table">CSV Table</a></li>
 <li><a href="#H_Macro%20Example%3A%20GraphViz">Macro Example: GraphViz</a></li>
 <li><a href="#H_Macro%20Example%3A%20PlantUML">Macro Example: PlantUML</a></li>
 <li><a href="#H_Macro%20Example%3A%20Svgbob">Macro Example: Svgbob</a></li>
@@ -503,35 +503,7 @@ java
 <p><strong>⚠️NOTE️️️⚠️</strong></p>
 <p>Be aware that the isolation regex (line 3) does not use a DOT_ALL flag. That is, the <code>.</code> meta-character doesn't match new lines. If you want to match new lines, use something like <code>[\s\S]</code> instance.</p>
 </div>
-<a name="H_CSV%20Table"></a><h1>CSV Table</h1>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p>Add a table using the CSV block tag:</p>
-<pre><code>```{csv}
-!!{ "firstLineHeader": true }
-Code,Country
-AFG,Afghanistan
-ALB,Albania
-ALG,Algeria
-ASA,American Samoa
-AND,Andorra
-ANG,Angola
-AIA,Anguilla
-ATG,Antigua and Barbuda
-```
-</code></pre>
-<p>Block output:</p>
-<table><tbody><tr><th>Code</th><th>Country</th></tr><tr><td>AFG</td><td>Afghanistan</td></tr><tr><td>ALB</td><td>Albania</td></tr><tr><td>ALG</td><td>Algeria</td></tr><tr><td>ASA</td><td>American Samoa</td></tr><tr><td>AND</td><td>Andorra</td></tr><tr><td>ANG</td><td>Angola</td></tr><tr><td>AIA</td><td>Anguilla</td></tr><tr><td>ATG</td><td>Antigua and Barbuda</td></tr></tbody></table><a name="H_Macro"></a><h1>Macro</h1>
+<a name="H_Macro"></a><h1>Macro</h1>
 <p>You can define custom inline and block tags specific to your markdown environment (macros). When invoked, a custom tag pulls down a user-defined container (pulled from Dockerhub) and launches a custom script on it to process inputs from your markdown environment. The output of the container gets rendered as normal markdown as if it were normal markdown.</p>
 <p>A custom tag is defined by placing a special directory in the same directory as your input.md file. The name of the directory must end with either...</p>
 <ul>
@@ -610,7 +582,43 @@ This is a custom note.
 <p>This is a custom note.</p>
 <p><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Generic_Camera_Icon.svg/200px-Generic_Camera_Icon.svg.png" alt="Image Example"></p>
 </div>
-<a name="H_Macro%20Example%3A%20GraphViz"></a><h2>Macro Example: GraphViz</h2>
+<a name="H_CSV%20Table"></a><h2>CSV Table</h2>
+<p>CSV parsing can be configured if by a single-line JSON object preceded by !!...</p>
+<pre class="hljs"><code><span class="hljs-keyword">let</span> config = {};
+<span class="hljs-keyword">if</span> (lines.length &gt; <span class="hljs-number">0</span> &amp;&amp; lines[<span class="hljs-number">0</span>].startsWith(<span class="hljs-string">'!!'</span>)) {
+    <span class="hljs-keyword">try</span> {
+        <span class="hljs-keyword">const</span> configText = lines[<span class="hljs-number">0</span>].substring(<span class="hljs-number">2</span>);
+        config = <span class="hljs-built_in">JSON</span>.parse(configText);
+        <span class="hljs-keyword">if</span> ((<span class="hljs-keyword">typeof</span>(config.firstLineHeader) === <span class="hljs-string">'boolean'</span> || config.firstLineHeader === <span class="hljs-literal">undefined</span>)
+                &amp;&amp; (<span class="hljs-keyword">typeof</span>(config.quote) === <span class="hljs-string">'string'</span> || config.quote === <span class="hljs-literal">undefined</span>)
+                &amp;&amp; (<span class="hljs-keyword">typeof</span>(config.delimiter) === <span class="hljs-string">'string'</span> || config.delimiter === <span class="hljs-literal">undefined</span>)
+                &amp;&amp; (<span class="hljs-keyword">typeof</span>(config.escape) === <span class="hljs-string">'string'</span> || config.escape === <span class="hljs-literal">undefined</span>)
+                &amp;&amp; (<span class="hljs-keyword">typeof</span>(config.comment) === <span class="hljs-string">'string'</span> || config.comment === <span class="hljs-literal">undefined</span>)
+                &amp;&amp; (<span class="hljs-keyword">typeof</span>(config.skipEmptyLines) === <span class="hljs-string">'boolean'</span> || config.skipEmptyLines === <span class="hljs-literal">undefined</span>)) {
+            lines.shift(); <span class="hljs-comment">// removes the first line</span>
+            content = lines.join(<span class="hljs-string">'\n'</span>);
+        } <span class="hljs-keyword">else</span> {
+            config = {};
+        }
+    } <span class="hljs-keyword">catch</span> (err) {
+        <span class="hljs-comment">// we couldn't parse the first line as a config, so just leave it in as-is</span>
+    }
+}</code></pre><p>Input:</p>
+<pre><code>```{csv}
+!!{ "firstLineHeader": true }
+Code,Country
+AFG,Afghanistan
+ALB,Albania
+ALG,Algeria
+ASA,American Samoa
+AND,Andorra
+ANG,Angola
+AIA,Anguilla
+ATG,Antigua and Barbuda
+```
+</code></pre>
+<p>Output:</p>
+<table><tbody><tr><th>Code</th><th>Country</th></tr><tr><td>AFG</td><td>Afghanistan</td></tr><tr><td>ALB</td><td>Albania</td></tr><tr><td>ALG</td><td>Algeria</td></tr><tr><td>ASA</td><td>American Samoa</td></tr><tr><td>AND</td><td>Andorra</td></tr><tr><td>ANG</td><td>Angola</td></tr><tr><td>AIA</td><td>Anguilla</td></tr><tr><td>ATG</td><td>Antigua and Barbuda</td></tr></tbody></table><a name="H_Macro%20Example%3A%20GraphViz"></a><h2>Macro Example: GraphViz</h2>
 <p>Input:</p>
 <pre><code>```{dot}
 digraph {

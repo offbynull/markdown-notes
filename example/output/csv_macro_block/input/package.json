@@ -1,0 +1,10 @@
+{
+    "scripts": {
+    "start": "node code.js"
+    },
+    "dependencies": {
+        "csv-parse": "^4.12.0"
+    },
+    "devDependencies": {
+    }
+}

@@ -562,64 +562,6 @@ The output will automatically be un-indented.
 Be aware that the isolation regex (line 3) does not use a DOT_ALL flag. That is, the `.` meta-character doesn't match new lines. If you want to match new lines, use something like `[\s\S]` instance.
 ```
 
-# CSV Table
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-Add a table using the CSV block tag:
-
-````
-```{csv}
-!!{ "firstLineHeader": true }
-Code,Country
-AFG,Afghanistan
-ALB,Albania
-ALG,Algeria
-ASA,American Samoa
-AND,Andorra
-ANG,Angola
-AIA,Anguilla
-ATG,Antigua and Barbuda
-```
-````
-
-Block output:
-
-```{csv}
-!!{ "firstLineHeader": true }
-Code,Country
-AFG,Afghanistan
-ALB,Albania
-ALG,Algeria
-ASA,American Samoa
-AND,Andorra
-ANG,Angola
-AIA,Anguilla
-ATG,Antigua and Barbuda
-```
-
 # Macro
 
 You can define custom inline and block tags specific to your markdown environment (macros). When invoked, a custom tag pulls down a user-defined container (pulled from Dockerhub) and launches a custom script on it to process inputs from your markdown environment. The output of the container gets rendered as normal markdown as if it were normal markdown.
@@ -719,6 +661,48 @@ Output:
 This is a custom note.
 
 ![Image Example](https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Generic_Camera_Icon.svg/200px-Generic_Camera_Icon.svg.png)
+```
+
+## CSV Table
+
+CSV parsing can be configured if by a single-line JSON object preceded by !!...
+
+```{output}
+csv_macro_block/input/code.js
+js
+// MARKDOWN_CONFIG\s*\n([\s\S]+)\n\s*// MARKDOWN_CONFIG
+```
+
+Input:
+
+````
+```{csv}
+!!{ "firstLineHeader": true }
+Code,Country
+AFG,Afghanistan
+ALB,Albania
+ALG,Algeria
+ASA,American Samoa
+AND,Andorra
+ANG,Angola
+AIA,Anguilla
+ATG,Antigua and Barbuda
+```
+````
+
+Output:
+
+```{csv}
+!!{ "firstLineHeader": true }
+Code,Country
+AFG,Afghanistan
+ALB,Albania
+ALG,Algeria
+ASA,American Samoa
+AND,Andorra
+ANG,Angola
+AIA,Anguilla
+ATG,Antigua and Barbuda
 ```
 
 ## Macro Example: GraphViz

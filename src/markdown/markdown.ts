@@ -23,11 +23,9 @@ import { JSDOM } from 'jsdom';
 import { extender, ExtenderConfig } from './extender_plugin';
 import { TocExtension } from './table_of_contents_extension';
 import { BookmarkExtension, BookmarkReferenceIgnoreExtension, BookmarkLinkerControllerExtension, BookmarkReferenceTargetExtension } from './bookmark_extension';
-import { NoteExtension } from './note_extension';
 import { MathJaxExtension } from './mathjax_extension';
 import { TitleExtension } from './title_extension';
 import { KatexExtension } from './katex_extension';
-import { CsvExtension } from './csv_extension';
 import { ImageExtension } from './image_extension';
 import { OutputExtension } from './output_extension';
 import { MacroDefinition } from './macro_helper';
@@ -62,7 +60,6 @@ export default class Markdown {
         extenderConfig.register(new ImageExtension());
         extenderConfig.register(new MathJaxExtension());
         extenderConfig.register(new KatexExtension());
-        extenderConfig.register(new CsvExtension());
 
         for (const customMacroDefinition of customMacroDefinitions) {
             extenderConfig.register(new CustomMacroExtension(customMacroDefinition));
