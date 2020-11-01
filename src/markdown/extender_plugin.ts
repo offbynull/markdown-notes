@@ -74,7 +74,7 @@ export class ExtensionContext {
         const genPath = `.datadir_${md5(sourcePathRelativeToInput)}`;
         FileSystemExtras.ensureDirSync(this.realBasePath + '/' + genPath);
         FileSystemExtras.copySync(sourcePath, this.realBasePath + '/' + genPath);
-        return this.htmlBasePath + '/' + genPath;
+        return (this.htmlBasePath === '' ? '' : this.htmlBasePath + '/') + genPath;
     }
 
     public injectFile(sourcePath: string): string {
@@ -84,7 +84,7 @@ export class ExtensionContext {
         const genPath = `.datafile_${md5(sourcePathRelativeToInput)}`;
         FileSystemExtras.ensureDirSync(this.realBasePath + '/' + genPath);
         FileSystemExtras.copyFileSync(sourcePath, this.realBasePath + '/' + genPath + '/' + filename);
-        return this.htmlBasePath + '/' + genPath + '/' + filename;
+        return (this.htmlBasePath === '' ? '' : this.htmlBasePath + '/') + genPath + '/' + filename;
     }
 }
 

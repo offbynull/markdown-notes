@@ -92,7 +92,7 @@ export default class Markdown {
         const githubMarkdownGenPath = `.temp_githib_css`;
         FileSystemExtras.ensureDirSync(this.realBasePath + '/' + githubMarkdownGenPath);
         FileSystemExtras.copySync('node_modules/github-markdown-css', this.realBasePath + '/' + githubMarkdownGenPath);
-        const githubMarkdownHtmlPath = this.htmlBasePath + '/' + githubMarkdownGenPath;
+        const githubMarkdownHtmlPath = (this.htmlBasePath === '' ? '' : this.htmlBasePath + '/') + githubMarkdownGenPath;
 
         const githubCssElem = document.createElement('link');
         githubCssElem.setAttribute('href', githubMarkdownHtmlPath + '/github-markdown.css');
@@ -106,7 +106,7 @@ export default class Markdown {
         const highlightJsGenPath = `.temp_highlightjs_css`;
         FileSystemExtras.ensureDirSync(this.realBasePath + '/' + highlightJsGenPath);
         FileSystemExtras.copySync('node_modules/highlight.js/styles', this.realBasePath + '/' + highlightJsGenPath);
-        const highlightJsHtmlPath = this.htmlBasePath + '/' + highlightJsGenPath;
+        const highlightJsHtmlPath = (this.htmlBasePath === '' ? '' : this.htmlBasePath + '/') + highlightJsGenPath;
 
         const highlightJsCssElem = document.createElement('link');
         highlightJsCssElem.setAttribute('href', highlightJsHtmlPath + '/default.css');
