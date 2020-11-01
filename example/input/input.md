@@ -646,9 +646,14 @@ The `settings.json` file can be used to pass in extra (shared) inputs to the con
 
 ```json
 {
-    "copyInputs": [ "shared_dir1", "shared_dir2" ]  // Dirs in the root markdown environment that'll
+    "copyInputs": [ "shared_dir1", "shared_dir2" ], // Dirs in the root markdown environment that'll
                                                     // be made available in the container's /input/
                                                     // directory when it runs. 
+    "injectScriptInputs": {                 // CSS and JS files that are expected to be generated in
+        "scriptinject_sample1.css": "css",  // in the container's /output/ directory that'll be made
+        "scriptinject_sample2.css": "css",  // available and injected into the rendered HTML.
+        "scriptinject_sample1.js": "js"
+    }
 }
 ```
 
@@ -696,7 +701,7 @@ hello block
 
 Some text before. `{testmacroinline} hello inline` Some text after.
 
-# Macro Example: Note
+## Macro Example: Note
 
 Input:
 
@@ -857,6 +862,23 @@ Output:
 ```
 
 All preamble and postamble text for the LaTeX document is automatically added by this extension -- only the chemfig LaTeX package is loaded.  For details on chemfig syntax, see [here](https://en.wikibooks.org/w/index.php?title=LaTeX/Chemical_Graphics&oldid=3452092).
+
+
+## Macro Example: Script Injection (CSS/JS)
+
+Input:
+
+````
+```{scriptinject}
+test
+```
+````
+
+Output:
+
+```{scriptinject}
+test
+```
 
 # Standard Markdown
 

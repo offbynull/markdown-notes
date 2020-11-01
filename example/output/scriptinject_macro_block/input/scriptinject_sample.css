@@ -1,0 +1,3 @@
+.SCRIPTINJECT_CLASS:after {
+    content: "|this text was added by the css|";
+  }

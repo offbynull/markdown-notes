@@ -1,0 +1,7 @@
+{
+    "copyInputs": [],
+    "injectScriptInputs": {
+        "scriptinject_sample.css": "css",
+        "scriptinject_sample.js": "js"
+    }
+}

@@ -24,6 +24,7 @@ export interface MacroDefinition {
     readonly type: MacroType;
     readonly directory: string; // macro directory (relative to root markdown input directory)
     readonly inputOverridePaths: string[]; // paths to copy over as macro inputs prior to running the macro  (relative to root markdown input directory)
+    readonly inputInjectScriptPaths: { [key: string]: 'css' | 'js' }; // paths to copy over and inject as scripts into <head>  (relative to root markdown input directory)
 }
 
 export enum MacroType {
@@ -68,7 +69,8 @@ export function macroScan(dir: string): MacroDefinition[] {
             name: name,
             type: type,
             directory: childDir,
-            inputOverridePaths: settings.copyInputs
+            inputOverridePaths: settings.copyInputs,
+            inputInjectScriptPaths: settings.injectScriptInputs
         })
     }
 
@@ -116,12 +118,29 @@ function parseSettingsFile(settingsFile: string) {
     if (typeof settingsObj !== 'object') {
         throw new Error('Expected JSON object in settings file: ' + JSON.stringify(settingsObj));
     }
-    const settingsCopyInputsArr = settingsObj['copyInputs'];
+
+    const unknownKeys = Object.keys(settingsObj).filter(e => e !== 'copyInputs' && e !== 'injectScriptInputs');
+    if (unknownKeys.length > 0) {
+        throw new Error('Unexpected keys in JSON object: ' + JSON.stringify(settingsObj));
+    }
+
+    const settingsCopyInputsArr = settingsObj['copyInputs'] || [];
     if (!Array.isArray(settingsCopyInputsArr) || (settingsCopyInputsArr as String[]).filter(x => typeof x !== 'string').length > 0) {
         throw new Error('Expected a copyInputs setting of type String[]: ' + JSON.stringify(settingsObj));
     }
 
+    const settingsInjectScriptInputsObjs = settingsObj['injectScriptInputs'] || {};
+    if (typeof settingsInjectScriptInputsObjs !== 'object' || Array.isArray(settingsInjectScriptInputsObjs)) {
+        throw new Error('Expected a injectScriptInputs setting of type object (not array): ' + JSON.stringify(settingsObj));
+    }
+    for (const k in settingsInjectScriptInputsObjs) {
+        if (['css', 'js'].indexOf(settingsInjectScriptInputsObjs[k]) === -1) {
+            throw new Error('Expected a injectScriptInputs setting value to be either css or js: ' + JSON.stringify(settingsObj));
+        }
+    }
+
     return {
-        copyInputs: settingsCopyInputsArr as string[]
+        copyInputs: settingsCopyInputsArr as string[],
+        injectScriptInputs: settingsInjectScriptInputsObjs as { [key: string]: 'css' | 'js' }
     }
 }

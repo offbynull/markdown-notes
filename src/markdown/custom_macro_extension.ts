@@ -26,6 +26,7 @@ import { MacroDefinition, MacroType, macroDirectoryCheck } from './macro_helper'
 import StateCore from 'markdown-it/lib/rules_core/state_core';
 import StateInline from 'markdown-it/lib/rules_inline/state_inline';
 import StateBlock from 'markdown-it/lib/rules_block/state_block';
+import { JSDOM } from 'jsdom';
 
 export class CustomMacroExtension implements Extension {
     public readonly tokenIds: ReadonlyArray<TokenIdentifier>;
@@ -102,6 +103,34 @@ export class CustomMacroExtension implements Extension {
             state.tokens.pop();
             newTokens.forEach(t => state.tokens.push(t));
         }
+    }
+
+    public postHtml(dom: JSDOM, context: ExtensionContext): JSDOM {
+        const document = dom.window.document;
+    
+        const headElement = document.getElementsByTagName('head')[0];
+        for (const k in this.definition.inputInjectScriptPaths) {
+            const scriptHtmlBasePath = k;
+            const scriptType = this.definition.inputInjectScriptPaths[k];
+
+            switch (scriptType) {
+                case 'js':
+                    const scriptElem = document.createElement('script');
+                    scriptElem.setAttribute('src', scriptHtmlBasePath);
+                    headElement.appendChild(scriptElem);
+                    break;
+                case 'css':
+                    const linkElem = document.createElement('link');
+                    linkElem.setAttribute('href', scriptHtmlBasePath);
+                    linkElem.setAttribute('rel', 'stylesheet');
+                    headElement.appendChild(linkElem);
+                    break;
+                default:
+                    throw new Error('This should never happen');
+            }
+        }
+
+        return dom;
     }
 }
 
