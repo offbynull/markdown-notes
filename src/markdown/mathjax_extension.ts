@@ -45,9 +45,9 @@ export class MathJaxExtension implements Extension {
         }
     }
 
-    public postHtml(dom: JSDOM, context: ExtensionContext): JSDOM {
+    public postHtml(dom: JSDOM, context: ExtensionContext) {
         if (!context.shared.has(MATHJAX_INSERTED)) {
-            return dom;
+            return;
         }
     
         const document = dom.window.document;
@@ -88,8 +88,5 @@ export class MathJaxExtension implements Extension {
         mjScriptElem.setAttribute('type', 'text/javascript');
         mjScriptElem.setAttribute('src', mathjaxHtmlPath + '/MathJax.js');
         headElement.appendChild(mjScriptElem);
-
-
-        return dom;
     }
 }

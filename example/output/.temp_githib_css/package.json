@@ -1,31 +1,26 @@
 {
-  "_args": [
-    [
-      "github-markdown-css@4.0.0",
-      "/home/user/markdown-notes"
-    ]
-  ],
-  "_from": "github-markdown-css@4.0.0",
+  "_from": "github-markdown-css@^4.0.0",
   "_id": "github-markdown-css@4.0.0",
   "_inBundle": false,
   "_integrity": "sha512-mH0bcIKv4XAN0mQVokfTdKo2OD5K8WJE9+lbMdM32/q0Ie5tXgVN/2o+zvToRMxSTUuiTRcLg5hzkFfOyBYreg==",
   "_location": "/github-markdown-css",
   "_phantomChildren": {},
   "_requested": {
-    "type": "version",
+    "type": "range",
     "registry": true,
-    "raw": "github-markdown-css@4.0.0",
+    "raw": "github-markdown-css@^4.0.0",
     "name": "github-markdown-css",
     "escapedName": "github-markdown-css",
-    "rawSpec": "4.0.0",
+    "rawSpec": "^4.0.0",
     "saveSpec": null,
-    "fetchSpec": "4.0.0"
+    "fetchSpec": "^4.0.0"
   },
   "_requiredBy": [
     "/"
   ],
   "_resolved": "https://registry.npmjs.org/github-markdown-css/-/github-markdown-css-4.0.0.tgz",
-  "_spec": "4.0.0",
+  "_shasum": "be9f4caf7a389228d4c368336260ffc909061f35",
+  "_spec": "github-markdown-css@^4.0.0",
   "_where": "/home/user/markdown-notes",
   "author": {
     "name": "Sindre Sorhus",
@@ -35,6 +30,8 @@
   "bugs": {
     "url": "https://github.com/sindresorhus/github-markdown-css/issues"
   },
+  "bundleDependencies": false,
+  "deprecated": false,
   "description": "The minimal amount of CSS to replicate the GitHub Markdown style",
   "devDependencies": {
     "generate-github-markdown-css": "^4.0.0"

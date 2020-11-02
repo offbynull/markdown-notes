@@ -504,34 +504,35 @@ The `settings.json` file can be used to configure how the macro operates and wha
 
  * Hardcoded extra (shared) inputs can be passed to the container when it runs via `copyInputs`. For example, multiple macros may require the same shared piece of code. Rather than placing a copy of that code in each tag's `input/` directory, you can place a single copy in the root of your markdown directory and have each tag reference it.
  * User-defined extra (shared) inputs can be passed to the container when it runs via `copyInputsPrefix`. For example, the user can reference a specific image file for each usage of the macro to operate on.
- * Custom CSS and javascript files can be embedded in the rendered HTML when it runs via `injectScriptInputs`. For example, the first time a math typesetting macro gets invoked, it generates a special CSS/JS files that'll embed into the rendered HTML to help render the equations the user supplies.
 
 ```json
 {
-    "copyInputs": [ "shared_dir1", "shared_dir2" ], // Dirs in the root markdown environment that'll
+    "copyInputs": [ "shared_dir1", "shared_dir2" ], // Paths in the root markdown environment that'll
                                                     // be made available in the container's /input/
                                                     // directory when it runs. 
-    "copyInputsPrefix": "!", // If defined, when the user supplies the macro data in their markdown
-                             // they can start it with lines prefixed with this string (! in this
-                             // case). These lines are dirs in the root markdown environment that'll
-                             // be made available in the container's /input/ directory when it runs.
-    "injectScriptInputs": {                 // CSS and JS files that are expected to be generated in
-        "scriptinject_sample1.css": "css",  // in the container's /output/ directory that'll be made
-        "scriptinject_sample2.css": "css",  // available and injected into the rendered HTML's
-        "scriptinject_sample1.js": "js"     // <head> tag.
-    }
+    "copyInputsPrefix": "!", // If defined, when the macro is, the user  can start it with lines
+                             // prefixed with this string (! in this case). These lines are dirs in
+                             // the root markdown environment that'll be made available in the
+                             // container's /input/ directory when it runs.
 }
 ```
 
-Essentially, the `container` sub-directory contains the files required to setup the container and the `input` sub-directory contains the files to expose to the container. When the tag gets used, the launcher ...
+The `container` sub-directory contains the files required to setup the container and the `input` sub-directory contains the files to expose to the container. When the macro gets used, the launcher ...
 
  * copies `[MACRO_ENV_PATH]/input` to `/input` on the container.
  * copies `[MACRO_DIR]/settings.json` shared resources to `/input` on the container.
- * stores tag data to `/input/input.data` on the container.
+ * stores macro contents to `/input/input.data` on the container.
+ * stores macro `copyInputsPrefix` filepaths to `/input/input.files` on the container.
  * launches `/input/run.sh` on the container.
- * expects output markdown and any files required by it in `/output/output.md` on the container.
+ * expects output markdown in `/output/output.md` on the container.
+ * expects output css/js filepaths in `/output/output.injects` on the container (optional).
 
-Any other files generated inside the container's `/output` are assumed to be resources referenced by `/output/output.md` and as such will get copied over to the root markdown input directory. It's highly recommended that you place these resources in `/output/[RANDOM_OR_HASH_DIR]` instead of `/output`. Resources placed directly in `/output` may encounter name collisions when rendering.
+Any other files generated inside the container's `/output` are assumed to be resources referenced by `/output/output.md` or `/output.output.injects` and as such will get copied over to the root markdown input directory. It's highly recommended that you place these resources in `/output/[RANDOM_OR_HASH_DIR]` instead of `/output`. Resources placed directly in `/output` may encounter name collisions when rendering.
+
+The contents of ...
+
+ * `/output/output.md` is markdown text to replace the macro usage with.
+ * `/output/output.injections` is JSON of type `Array<[string, 'css' | 'js']>` (e.g. `[  ["file1.css", "css"], ["file2.js", "js"] ]`) to inject into the rendered HTML's head tag.
 
 ````{note}
 You can streamline the generation of `/output/[RANDOM_DIR]` via the shell -- for example:

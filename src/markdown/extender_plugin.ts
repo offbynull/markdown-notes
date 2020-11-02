@@ -54,6 +54,7 @@ export class ExtensionContext {
     public readonly realInputPath: string;
     public readonly realBasePath: string;
     public readonly htmlBasePath: string;
+    public readonly scriptInjections: Map<string, 'js' | 'css'>;
     public readonly shared: Map<string, any>;
 
     public constructor(
@@ -65,6 +66,7 @@ export class ExtensionContext {
         this.realInputPath = inputPath;
         this.realBasePath = realBasePath;
         this.htmlBasePath = htmlBasePath;
+        this.scriptInjections = new Map();
         this.shared = new Map();
     }
 
@@ -93,7 +95,7 @@ export interface Extension {
     process?: (markdownIt: MarkdownIt, token: Token, context: ExtensionContext, state: StateInline | StateBlock) => void;
     postProcess?: (markdownIt: MarkdownIt, tokens: Token[], context: ExtensionContext) => void;
     render?: (markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext) => string;
-    postHtml?: (dom: JSDOM, context: ExtensionContext) => JSDOM;
+    postHtml?: (dom: JSDOM, context: ExtensionContext) => void;
 }
 
 export class NameEntry {
@@ -199,16 +201,12 @@ function invokePostProcessors(extenderConfig: ExtenderConfig, markdownIt: Markdo
     }
 }
 
-function invokePostHtmls(extenderConfig: ExtenderConfig, dom: JSDOM, context: ExtensionContext): JSDOM {
+function invokePostHtmls(extenderConfig: ExtenderConfig, dom: JSDOM, context: ExtensionContext): void {
     for (const extension of extenderConfig.extensions()) {
         if (extension.postHtml !== undefined) {
-            const newDom = extension.postHtml(dom, context);
-            if (newDom !== undefined) {
-                dom = newDom;
-            }
+            extension.postHtml(dom, context);
         }
     }
-    return dom;
 }
 
 function addRenderersToMarkdown(extenderConfig: ExtenderConfig, markdownIt: MarkdownIt, context: ExtensionContext) {
@@ -344,6 +342,7 @@ export function extender(markdownIt: MarkdownIt, extenderConfig: ExtenderConfig)
     const oldMdRender = markdownIt.render;
     markdownIt.render = function(src, env): string {
         context.shared.clear(); // clear context's shared data
+        context.scriptInjections.clear(); // clear context's script injections
 
         let html = `
         <!DOCTYPE html>
@@ -356,7 +355,31 @@ export function extender(markdownIt: MarkdownIt, extenderConfig: ExtenderConfig)
         </html>`;
         
         let dom = new JSDOM(html);
-        dom = invokePostHtmls(extenderConfig, dom, context);
+        
+        // Inject scripts
+        if (context.scriptInjections.size > 0) {
+            const document = dom.window.document;
+            const headElement = document.getElementsByTagName('head')[0];
+            for (const [scriptHtmlBasePath, scriptType] of context.scriptInjections.entries()) {
+                switch (scriptType) {
+                    case 'js':
+                        const scriptElem = document.createElement('script');
+                        scriptElem.setAttribute('src', scriptHtmlBasePath);
+                        headElement.appendChild(scriptElem);
+                        break;
+                    case 'css':
+                        const linkElem = document.createElement('link');
+                        linkElem.setAttribute('href', scriptHtmlBasePath);
+                        linkElem.setAttribute('rel', 'stylesheet');
+                        headElement.appendChild(linkElem);
+                        break;
+                    default:
+                        throw new Error('This should never happen');
+                }
+            }
+        }
+        
+        invokePostHtmls(extenderConfig, dom, context);
 
         return dom.serialize(); // JsBeautify.html_beautify(dom.serialize());
     }

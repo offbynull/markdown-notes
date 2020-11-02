@@ -137,7 +137,7 @@ export function runMarkdownGeneratingContainer(
     return outputMd;
 }
 
-function runContainer(
+export function runContainer(
     friendlyName: string,
     containerDir: string,
     inputDir: string,

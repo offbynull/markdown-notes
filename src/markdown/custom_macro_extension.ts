@@ -21,7 +21,7 @@ import Path from 'path';
 import MarkdownIt from 'markdown-it';
 import Token from 'markdown-it/lib/token';
 import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
-import { runMarkdownGeneratingContainer } from './container_helper';
+import { runContainer } from './container_helper';
 import { MacroDefinition, MacroType, macroDirectoryCheck } from './macro_helper';
 import StateCore from 'markdown-it/lib/rules_core/state_core';
 import StateInline from 'markdown-it/lib/rules_inline/state_inline';
@@ -54,6 +54,8 @@ export class CustomMacroExtension implements Extension {
     public process(markdownIt: MarkdownIt, token: Token, context: ExtensionContext, state: StateInline | StateBlock): void {
         const definition = this.definition;
         const name = token.type;
+
+        // Pull out the user-defined content and user-defined input files to copy over 
         const data = (() => {
             const prefix = this.definition.inputOverridePathsPrefix;
             const raw = token.content; // DO NOT TRIM THIS
@@ -83,21 +85,21 @@ export class CustomMacroExtension implements Extension {
             }
         })();
 
-        
+        // Set files to generate in the container's input dir
+        const inputOverrides: Map<string, string> = new Map();
+        inputOverrides.set('input.data', data.content);
+        inputOverrides.set('input.files', [...data.inputCopyPaths].join('\n'));
         if (data.inputCopyPaths.has('input.data') || data.inputCopyPaths.has('input.files')) {
             throw Error(`Macro ${name} is trying to copy input.data and/or input.files as an input but those files are internally reserved and can't be overridden`);
         }
     
-        const inputOverrides: Map<string, string> = new Map();
-        inputOverrides.set('input.data', data.content);
-        inputOverrides.set('input.files', [...data.inputCopyPaths].join('\n'));
-    
+        // Setup container environment
         const dirInfo = macroDirectoryCheck(context.realInputPath, definition.directory);
         const workDir = FileSystem.mkdtempSync('/tmp/macroContainerTemp');
         FileSystem.mkdirpSync(workDir);
-        const outputDir = Path.resolve(workDir, 'output');
+        let outputDir = Path.resolve(workDir, 'output');
         FileSystem.mkdirpSync(outputDir);
-        const inputDir = (() => {
+        let inputDir = (() => {
             if (data.inputCopyPaths.size > 0) {
                 const tempInputDir = Path.resolve(workDir, 'input');
                 FileSystem.mkdirpSync(tempInputDir);
@@ -109,61 +111,79 @@ export class CustomMacroExtension implements Extension {
             }
         })();
     
-        const mdOutput = runMarkdownGeneratingContainer(
+        // Run container
+        const dirOverrides = runContainer(
             name,
             dirInfo.containerSetupDir,
             inputDir,
             inputOverrides,
             outputDir,
             [],
-            context
+            context.realCachePath);
+        inputDir = dirOverrides.updatedInputDir;  // new dir contains input overrides and user-defined inputs 
+        outputDir = dirOverrides.updatedOutputDir;  // may be cached output
+
+        // Read in output markdown and output script injections
+        const outputMd = (() => {
+            const path = Path.resolve(outputDir, 'output.md');
+            if (!FileSystem.existsSync(path) || !FileSystem.lstatSync(path).isFile()) {
+                throw new Error(`The macro ${name} didn't generate output.md`);
+            }
+            return FileSystem.readFileSync(path, { encoding: 'utf8' });
+        })();
+        const outputInjects = (() => {
+            const path = Path.resolve(outputDir, 'output.injects');
+            if (!FileSystem.existsSync(path) || !FileSystem.lstatSync(path).isFile()) {
+                return [];
+            }
+            if (!FileSystem.lstatSync(path).isFile()) {
+                throw new Error(`The macro ${name} generated output.injects but it was a dir instead of a file`);
+            }
+            const data = FileSystem.readFileSync(path, { encoding: 'utf8' });
+            const json = JSON.parse(data);
+            if (!Array.isArray(json)) {
+                throw new Error(`The macro ${name} generated output.injects that wasn't of type Array<[string, 'js' | 'css']>: ${data}`);
+            }
+            for (const tuple of json) {
+                if (!Array.isArray(tuple) || tuple.length !== 2 || typeof tuple[0] !== 'string' || (tuple[1] !== 'js' && tuple[1] !== 'css')) {
+                    throw new Error(`The macro ${name} generated output.injects that wasn't of type Array<[string, 'js' | 'css']>: ${data}`);
+                }
+            }
+            return json as Array<[string, 'js' | 'css']>;
+        })();
+
+        // Copy over output files generated to base path (do not copy output.md or output.injects, fail if a file already exists)
+        FileSystem.copySync(outputDir, context.realBasePath,
+            {
+                overwrite: true,
+                errorOnExist: true,
+                filter: (p) => Path.relative(outputDir, p) !== 'output.md' && Path.relative(outputDir, p) !== 'output.injects'
+            }
         );
     
+        // Remove container environment
         FileSystem.removeSync(workDir);
     
+        // Handle outputted markdown
         const newTokens: Token[] = [];
         if (token.block) {
-            state.md.block.parse(mdOutput, state.md, state.env, newTokens);
+            state.md.block.parse(outputMd, state.md, state.env, newTokens);
         } else {
-            state.md.inline.parse(mdOutput, state.md, state.env, newTokens);
+            state.md.inline.parse(outputMd, state.md, state.env, newTokens);
         }
-    
-        // Remove token original token and replace it with generated tokens. If no tokens were generated, DO NOT REMOVE ORIGINAL token -- you can't reduce the number below the original number of tokens because it'll
-        // screw up the extender plugin (the plugin that calls this chunk of code). Instead set the token to a no-op (will not render).
+          // Remove token original token and replace it with generated tokens. If no tokens were generated, DO NOT REMOVE ORIGINAL token -- you can't reduce the number below the original number of tokens because it'll
+          // screw up the extender plugin (the plugin that calls this chunk of code). Instead set the token to a no-op (will not render).
         if (newTokens.length === 0) {
             throw Error('No tokens generated by custom macro: ' + name);
         } else {
             state.tokens.pop();
             newTokens.forEach(t => state.tokens.push(t));
         }
-    }
 
-    public postHtml(dom: JSDOM, context: ExtensionContext): JSDOM {
-        const document = dom.window.document;
-    
-        const headElement = document.getElementsByTagName('head')[0];
-        for (const k in this.definition.inputInjectScriptPaths) {
-            const scriptHtmlBasePath = k;
-            const scriptType = this.definition.inputInjectScriptPaths[k];
-
-            switch (scriptType) {
-                case 'js':
-                    const scriptElem = document.createElement('script');
-                    scriptElem.setAttribute('src', scriptHtmlBasePath);
-                    headElement.appendChild(scriptElem);
-                    break;
-                case 'css':
-                    const linkElem = document.createElement('link');
-                    linkElem.setAttribute('href', scriptHtmlBasePath);
-                    linkElem.setAttribute('rel', 'stylesheet');
-                    headElement.appendChild(linkElem);
-                    break;
-                default:
-                    throw new Error('This should never happen');
-            }
+        // Handle outputted script injects
+        for (const oi of outputInjects) {
+            context.scriptInjections.set(oi[0], oi[1]);
         }
-
-        return dom;
     }
 }
 

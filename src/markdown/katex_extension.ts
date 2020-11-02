@@ -45,9 +45,9 @@ export class KatexExtension implements Extension {
         return html;
     }
 
-    public postHtml(dom: JSDOM, context: ExtensionContext): JSDOM {
+    public postHtml(dom: JSDOM, context: ExtensionContext) {
         if (!context.shared.has(KATEX_INSERTED)) {
-            return dom;
+            return;
         }
     
         const document = dom.window.document;
@@ -66,7 +66,5 @@ export class KatexExtension implements Extension {
         // scriptElem.setAttribute('type', 'text/javascript');
         // scriptElem.setAttribute('src', 'node_modules/katex/dist/katex.js');
         // headElement.appendChild(scriptElem);
-
-        return dom;
     }
 }

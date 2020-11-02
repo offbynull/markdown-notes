@@ -37,10 +37,10 @@ export class TitleExtension implements Extension {
         context.shared.set('title', title);
     }
 
-    public postHtml(dom: JSDOM, context: ExtensionContext): JSDOM {
+    public postHtml(dom: JSDOM, context: ExtensionContext) {
         const title = context.shared.get('title');
         if (title === undefined) {
-            return dom;
+            return;
         }
 
         const document = dom.window.document;
@@ -49,7 +49,5 @@ export class TitleExtension implements Extension {
         const titleElem = document.createElement('title');
         titleElem.text = title;
         headElement.appendChild(titleElem);
-
-        return dom;
     }
 }
