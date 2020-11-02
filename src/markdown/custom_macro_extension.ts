@@ -52,12 +52,45 @@ export class CustomMacroExtension implements Extension {
     }
 
     public process(markdownIt: MarkdownIt, token: Token, context: ExtensionContext, state: StateInline | StateBlock): void {
-        const content = token.content; // DO NOT TRIM THIS
-        const name = token.type;
         const definition = this.definition;
+        const name = token.type;
+        const data = (() => {
+            const prefix = this.definition.inputOverridePathsPrefix;
+            const raw = token.content; // DO NOT TRIM THIS
+            const files = new Set<string>(definition.inputOverridePaths);
+            let content = '';
+            if (prefix !== undefined) {
+                const lines = raw.split('\n');
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    if (line.startsWith(prefix)) {
+                        const path = line.slice(prefix.length);
+                        files.add(path);
+                    } else {
+                        content = lines.slice(i).join('\n');
+                        break;
+                    }
+                }
+                return {
+                    inputCopyPaths: files,
+                    content: content
+                }
+            } else {
+                return {
+                    inputCopyPaths: new Set<string>(),
+                    content: raw
+                };
+            }
+        })();
+
+        
+        if (data.inputCopyPaths.has('input.data') || data.inputCopyPaths.has('input.files')) {
+            throw Error(`Macro ${name} is trying to copy input.data and/or input.files as an input but those files are internally reserved and can't be overridden`);
+        }
     
         const inputOverrides: Map<string, string> = new Map();
-        inputOverrides.set('input.data', content);
+        inputOverrides.set('input.data', data.content);
+        inputOverrides.set('input.files', [...data.inputCopyPaths].join('\n'));
     
         const dirInfo = macroDirectoryCheck(context.realInputPath, definition.directory);
         const workDir = FileSystem.mkdtempSync('/tmp/macroContainerTemp');
@@ -65,11 +98,11 @@ export class CustomMacroExtension implements Extension {
         const outputDir = Path.resolve(workDir, 'output');
         FileSystem.mkdirpSync(outputDir);
         const inputDir = (() => {
-            if (definition.inputOverridePaths.length > 0) {
+            if (data.inputCopyPaths.size > 0) {
                 const tempInputDir = Path.resolve(workDir, 'input');
                 FileSystem.mkdirpSync(tempInputDir);
                 FileSystem.copySync(dirInfo.containerInputDir, tempInputDir); // copy original inputs folder to new inputs folder
-                copyPaths(context.realInputPath, definition.inputOverridePaths, tempInputDir); // copy requested files from root markdown input folder to new inputs folder
+                copyPaths(context.realInputPath, [...data.inputCopyPaths], tempInputDir); // copy requested files from root markdown input folder to new inputs folder
                 return tempInputDir;
             } else {
                 return dirInfo.containerInputDir;

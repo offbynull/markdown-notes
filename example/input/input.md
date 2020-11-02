@@ -593,8 +593,8 @@ The `settings.json` file can be used to pass in extra (shared) inputs to the con
                                                     // directory when it runs. 
     "injectScriptInputs": {                 // CSS and JS files that are expected to be generated in
         "scriptinject_sample1.css": "css",  // in the container's /output/ directory that'll be made
-        "scriptinject_sample2.css": "css",  // available and injected into the rendered HTML.
-        "scriptinject_sample1.js": "js"
+        "scriptinject_sample2.css": "css",  // available and injected into the rendered HTML's
+        "scriptinject_sample1.js": "js"     // <head> tag.
     }
 }
 ```
@@ -643,7 +643,7 @@ hello block
 
 Some text before. `{testmacroinline} hello inline` Some text after.
 
-## Macro Example: Note
+## Example: Note
 
 Input:
 
@@ -663,7 +663,7 @@ This is a custom note.
 ![Image Example](https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Generic_Camera_Icon.svg/200px-Generic_Camera_Icon.svg.png)
 ```
 
-## CSV Table
+## Example: CSV Table
 
 CSV parsing can be configured if by a single-line JSON object preceded by !!...
 
@@ -705,7 +705,7 @@ AIA,Anguilla
 ATG,Antigua and Barbuda
 ```
 
-## Macro Example: GraphViz
+## Example: GraphViz
 
 Input:
 
@@ -729,7 +729,7 @@ digraph {
 }
 ```
 
-## Macro Example: PlantUML
+## Example: PlantUML
 
 Input:
 
@@ -767,35 +767,19 @@ class Enrollment {
 @enduml
 ```
 
-## Macro Example: Svgbob
+## Example: Svgbob
 
 Input:
 
 ````
 ```{svgbob}
-    .----.        .----.
-   /      \      /      \            .-----+-----+-----.
-  +        +----+        +----.      |     |     |     |          .-----+-----+-----+-----+
-   \      /      \      /      \     |     |     |     |         /     /     /     /     /
-    +----+        +----+        +    +-----+-----+-----+        +-----+-----+-----+-----+
-   /      \      /      \      /     |     |     |     |       /     /     /     /     /
-  +        +----+        +----+      |     |     |     |      +-----+-----+-----+-----+
-   \      /      \      /      \     +-----+-----+-----+     /     /     /     /     /
-    '----+        +----+        +    |     |     |     |    +-----+-----+-----+-----+
-          \      /      \      /     |     |     |     |   /     /     /     /     /
-           '----'        '----'      '-----+-----+-----'  '-----+-----+-----+-----+
-
-
-
-
-
-       ___     ___      .---+---+---+---+---.     .---+---+---+---.  .---.   .---.
-   ___/   \___/   \     |   |   |   |   |   |    / \ / \ / \ / \ /   |   +---+   |
-  /   \___/   \___/     +---+---+---+---+---+   +---+---+---+---+    +---+   +---+
-  \___/   \___/   \     |   |   |   |   |   |    \ / \ / \ / \ / \   |   +---+   |
-  /   \___/   \___/     +---+---+---+---+---+     +---+---+---+---+  +---+   +---+
-  \___/   \___/   \     |   |   |   |   |   |    / \ / \ / \ / \ /   |   +---+   |
-      \___/   \___/     '---+---+---+---+---'   '---+---+---+---'    '---'   '---'
+       ___     ___      
+   ___/   \___/   \     
+  /   \___/   \___/       Apple -----+
+  \___/   \___/   \                  +----> Orange
+  /   \___/   \___/       Banana ----+
+  \___/   \___/   \     
+      \___/   \___/     
 
 ```
 ````
@@ -803,33 +787,16 @@ Input:
 Output:
 
 ```{svgbob}
-    .----.        .----.
-   /      \      /      \            .-----+-----+-----.
-  +        +----+        +----.      |     |     |     |          .-----+-----+-----+-----+
-   \      /      \      /      \     |     |     |     |         /     /     /     /     /
-    +----+        +----+        +    +-----+-----+-----+        +-----+-----+-----+-----+
-   /      \      /      \      /     |     |     |     |       /     /     /     /     /
-  +        +----+        +----+      |     |     |     |      +-----+-----+-----+-----+
-   \      /      \      /      \     +-----+-----+-----+     /     /     /     /     /
-    '----+        +----+        +    |     |     |     |    +-----+-----+-----+-----+
-          \      /      \      /     |     |     |     |   /     /     /     /     /
-           '----'        '----'      '-----+-----+-----'  '-----+-----+-----+-----+
+       ___     ___      
+   ___/   \___/   \     
+  /   \___/   \___/       Apple -----+
+  \___/   \___/   \                  +----> Orange
+  /   \___/   \___/       Banana ----+
+  \___/   \___/   \     
+      \___/   \___/     
+```
 
-
-
-
-
-       ___     ___      .---+---+---+---+---.     .---+---+---+---.  .---.   .---.
-   ___/   \___/   \     |   |   |   |   |   |    / \ / \ / \ / \ /   |   +---+   |
-  /   \___/   \___/     +---+---+---+---+---+   +---+---+---+---+    +---+   +---+
-  \___/   \___/   \     |   |   |   |   |   |    \ / \ / \ / \ / \   |   +---+   |
-  /   \___/   \___/     +---+---+---+---+---+     +---+---+---+---+  +---+   +---+
-  \___/   \___/   \     |   |   |   |   |   |    / \ / \ / \ / \ /   |   +---+   |
-      \___/   \___/     '---+---+---+---+---'   '---+---+---+---'    '---'   '---'
-
-````
-
-## Macro Example: LaTeX Chemfig
+## Example: LaTeX Chemfig
 
 Input:
 
@@ -848,7 +815,7 @@ Output:
 All preamble and postamble text for the LaTeX document is automatically added by this extension -- only the chemfig LaTeX package is loaded.  For details on chemfig syntax, see [here](https://en.wikibooks.org/w/index.php?title=LaTeX/Chemical_Graphics&oldid=3452092).
 
 
-## Macro Example: Script Injection (CSS/JS)
+## Example: Script Injection (CSS/JS)
 
 Input:
 

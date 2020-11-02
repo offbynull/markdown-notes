@@ -45,13 +45,13 @@
 <li><a href="#H_File%20Output">File Output</a></li>
 <li><a href="#H_Macro">Macro</a></li>
 <ul>
-<li><a href="#H_Macro%20Example%3A%20Note">Macro Example: Note</a></li>
-<li><a href="#H_CSV%20Table">CSV Table</a></li>
-<li><a href="#H_Macro%20Example%3A%20GraphViz">Macro Example: GraphViz</a></li>
-<li><a href="#H_Macro%20Example%3A%20PlantUML">Macro Example: PlantUML</a></li>
-<li><a href="#H_Macro%20Example%3A%20Svgbob">Macro Example: Svgbob</a></li>
-<li><a href="#H_Macro%20Example%3A%20LaTeX%20Chemfig">Macro Example: LaTeX Chemfig</a></li>
-<li><a href="#H_Macro%20Example%3A%20Script%20Injection%20(CSS%2FJS)">Macro Example: Script Injection (CSS/JS)</a></li>
+<li><a href="#H_Example%3A%20Note">Example: Note</a></li>
+<li><a href="#H_Example%3A%20CSV%20Table">Example: CSV Table</a></li>
+<li><a href="#H_Example%3A%20GraphViz">Example: GraphViz</a></li>
+<li><a href="#H_Example%3A%20PlantUML">Example: PlantUML</a></li>
+<li><a href="#H_Example%3A%20Svgbob">Example: Svgbob</a></li>
+<li><a href="#H_Example%3A%20LaTeX%20Chemfig">Example: LaTeX Chemfig</a></li>
+<li><a href="#H_Example%3A%20Script%20Injection%20(CSS%2FJS)">Example: Script Injection (CSS/JS)</a></li>
 </ul>
 <li><a href="#H_Standard%20Markdown">Standard Markdown</a></li>
 <ul>
@@ -529,8 +529,8 @@ java
                                                     <span class="hljs-comment">// directory when it runs. </span>
     <span class="hljs-attr">"injectScriptInputs"</span>: {                 <span class="hljs-comment">// CSS and JS files that are expected to be generated in</span>
         <span class="hljs-attr">"scriptinject_sample1.css"</span>: <span class="hljs-string">"css"</span>,  <span class="hljs-comment">// in the container's /output/ directory that'll be made</span>
-        <span class="hljs-attr">"scriptinject_sample2.css"</span>: <span class="hljs-string">"css"</span>,  <span class="hljs-comment">// available and injected into the rendered HTML.</span>
-        <span class="hljs-attr">"scriptinject_sample1.js"</span>: <span class="hljs-string">"js"</span>
+        <span class="hljs-attr">"scriptinject_sample2.css"</span>: <span class="hljs-string">"css"</span>,  <span class="hljs-comment">// available and injected into the rendered HTML's</span>
+        <span class="hljs-attr">"scriptinject_sample1.js"</span>: <span class="hljs-string">"js"</span>     <span class="hljs-comment">// &lt;head&gt; tag.</span>
     }
 }
 </code></pre>
@@ -568,7 +568,7 @@ Some text before. `{testmacroinline} hello inline` Some text after.
 <p>This is an BLOCK macro that outputs Markdown text with a link: <a href="http://www.google.com">hello block
 </a>!</p>
 <p>Some text before. <code>{testmacroinline} hello inline</code> Some text after.</p>
-<a name="H_Macro%20Example%3A%20Note"></a><h2>Macro Example: Note</h2>
+<a name="H_Example%3A%20Note"></a><h2>Example: Note</h2>
 <p>Input:</p>
 <pre><code>```{note}
 This is a custom note.
@@ -582,7 +582,7 @@ This is a custom note.
 <p>This is a custom note.</p>
 <p><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Generic_Camera_Icon.svg/200px-Generic_Camera_Icon.svg.png" alt="Image Example"></p>
 </div>
-<a name="H_CSV%20Table"></a><h2>CSV Table</h2>
+<a name="H_Example%3A%20CSV%20Table"></a><h2>Example: CSV Table</h2>
 <p>CSV parsing can be configured if by a single-line JSON object preceded by !!...</p>
 <pre class="hljs"><code><span class="hljs-keyword">let</span> config = {};
 <span class="hljs-keyword">if</span> (lines.length &gt; <span class="hljs-number">0</span> &amp;&amp; lines[<span class="hljs-number">0</span>].startsWith(<span class="hljs-string">'!!'</span>)) {
@@ -618,7 +618,7 @@ ATG,Antigua and Barbuda
 ```
 </code></pre>
 <p>Output:</p>
-<table><tbody><tr><th>Code</th><th>Country</th></tr><tr><td>AFG</td><td>Afghanistan</td></tr><tr><td>ALB</td><td>Albania</td></tr><tr><td>ALG</td><td>Algeria</td></tr><tr><td>ASA</td><td>American Samoa</td></tr><tr><td>AND</td><td>Andorra</td></tr><tr><td>ANG</td><td>Angola</td></tr><tr><td>AIA</td><td>Anguilla</td></tr><tr><td>ATG</td><td>Antigua and Barbuda</td></tr></tbody></table><a name="H_Macro%20Example%3A%20GraphViz"></a><h2>Macro Example: GraphViz</h2>
+<table><tbody><tr><th>Code</th><th>Country</th></tr><tr><td>AFG</td><td>Afghanistan</td></tr><tr><td>ALB</td><td>Albania</td></tr><tr><td>ALG</td><td>Algeria</td></tr><tr><td>ASA</td><td>American Samoa</td></tr><tr><td>AND</td><td>Andorra</td></tr><tr><td>ANG</td><td>Angola</td></tr><tr><td>AIA</td><td>Anguilla</td></tr><tr><td>ATG</td><td>Antigua and Barbuda</td></tr></tbody></table><a name="H_Example%3A%20GraphViz"></a><h2>Example: GraphViz</h2>
 <p>Input:</p>
 <pre><code>```{dot}
 digraph {
@@ -630,7 +630,7 @@ digraph {
 </code></pre>
 <p>Output:</p>
 <p><img src="dot_59d63763e988a01556f092eca0b19207.svg" alt="Dot diagram"></p>
-<a name="H_Macro%20Example%3A%20PlantUML"></a><h2>Macro Example: PlantUML</h2>
+<a name="H_Example%3A%20PlantUML"></a><h2>Example: PlantUML</h2>
 <p>Input:</p>
 <pre><code>```{plantuml}
 @startuml
@@ -649,38 +649,22 @@ class Enrollment {
 </code></pre>
 <p>Output:</p>
 <p><img src="puml_2e593481102b7152ad361c0ae50622e8.svg" alt="PlantUML diagram"></p>
-<a name="H_Macro%20Example%3A%20Svgbob"></a><h2>Macro Example: Svgbob</h2>
+<a name="H_Example%3A%20Svgbob"></a><h2>Example: Svgbob</h2>
 <p>Input:</p>
 <pre><code>```{svgbob}
-    .----.        .----.
-   /      \      /      \            .-----+-----+-----.
-  +        +----+        +----.      |     |     |     |          .-----+-----+-----+-----+
-   \      /      \      /      \     |     |     |     |         /     /     /     /     /
-    +----+        +----+        +    +-----+-----+-----+        +-----+-----+-----+-----+
-   /      \      /      \      /     |     |     |     |       /     /     /     /     /
-  +        +----+        +----+      |     |     |     |      +-----+-----+-----+-----+
-   \      /      \      /      \     +-----+-----+-----+     /     /     /     /     /
-    '----+        +----+        +    |     |     |     |    +-----+-----+-----+-----+
-          \      /      \      /     |     |     |     |   /     /     /     /     /
-           '----'        '----'      '-----+-----+-----'  '-----+-----+-----+-----+
-
-
-
-
-
-       ___     ___      .---+---+---+---+---.     .---+---+---+---.  .---.   .---.
-   ___/   \___/   \     |   |   |   |   |   |    / \ / \ / \ / \ /   |   +---+   |
-  /   \___/   \___/     +---+---+---+---+---+   +---+---+---+---+    +---+   +---+
-  \___/   \___/   \     |   |   |   |   |   |    \ / \ / \ / \ / \   |   +---+   |
-  /   \___/   \___/     +---+---+---+---+---+     +---+---+---+---+  +---+   +---+
-  \___/   \___/   \     |   |   |   |   |   |    / \ / \ / \ / \ /   |   +---+   |
-      \___/   \___/     '---+---+---+---+---'   '---+---+---+---'    '---'   '---'
+       ___     ___      
+   ___/   \___/   \     
+  /   \___/   \___/       Apple -----+
+  \___/   \___/   \                  +----&gt; Orange
+  /   \___/   \___/       Banana ----+
+  \___/   \___/   \     
+      \___/   \___/     
 
 ```
 </code></pre>
 <p>Output:</p>
-<p><img src="svgbob_2abe3d0062e88646df38279d10271f117d9c3ae6.svg" alt="Kroki diagram output"></p>
-<a name="H_Macro%20Example%3A%20LaTeX%20Chemfig"></a><h2>Macro Example: LaTeX Chemfig</h2>
+<p><img src="svgbob_05ea54598992175539a50ea7c6060374aa2ced71.svg" alt="Kroki diagram output"></p>
+<a name="H_Example%3A%20LaTeX%20Chemfig"></a><h2>Example: LaTeX Chemfig</h2>
 <p>Input:</p>
 <pre><code>```{chemfig}
 \chemfig{Cl-[6]Co(&lt;:[3]H_2O)(&lt;[5]H_2O)(&lt;[7]H_2O)(&lt;:[9]H_2O)-[6]Cl}
@@ -689,14 +673,14 @@ class Enrollment {
 <p>Output:</p>
 <p><img src="chemfig_22454110f0d60b9cc0cbf57e5f88ff9a.svg" alt="Chemfig diagram"></p>
 <p>All preamble and postamble text for the LaTeX document is automatically added by this extension -- only the chemfig LaTeX package is loaded.  For details on chemfig syntax, see <a href="https://en.wikibooks.org/w/index.php?title=LaTeX/Chemical_Graphics&amp;oldid=3452092">here</a>.</p>
-<a name="H_Macro%20Example%3A%20Script%20Injection%20(CSS%2FJS)"></a><h2>Macro Example: Script Injection (CSS/JS)</h2>
+<a name="H_Example%3A%20Script%20Injection%20(CSS%2FJS)"></a><h2>Example: Script Injection (CSS/JS)</h2>
 <p>Input:</p>
 <pre><code>```{scriptinject}
 test
 ```
 </code></pre>
 <p>Output:</p>
-<p>SCRIPT OUTPUT: <span class="SCRIPTINJECT_CLASS">test</span></p>
+<p><span class="SCRIPTINJECT_CLASS">test</span></p>
 <a name="H_Standard%20Markdown"></a><h1>Standard Markdown</h1>
 <p>Standard Markdown syntax guide (adapted from https://github.com/tchapi/markdown-cheatsheet).</p>
 <a name="H_Headers"></a><h2>Headers</h2>
