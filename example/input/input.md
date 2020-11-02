@@ -500,13 +500,21 @@ The structure of this special directory must be as follows:
   * `[MACRO_DIR]/input/*`: files/resources required by `run.sh` and/or whatever it invokes.
   * `[MACRO_DIR]/settings.json`: a special settings file (described further below).
 
-The `settings.json` file can be used to pass in extra (shared) inputs to the container when it runs. For example, multiple tags may require the same shared piece of code. Rather than placing a copy of that code in each tag's `input/` directory, you can place a single copy in the root of your markdown environment and have each tag reference it:
+The `settings.json` file can be used to configure how the macro operates and what files to pass to it:
+
+ * Hardcoded extra (shared) inputs can be passed to the container when it runs via `copyInputs`. For example, multiple macros may require the same shared piece of code. Rather than placing a copy of that code in each tag's `input/` directory, you can place a single copy in the root of your markdown directory and have each tag reference it.
+ * User-defined extra (shared) inputs can be passed to the container when it runs via `copyInputsPrefix`. For example, the user can reference a specific image file for each usage of the macro to operate on.
+ * Custom CSS and javascript files can be embedded in the rendered HTML when it runs via `injectScriptInputs`. For example, the first time a math typesetting macro gets invoked, it generates a special CSS/JS files that'll embed into the rendered HTML to help render the equations the user supplies.
 
 ```json
 {
     "copyInputs": [ "shared_dir1", "shared_dir2" ], // Dirs in the root markdown environment that'll
                                                     // be made available in the container's /input/
                                                     // directory when it runs. 
+    "copyInputsPrefix": "!", // If defined, when the user supplies the macro data in their markdown
+                             // they can start it with lines prefixed with this string (! in this
+                             // case). These lines are dirs in the root markdown environment that'll
+                             // be made available in the container's /input/ directory when it runs.
     "injectScriptInputs": {                 // CSS and JS files that are expected to be generated in
         "scriptinject_sample1.css": "css",  // in the container's /output/ directory that'll be made
         "scriptinject_sample2.css": "css",  // available and injected into the rendered HTML's

@@ -470,11 +470,20 @@ java
 <li><code>[MACRO_DIR]/input/*</code>: files/resources required by <code>run.sh</code> and/or whatever it invokes.</li>
 <li><code>[MACRO_DIR]/settings.json</code>: a special settings file (described further below).</li>
 </ul>
-<p>The <code>settings.json</code> file can be used to pass in extra (shared) inputs to the container when it runs. For example, multiple tags may require the same shared piece of code. Rather than placing a copy of that code in each tag's <code>input/</code> directory, you can place a single copy in the root of your markdown environment and have each tag reference it:</p>
+<p>The <code>settings.json</code> file can be used to configure how the macro operates and what files to pass to it:</p>
+<ul>
+<li>Hardcoded extra (shared) inputs can be passed to the container when it runs via <code>copyInputs</code>. For example, multiple macros may require the same shared piece of code. Rather than placing a copy of that code in each tag's <code>input/</code> directory, you can place a single copy in the root of your markdown directory and have each tag reference it.</li>
+<li>User-defined extra (shared) inputs can be passed to the container when it runs via <code>copyInputsPrefix</code>. For example, the user can reference a specific image file for each usage of the macro to operate on.</li>
+<li>Custom CSS and javascript files can be embedded in the rendered HTML when it runs via <code>injectScriptInputs</code>. For example, the first time a math typesetting macro gets invoked, it generates a special CSS/JS files that'll embed into the rendered HTML to help render the equations the user supplies.</li>
+</ul>
 <pre class="hljs"><code>{
     <span class="hljs-attr">"copyInputs"</span>: [ <span class="hljs-string">"shared_dir1"</span>, <span class="hljs-string">"shared_dir2"</span> ], <span class="hljs-comment">// Dirs in the root markdown environment that'll</span>
                                                     <span class="hljs-comment">// be made available in the container's /input/</span>
                                                     <span class="hljs-comment">// directory when it runs. </span>
+    <span class="hljs-attr">"copyInputsPrefix"</span>: <span class="hljs-string">"!"</span>, <span class="hljs-comment">// If defined, when the user supplies the macro data in their markdown</span>
+                             <span class="hljs-comment">// they can start it with lines prefixed with this string (! in this</span>
+                             <span class="hljs-comment">// case). These lines are dirs in the root markdown environment that'll</span>
+                             <span class="hljs-comment">// be made available in the container's /input/ directory when it runs.</span>
     <span class="hljs-attr">"injectScriptInputs"</span>: {                 <span class="hljs-comment">// CSS and JS files that are expected to be generated in</span>
         <span class="hljs-attr">"scriptinject_sample1.css"</span>: <span class="hljs-string">"css"</span>,  <span class="hljs-comment">// in the container's /output/ directory that'll be made</span>
         <span class="hljs-attr">"scriptinject_sample2.css"</span>: <span class="hljs-string">"css"</span>,  <span class="hljs-comment">// available and injected into the rendered HTML's</span>
