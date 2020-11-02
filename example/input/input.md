@@ -423,90 +423,6 @@ Block output:
 \frac{a}{b}
 ```
 
-# Image Annotations
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-You can include local images and annotate / scale / crop them using the img block tag:
-
-````
-```{img}
-201903_Ribosome.svg
-Diagram of ribosome translating messanger RNA
-By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595
-
-scale 0.45 0.45
-
-fg_color #000000ff
-bg_color #ffff00ff
-text 0.1 0.1 mRNA strand
-
-fg_color #ffff00ff
-bg_color #00000000
-arrow 0.1 0.1  0.1 0.55  0.25 0.55
-poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
-```
-````
-
-Output:
-
-```{img}
-201903_Ribosome.svg
-Diagram of ribosome translating messanger RNA
-By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595
-
-scale 0.45 0.45
-
-fg_color #000000ff
-bg_color #ffff00ff
-text 0.1 0.1 mRNA strand
-
-fg_color #ffff00ff
-bg_color #00000000
-arrow 0.1 0.1  0.1 0.55  0.25 0.55
-poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
-```
-
-The first 3 lines must be as follows:
- 1. file name (should sit in the same directory as input.md).
- 2. alternative text for the image (e.g. description of the image).
- 3. title text for the image (e.g. attribution).
-
-Subsequent lines are commands that you can use to manipulate and annotate the image...
- * *scale x_scale y_scale* -- scale the image by some percentage (unit is percentage).
- * *expand new_width new_height x_offset y_offset* -- expand the image canvas to some new dimension without resizing the contents (unit is percentage).
- * *crop x_offset y_offset new_width new_height* -- crop the image to some new dimension (unit is percentage).
- * *bg_color html_color_code* -- changes the background color.
- * *fg_color html_color_code* -- changes the foreground color.
- * *stroke width* -- changes the stroke width (unit is pixels).
- * *font_size size* -- changes the font size (unit is pixels).
- * *rect x_offset y_offset width height* -- highlight a rectangle on the image (unit is percentage).
- * *poly x1 y1 x2 y2 x3 y3 ...* -- highlight a polygon on the image (unit is percentage).
- * *arrow x1 y1 x2 y2 ...* -- draw an arrow on the image (unit is percentage).
- * *text x_offset y_offset string* -- write a string on the image (unit is percentage).
-
 # File Output
 
 **TODO**: Make this into a macro definition rather than having it baked in.
@@ -665,13 +581,32 @@ This is a custom note.
 
 ## Example: CSV Table
 
-CSV parsing can be configured if by a single-line JSON object preceded by !!...
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
 
-```{output}
-csv_macro_block/input/code.js
-js
-// MARKDOWN_CONFIG\s*\n([\s\S]+)\n\s*// MARKDOWN_CONFIG
-```
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
 
 Input:
 
@@ -703,6 +638,14 @@ AND,Andorra
 ANG,Angola
 AIA,Anguilla
 ATG,Antigua and Barbuda
+```
+
+CSV parsing can optionally be configured if by a single-line JSON object preceded by !!...
+
+```{output}
+csv_macro_block/input/code.js
+js
+// MARKDOWN_CONFIG\s*\n([\s\S]+)\n\s*// MARKDOWN_CONFIG
 ```
 
 ## Example: GraphViz
@@ -830,6 +773,93 @@ Output:
 ```{scriptinject}
 test
 ```
+
+## Example: Image Annotation
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+**TODO**: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING
+
+
+Input:
+
+````
+```{img}
+!201903_Ribosome.svg
+Diagram of ribosome translating messanger RNA
+By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595
+
+scale 0.45 0.45
+
+fg_color #000000ff
+bg_color #ffff00ff
+text 0.1 0.1 mRNA strand
+
+fg_color #ffff00ff
+bg_color #00000000
+arrow 0.1 0.1  0.1 0.55  0.25 0.55
+poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
+```
+````
+
+Output:
+
+```{img}
+!201903_Ribosome.svg
+Diagram of ribosome translating messanger RNA
+By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595
+
+scale 0.45 0.45
+
+fg_color #000000ff
+bg_color #ffff00ff
+text 0.1 0.1 mRNA strand
+
+fg_color #ffff00ff
+bg_color #00000000
+arrow 0.1 0.1  0.1 0.55  0.25 0.55
+poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
+```
+
+The first 3 lines must be as follows:
+ 1. file name prefixed with ! (should sit in the same directory as input.md).
+ 2. alternative text for the image (e.g. description of the image).
+ 3. title text for the image (e.g. attribution).
+
+Subsequent lines are commands that you can use to manipulate and annotate the image...
+ * *scale x_scale y_scale* -- scale the image by some percentage (unit is percentage).
+ * *expand new_width new_height x_offset y_offset* -- expand the image canvas to some new dimension without resizing the contents (unit is percentage).
+ * *crop x_offset y_offset new_width new_height* -- crop the image to some new dimension (unit is percentage).
+ * *bg_color html_color_code* -- changes the background color.
+ * *fg_color html_color_code* -- changes the foreground color.
+ * *stroke width* -- changes the stroke width (unit is pixels).
+ * *font_size size* -- changes the font size (unit is pixels).
+ * *rect x_offset y_offset width height* -- highlight a rectangle on the image (unit is percentage).
+ * *poly x1 y1 x2 y2 x3 y3 ...* -- highlight a polygon on the image (unit is percentage).
+ * *arrow x1 y1 x2 y2 ...* -- draw an arrow on the image (unit is percentage).
+ * *text x_offset y_offset string* -- write a string on the image (unit is percentage).
 
 # Standard Markdown
 

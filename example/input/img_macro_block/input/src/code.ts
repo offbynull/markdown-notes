@@ -18,58 +18,18 @@
 
 import FileSystem from 'fs-extra';
 import Crypto from 'crypto';
-import Path from 'path';
-import MarkdownIt from 'markdown-it';
-import Token from 'markdown-it/lib/token';
-import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
-import * as ImageUtils from '../utils/image_utils';
+import * as ImageUtils from './image_utils';
 
-export class ImageExtension implements Extension {
-    public readonly tokenIds: ReadonlyArray<TokenIdentifier> = [
-        new TokenIdentifier('img', Type.BLOCK)
-    ];
-
-    public render(markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext): string {
-        const token = tokens[tokenIdx];
-        let content = token.content.trim();
-
-        const imgCodeHash = Crypto.createHash('md5').update(content).digest('hex');
-        const imgDataDir = Path.resolve(context.realCachePath, 'img', imgCodeHash);
-        const imgOutputFile = imgDataDir + '/data.svg';
-        const imgDescribeFile = imgDataDir + '/info.json';
-
-        if (FileSystem.existsSync(imgOutputFile) === false) { // only generate if not already exists
-            const output = processImage(context.realInputPath, content);
-            FileSystem.mkdirpSync(imgDataDir);
-            FileSystem.writeFileSync(imgOutputFile, output.image);
-            FileSystem.writeJSONSync(imgDescribeFile, { altText: output.altText, title: output.title });
-        }
-        
-        const imgPath = context.injectFile(imgOutputFile);
-        const imgDesc = FileSystem.readJSONSync(imgDescribeFile);
-
-        if (typeof imgDesc !== 'object' || typeof imgDesc['altText'] !== 'string' || typeof imgDesc['title'] !== 'string') {
-            throw new Error('Description file for img missing required data:\n' + content);
-        }
-
-        return `<p><img src="${markdownIt.utils.escapeHtml(imgPath)}" alt="${markdownIt.utils.escapeHtml(imgDesc.altText)}" title="${markdownIt.utils.escapeHtml(imgDesc.title)}" /></p>`
-    }
-}
-
-function processImage(realInputPath: string, content: string) {
+function processImage(srcImgData: Buffer, content: string) {
     const lines = content.split(/[\r\n]/g);
-    if (lines.length < 3) {
-        throw new Error('Require at least 3 lines for images: file location, alternative text, title');
+    if (lines.length < 2) {
+        throw new Error('Require at least 2 lines for images: alternative text, title');
     }
 
-    const file = lines[0];
     const altText = lines[1];
     const title = lines[2]; // this is where attribution goes
 
-    const srcPath = Path.resolve(realInputPath, file);
-    const srcData = FileSystem.readFileSync(srcPath);
-
-    let svgData = ImageUtils.wrapAsSvg(srcData);
+    let svgData = ImageUtils.wrapAsSvg(srcImgData);
 
     let bgColor: string = '#7f7f7fff';
     let fgColor: string = '#000000ff';
@@ -275,7 +235,7 @@ function processImage(realInputPath: string, content: string) {
     }
 
     return {
-        image: svgData,
+        dstImgData: svgData,
         altText: altText,
         title: title
     };
@@ -287,7 +247,7 @@ function getRemainder(str: string, sep: RegExp, idx: number) {
     while (true) {
         const sepRes = sep.exec(str);
         if (sepRes === null) {
-            throw new Error(); // this hsould never happen
+            throw new Error(); // this should never happen
         }
         str = str.slice(sep.lastIndex);
         sep.lastIndex = 0;
@@ -298,3 +258,36 @@ function getRemainder(str: string, sep: RegExp, idx: number) {
         }
     }
 }
+
+
+
+
+
+
+
+let content = FileSystem.readFileSync('/input/input.data', 'utf8').trim();
+let filePath = FileSystem.readFileSync('/input/input.files', 'utf8').trim();
+if (filePath.split('\n').length === 0) {
+    throw Error('No image file specified');
+} else if (filePath.split('\n').length > 1) {
+    throw Error('Too many image files specified');
+}
+filePath = '/input/' + filePath;
+
+const imgCodeHash = Crypto.createHash('md5').update(content).digest('hex');
+const imgOutputDirPath = `img_${imgCodeHash}`;
+const imgOutputFilePath = `${imgOutputDirPath}/data.svg`;
+
+const srcImgData = FileSystem.readFileSync(filePath); //read as raw buffer
+const output = processImage(srcImgData, content);
+FileSystem.mkdirpSync(`/output/${imgOutputDirPath}`);
+FileSystem.writeFileSync(
+    `/output/${imgOutputFilePath}`,
+    output.dstImgData,
+    { encoding: 'utf8' }
+);
+FileSystem.writeFileSync(
+    `/output/output.md`,
+    `<p><img src="${ImageUtils.quoteAttr(imgOutputFilePath, false)}" alt="${ImageUtils.quoteAttr(output.altText, false)}" title="${ImageUtils.quoteAttr(output.title, false)}" /></p>`,
+    { encoding: 'utf8' }
+);

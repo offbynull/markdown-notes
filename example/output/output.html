@@ -41,7 +41,6 @@
 <li><a href="#H_MathJax">MathJax</a></li>
 <li><a href="#H_KaTeX">KaTeX</a></li>
 </ul>
-<li><a href="#H_Image%20Annotations">Image Annotations</a></li>
 <li><a href="#H_File%20Output">File Output</a></li>
 <li><a href="#H_Macro">Macro</a></li>
 <ul>
@@ -52,6 +51,7 @@
 <li><a href="#H_Example%3A%20Svgbob">Example: Svgbob</a></li>
 <li><a href="#H_Example%3A%20LaTeX%20Chemfig">Example: LaTeX Chemfig</a></li>
 <li><a href="#H_Example%3A%20Script%20Injection%20(CSS%2FJS)">Example: Script Injection (CSS/JS)</a></li>
+<li><a href="#H_Example%3A%20Image%20Annotation">Example: Image Annotation</a></li>
 </ul>
 <li><a href="#H_Standard%20Markdown">Standard Markdown</a></li>
 <ul>
@@ -405,59 +405,7 @@ $$</div><a name="H_KaTeX"></a><h2>KaTeX</h2>
 <p>Inline output: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mi>a</mi><mi>b</mi></mfrac></mrow><annotation encoding="application/x-tex">\frac{a}{b}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.040392em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.695392em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">b</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">a</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></p>
 <p>Block output:</p>
 <span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mi>a</mi><mi>b</mi></mfrac></mrow><annotation encoding="application/x-tex">\frac{a}{b}
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.7935600000000003em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.10756em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">b</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">a</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span><a name="H_Image%20Annotations"></a><h1>Image Annotations</h1>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p>You can include local images and annotate / scale / crop them using the img block tag:</p>
-<pre><code>```{img}
-201903_Ribosome.svg
-Diagram of ribosome translating messanger RNA
-By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595
-
-scale 0.45 0.45
-
-fg_color #000000ff
-bg_color #ffff00ff
-text 0.1 0.1 mRNA strand
-
-fg_color #ffff00ff
-bg_color #00000000
-arrow 0.1 0.1  0.1 0.55  0.25 0.55
-poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
-```
-</code></pre>
-<p>Output:</p>
-<p><img src=".datafile_17141ec97f6e72118b11bb01cda33611/data.svg" alt="Diagram of ribosome translating messanger RNA" title="By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595"></p><p>The first 3 lines must be as follows:</p>
-<ol>
-<li>file name (should sit in the same directory as input.md).</li>
-<li>alternative text for the image (e.g. description of the image).</li>
-<li>title text for the image (e.g. attribution).</li>
-</ol>
-<p>Subsequent lines are commands that you can use to manipulate and annotate the image...</p>
-<ul>
-<li><em>scale x_scale y_scale</em> -- scale the image by some percentage (unit is percentage).</li>
-<li><em>expand new_width new_height x_offset y_offset</em> -- expand the image canvas to some new dimension without resizing the contents (unit is percentage).</li>
-<li><em>crop x_offset y_offset new_width new_height</em> -- crop the image to some new dimension (unit is percentage).</li>
-<li><em>bg_color html_color_code</em> -- changes the background color.</li>
-<li><em>fg_color html_color_code</em> -- changes the foreground color.</li>
-<li><em>stroke width</em> -- changes the stroke width (unit is pixels).</li>
-<li><em>font_size size</em> -- changes the font size (unit is pixels).</li>
-<li><em>rect x_offset y_offset width height</em> -- highlight a rectangle on the image (unit is percentage).</li>
-<li><em>poly x1 y1 x2 y2 x3 y3 ...</em> -- highlight a polygon on the image (unit is percentage).</li>
-<li><em>arrow x1 y1 x2 y2 ...</em> -- draw an arrow on the image (unit is percentage).</li>
-<li><em>text x_offset y_offset string</em> -- write a string on the image (unit is percentage).</li>
-</ul>
-<a name="H_File%20Output"></a><h1>File Output</h1>
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.7935600000000003em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.10756em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">b</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">a</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span><a name="H_File%20Output"></a><h1>File Output</h1>
 <p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
 <p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
 <p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
@@ -583,7 +531,35 @@ This is a custom note.
 <p><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Generic_Camera_Icon.svg/200px-Generic_Camera_Icon.svg.png" alt="Image Example"></p>
 </div>
 <a name="H_Example%3A%20CSV%20Table"></a><h2>Example: CSV Table</h2>
-<p>CSV parsing can be configured if by a single-line JSON object preceded by !!...</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p>Input:</p>
+<pre><code>```{csv}
+!!{ "firstLineHeader": true }
+Code,Country
+AFG,Afghanistan
+ALB,Albania
+ALG,Algeria
+ASA,American Samoa
+AND,Andorra
+ANG,Angola
+AIA,Anguilla
+ATG,Antigua and Barbuda
+```
+</code></pre>
+<p>Output:</p>
+<table><tbody><tr><th>Code</th><th>Country</th></tr><tr><td>AFG</td><td>Afghanistan</td></tr><tr><td>ALB</td><td>Albania</td></tr><tr><td>ALG</td><td>Algeria</td></tr><tr><td>ASA</td><td>American Samoa</td></tr><tr><td>AND</td><td>Andorra</td></tr><tr><td>ANG</td><td>Angola</td></tr><tr><td>AIA</td><td>Anguilla</td></tr><tr><td>ATG</td><td>Antigua and Barbuda</td></tr></tbody></table><p>CSV parsing can optionally be configured if by a single-line JSON object preceded by !!...</p>
 <pre class="hljs"><code><span class="hljs-keyword">let</span> config = {};
 <span class="hljs-keyword">if</span> (lines.length &gt; <span class="hljs-number">0</span> &amp;&amp; lines[<span class="hljs-number">0</span>].startsWith(<span class="hljs-string">'!!'</span>)) {
     <span class="hljs-keyword">try</span> {
@@ -603,22 +579,7 @@ This is a custom note.
     } <span class="hljs-keyword">catch</span> (err) {
         <span class="hljs-comment">// we couldn't parse the first line as a config, so just leave it in as-is</span>
     }
-}</code></pre><p>Input:</p>
-<pre><code>```{csv}
-!!{ "firstLineHeader": true }
-Code,Country
-AFG,Afghanistan
-ALB,Albania
-ALG,Algeria
-ASA,American Samoa
-AND,Andorra
-ANG,Angola
-AIA,Anguilla
-ATG,Antigua and Barbuda
-```
-</code></pre>
-<p>Output:</p>
-<table><tbody><tr><th>Code</th><th>Country</th></tr><tr><td>AFG</td><td>Afghanistan</td></tr><tr><td>ALB</td><td>Albania</td></tr><tr><td>ALG</td><td>Algeria</td></tr><tr><td>ASA</td><td>American Samoa</td></tr><tr><td>AND</td><td>Andorra</td></tr><tr><td>ANG</td><td>Angola</td></tr><tr><td>AIA</td><td>Anguilla</td></tr><tr><td>ATG</td><td>Antigua and Barbuda</td></tr></tbody></table><a name="H_Example%3A%20GraphViz"></a><h2>Example: GraphViz</h2>
+}</code></pre><a name="H_Example%3A%20GraphViz"></a><h2>Example: GraphViz</h2>
 <p>Input:</p>
 <pre><code>```{dot}
 digraph {
@@ -681,6 +642,59 @@ test
 </code></pre>
 <p>Output:</p>
 <p><span class="SCRIPTINJECT_CLASS">test</span></p>
+<a name="H_Example%3A%20Image%20Annotation"></a><h2>Example: Image Annotation</h2>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
+<p>Input:</p>
+<pre><code>```{img}
+!201903_Ribosome.svg
+Diagram of ribosome translating messanger RNA
+By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595
+
+scale 0.45 0.45
+
+fg_color #000000ff
+bg_color #ffff00ff
+text 0.1 0.1 mRNA strand
+
+fg_color #ffff00ff
+bg_color #00000000
+arrow 0.1 0.1  0.1 0.55  0.25 0.55
+poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
+```
+</code></pre>
+<p>Output:</p>
+<p><img src="img_562703ad89e1df7cb54db3b742d828de/data.svg" alt="By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595" title=""></p><p>The first 3 lines must be as follows:</p>
+<ol>
+<li>file name prefixed with ! (should sit in the same directory as input.md).</li>
+<li>alternative text for the image (e.g. description of the image).</li>
+<li>title text for the image (e.g. attribution).</li>
+</ol>
+<p>Subsequent lines are commands that you can use to manipulate and annotate the image...</p>
+<ul>
+<li><em>scale x_scale y_scale</em> -- scale the image by some percentage (unit is percentage).</li>
+<li><em>expand new_width new_height x_offset y_offset</em> -- expand the image canvas to some new dimension without resizing the contents (unit is percentage).</li>
+<li><em>crop x_offset y_offset new_width new_height</em> -- crop the image to some new dimension (unit is percentage).</li>
+<li><em>bg_color html_color_code</em> -- changes the background color.</li>
+<li><em>fg_color html_color_code</em> -- changes the foreground color.</li>
+<li><em>stroke width</em> -- changes the stroke width (unit is pixels).</li>
+<li><em>font_size size</em> -- changes the font size (unit is pixels).</li>
+<li><em>rect x_offset y_offset width height</em> -- highlight a rectangle on the image (unit is percentage).</li>
+<li><em>poly x1 y1 x2 y2 x3 y3 ...</em> -- highlight a polygon on the image (unit is percentage).</li>
+<li><em>arrow x1 y1 x2 y2 ...</em> -- draw an arrow on the image (unit is percentage).</li>
+<li><em>text x_offset y_offset string</em> -- write a string on the image (unit is percentage).</li>
+</ul>
 <a name="H_Standard%20Markdown"></a><h1>Standard Markdown</h1>
 <p>Standard Markdown syntax guide (adapted from https://github.com/tchapi/markdown-cheatsheet).</p>
 <a name="H_Headers"></a><h2>Headers</h2>

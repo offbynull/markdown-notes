@@ -26,7 +26,6 @@ import { BookmarkExtension, BookmarkReferenceIgnoreExtension, BookmarkLinkerCont
 import { MathJaxExtension } from './mathjax_extension';
 import { TitleExtension } from './title_extension';
 import { KatexExtension } from './katex_extension';
-import { ImageExtension } from './image_extension';
 import { OutputExtension } from './output_extension';
 import { MacroDefinition } from './macro_helper';
 import { CustomMacroExtension } from './custom_macro_extension';
@@ -57,7 +56,6 @@ export default class Markdown {
         extenderConfig.register(new BookmarkReferenceIgnoreExtension());
         extenderConfig.register(new TocExtension());
         extenderConfig.register(new OutputExtension());
-        extenderConfig.register(new ImageExtension());
         extenderConfig.register(new MathJaxExtension());
         extenderConfig.register(new KatexExtension());
 
