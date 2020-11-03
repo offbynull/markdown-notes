@@ -1,0 +1,9 @@
+{
+    "scripts": {
+        "start": "node code.js"
+      },
+    "dependencies": {
+        "fs-extra": "^9.0.1",
+        "katex": "^0.12.0"
+    }
+}

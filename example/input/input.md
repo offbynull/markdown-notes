@@ -404,25 +404,6 @@ Block output:
 \frac{a}{b}
 ```
 
-## KaTeX
-
-Add a KaTeX TeX expression using kt inline/block tag:
-
-
-````
-```{kt}
-\frac{a}{b}
-```
-````
-
-Inline output: `{kt} \frac{a}{b}`
-
-Block output:
-
-```{kt}
-\frac{a}{b}
-```
-
 # File Output
 
 **TODO**: Make this into a macro definition rather than having it baked in.
@@ -521,6 +502,7 @@ The `container` sub-directory contains the files required to setup the container
 
  * copies `[MACRO_ENV_PATH]/input` to `/input` on the container.
  * copies `[MACRO_DIR]/settings.json` shared resources to `/input` on the container.
+ * stores macro type to `/input/input.mode` on the container (`block` or `inline`).
  * stores macro contents to `/input/input.data` on the container.
  * stores macro `copyInputsPrefix` filepaths to `/input/input.files` on the container.
  * launches `/input/run.sh` on the container.
@@ -586,6 +568,26 @@ Output:
 This is a custom note.
 
 ![Image Example](https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Generic_Camera_Icon.svg/200px-Generic_Camera_Icon.svg.png)
+```
+
+## Example: KaTeX
+
+Input:
+
+````
+Inline equation `{kt} \frac{a}{b}`
+
+```{kt}
+\frac{a}{b}
+```
+````
+
+Output:
+
+Inline equation `{kt} \frac{a}{b}`
+
+```{kt}
+\frac{a}{b}
 ```
 
 ## Example: CSV Table

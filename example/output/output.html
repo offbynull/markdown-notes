@@ -1,23 +1,9 @@
 <!DOCTYPE html><html><head>
             <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
             <meta content="utf-8" http-equiv="encoding">
-          <link href="scriptinject_sample.css" rel="stylesheet"><script src="scriptinject_sample.js"></script><title>Markdown Example!
-</title><script type="text/x-mathjax-config">
-            MathJax.Hub.Config({
-                // extensions: ["tex2jax.js"],
-                // jax: ["input/TeX","output/HTML-CSS"],
-                tex2jax: {
-                    displayMath: [ ['$$','$$'] ],
-                    inlineMath: [ ["$","$"] ],
-                    processEscapes: true,
-                    processRefs: false,
-                    processEnvironments: false,
-                    processClass: "mathjax",
-                    ignoreClass: "no-mathjax"
-                }
-            });
-        </script><script type="text/javascript" src=".datadir_864d809680ad532ccd5c24eedf26b143/MathJax.js"></script><link href=".datadir_cddfd96a663906d3b58d6aa813d38332/katex.min.css" rel="stylesheet"><meta name="viewport" content="width=device-width,initial-scale=1"><link href=".temp_githib_css/github-markdown.css" rel="stylesheet"><link href=".temp_highlightjs_css/default.css" rel="stylesheet"></head>
-          <body class="no-mathjax markdown-body"><a name="H_Table%20of%20Contents"></a><h1>Table of Contents</h1>
+          <link href="katex/katex.min.css" rel="stylesheet"><link href="scriptinject_sample.css" rel="stylesheet"><script src="scriptinject_sample.js"></script><title>Markdown Example!
+</title><meta name="viewport" content="width=device-width,initial-scale=1"><link href=".temp_githib_css/github-markdown.css" rel="stylesheet"><link href=".temp_highlightjs_css/default.css" rel="stylesheet"></head>
+          <body class="markdown-body"><a name="H_Table%20of%20Contents"></a><h1>Table of Contents</h1>
 <p>Use the following to generate a table of contents...
 <code>```{toc} ```</code></p>
 <p>Output:</p>
@@ -39,12 +25,12 @@
 <li><a href="#H_Math%20Typesetting">Math Typesetting</a></li>
 <ul>
 <li><a href="#H_MathJax">MathJax</a></li>
-<li><a href="#H_KaTeX">KaTeX</a></li>
 </ul>
 <li><a href="#H_File%20Output">File Output</a></li>
 <li><a href="#H_Macro">Macro</a></li>
 <ul>
 <li><a href="#H_Example%3A%20Note">Example: Note</a></li>
+<li><a href="#H_Example%3A%20KaTeX">Example: KaTeX</a></li>
 <li><a href="#H_Example%3A%20CSV%20Table">Example: CSV Table</a></li>
 <li><a href="#H_Example%3A%20GraphViz">Example: GraphViz</a></li>
 <li><a href="#H_Example%3A%20PlantUML">Example: PlantUML</a></li>
@@ -393,19 +379,11 @@ Every instance of product in paragraph above should be linked to the chemistry r
 \frac{a}{b}
 ```
 </code></pre>
-<p>Inline output: <span class="mathjax">$\frac{a}{b}$</span></p>
+<p>Inline output: <code>{mj} \frac{a}{b}</code></p>
 <p>Block output:</p>
-<div class="mathjax">$$\frac{a}{b}
-$$</div><a name="H_KaTeX"></a><h2>KaTeX</h2>
-<p>Add a KaTeX TeX expression using kt inline/block tag:</p>
-<pre><code>```{kt}
-\frac{a}{b}
-```
+<pre><code class="language-{mj}">\frac{a}{b}
 </code></pre>
-<p>Inline output: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mi>a</mi><mi>b</mi></mfrac></mrow><annotation encoding="application/x-tex">\frac{a}{b}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.040392em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.695392em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">b</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">a</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></p>
-<p>Block output:</p>
-<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mi>a</mi><mi>b</mi></mfrac></mrow><annotation encoding="application/x-tex">\frac{a}{b}
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.7935600000000003em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.10756em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">b</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">a</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span><a name="H_File%20Output"></a><h1>File Output</h1>
+<a name="H_File%20Output"></a><h1>File Output</h1>
 <p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
 <p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
 <p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
@@ -489,6 +467,7 @@ java
 <ul>
 <li>copies <code>[MACRO_ENV_PATH]/input</code> to <code>/input</code> on the container.</li>
 <li>copies <code>[MACRO_DIR]/settings.json</code> shared resources to <code>/input</code> on the container.</li>
+<li>stores macro type to <code>/input/input.mode</code> on the container (<code>block</code> or <code>inline</code>).</li>
 <li>stores macro contents to <code>/input/input.data</code> on the container.</li>
 <li>stores macro <code>copyInputsPrefix</code> filepaths to <code>/input/input.files</code> on the container.</li>
 <li>launches <code>/input/run.sh</code> on the container.</li>
@@ -540,6 +519,18 @@ This is a custom note.
 <p>This is a custom note.</p>
 <p><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Generic_Camera_Icon.svg/200px-Generic_Camera_Icon.svg.png" alt="Image Example"></p>
 </div>
+<a name="H_Example%3A%20KaTeX"></a><h2>Example: KaTeX</h2>
+<p>Input:</p>
+<pre><code>Inline equation `{kt} \frac{a}{b}`
+
+```{kt}
+\frac{a}{b}
+```
+</code></pre>
+<p>Output:</p>
+<p>Inline equation <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mi>a</mi><mi>b</mi></mfrac></mrow><annotation encoding="application/x-tex">\frac{a}{b}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.040392em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.695392em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">b</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">a</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mi>a</mi><mi>b</mi></mfrac></mrow><annotation encoding="application/x-tex">\frac{a}{b}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.7935600000000003em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.10756em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">b</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">a</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
 <a name="H_Example%3A%20CSV%20Table"></a><h2>Example: CSV Table</h2>
 <p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>
 <p><strong>TODO</strong>: FIGURE OUT A BETTER WAY TO NPM INSTALL IF REQUIRED NODE_MODULES ARE MISSING</p>

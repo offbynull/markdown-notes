@@ -88,6 +88,7 @@ export class CustomMacroExtension implements Extension {
         // Set files to generate in the container's input dir
         const inputOverrides: Map<string, string> = new Map();
         inputOverrides.set('input.data', data.content);
+        inputOverrides.set('input.mode', token.block ? 'block' : 'inline');
         inputOverrides.set('input.files', [...data.inputCopyPaths].join('\n'));
         if (data.inputCopyPaths.has('input.data') || data.inputCopyPaths.has('input.files')) {
             throw Error(`Macro ${name} is trying to copy input.data and/or input.files as an input but those files are internally reserved and can't be overridden`);
