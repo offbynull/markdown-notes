@@ -1,3 +1,17 @@
+const fs = require('fs');
+const cp = require('child_process');
+
+const packageJson = JSON.parse(fs.readFileSync('package.json', { encoding: 'utf8' }));
+try {
+    for (const requiredModule of Object.keys(packageJson.dependencies)) {
+        require(requiredModule)
+    }
+} catch (e) {
+    cp.execSync('npm install', { stdio: [0, 1, 2] });
+}
+
+
+
 const kt = require('katex');
 const fse = require('fs-extra');
 

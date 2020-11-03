@@ -1,5 +1,18 @@
-const parse = require('csv-parse/lib/sync')
 const fs = require('fs');
+const cp = require('child_process');
+
+const packageJson = JSON.parse(fs.readFileSync('package.json', { encoding: 'utf8' }));
+try {
+    for (const requiredModule of Object.keys(packageJson.dependencies)) {
+        require(requiredModule)
+    }
+} catch (e) {
+    cp.execSync('npm install', { stdio: [0, 1, 2] });
+}
+
+
+
+const parse = require('csv-parse/lib/sync')
 
 let content = fs.readFileSync('/input/input.data', 'utf8').trim();
 const lines = content.split(/[\r\n]/g);
