@@ -1,7 +1,7 @@
-import * as ImageSize from 'image-size';
-import * as FileSystem from 'fs-extra';
+const ImageSize = require('image-size');
+const FileSystem = require('fs-extra');
 
-function wrapImage(pathOrBuffer: string | Buffer) {
+exports.wrapImage = function(pathOrBuffer) {
     const imgBuffer = pathOrBuffer instanceof Buffer ? pathOrBuffer : FileSystem.readFileSync(pathOrBuffer);
     const imgData = ImageSize.imageSize(imgBuffer);
     const imgMimeType = (() => {
@@ -35,8 +35,8 @@ function wrapImage(pathOrBuffer: string | Buffer) {
     };
 }
 
-export function wrapAsSvg(pathOrBuffer: string | Buffer) {
-    const data = wrapImage(pathOrBuffer);
+exports.wrapAsSvg = function(pathOrBuffer) {
+    const data = exports.wrapImage(pathOrBuffer);
 
     return Buffer.from(
 `<?xml version="1.0" standalone="no"?>
@@ -46,12 +46,12 @@ export function wrapAsSvg(pathOrBuffer: string | Buffer) {
     );
 }
 
-export function scaleAsSvg(pathOrBuffer: string | Buffer, xFactor: number, yFactor: number) {
+exports.scaleAsSvg = function(pathOrBuffer, xFactor, yFactor) {
     if (xFactor <= 0 || yFactor <= 0) {
         throw new Error('x/y scale factors must be > 0');
     }
 
-    const data = wrapImage(pathOrBuffer);
+    const data = exports.wrapImage(pathOrBuffer);
 
     const newWidth = data.width * xFactor;
     const newHeight = data.height * yFactor;
@@ -64,12 +64,12 @@ export function scaleAsSvg(pathOrBuffer: string | Buffer, xFactor: number, yFact
     );
 }
 
-export function resizeAsSvg(pathOrBuffer: string | Buffer, width: number, height: number) {
+exports.resizeAsSvg = function(pathOrBuffer, width, height) {
     if (width <= 0 || height <= 0) {
         throw new Error('width/height must be > 0');
     }
 
-    const data = wrapImage(pathOrBuffer);
+    const data = exports.wrapImage(pathOrBuffer);
 
     const xFactor = width / data.width;
     const yFactor = height / data.height;
@@ -82,12 +82,12 @@ export function resizeAsSvg(pathOrBuffer: string | Buffer, width: number, height
     );
 }
 
-export function expandAsSvg(pathOrBuffer: string | Buffer, width: number, height: number, xOffset: number = 0, yOffset: number = 0) {
+exports.expandAsSvg = function(pathOrBuffer, width, height, xOffset = 0, yOffset = 0) {
     if (width <= 0 || height <= 0) {
         throw new Error('width/height must be > 0');
     }
 
-    const data = wrapImage(pathOrBuffer);
+    const data = exports.wrapImage(pathOrBuffer);
 
     // negaitve offsets mean they're offset from the other side
     if (xOffset < 0) {
@@ -111,7 +111,7 @@ export function expandAsSvg(pathOrBuffer: string | Buffer, width: number, height
     );
 }
 
-export function cropAsSvg(pathOrBuffer: string | Buffer, x: number, y: number, width: number, height: number) {
+exports.cropAsSvg = function(pathOrBuffer, x, y, width, height) {
     if (x < 0 || x > 1 || y < 0 || y > 1) {
         throw new Error('x/y must be >= 0 and <= 1');
     }
@@ -120,7 +120,7 @@ export function cropAsSvg(pathOrBuffer: string | Buffer, x: number, y: number, w
         throw new Error('width/height must be > 0 and <= 1');
     }
 
-    const data = wrapImage(pathOrBuffer);
+    const data = exports.wrapImage(pathOrBuffer);
 
     if (width > data.width || height > data.height) {
         throw new Error('width/height must be <= image width/height');
@@ -139,15 +139,15 @@ export function cropAsSvg(pathOrBuffer: string | Buffer, x: number, y: number, w
     );
 }
 
-export function polygonAsSvg(pathOrBuffer: string | Buffer, polygon: {x: number, y: number}[], strokeWidth: number = 0, bgColor: string, fgColor: string) {
+exports.polygonAsSvg = function(pathOrBuffer, polygon/*{x, y}[]*/, strokeWidth = 0, bgColor, fgColor) {
     if (polygon.length < 2) {
         throw new Error('polygon requires atleast 2 points');
     }
 
-    validateColorValue(bgColor);
-    validateColorValue(fgColor);
+    exports.validateColorValue(bgColor);
+    exports.validateColorValue(fgColor);
 
-    const data = wrapImage(pathOrBuffer);
+    const data = exports.wrapImage(pathOrBuffer);
 
     polygon = polygon.map(e => ({
         x: e.x * data.width,
@@ -164,7 +164,7 @@ export function polygonAsSvg(pathOrBuffer: string | Buffer, polygon: {x: number,
 }
 
 
-export function arrowAsSvg(pathOrBuffer: string | Buffer, path: {x: number, y: number}[], thickness: number, color: string) {
+exports.arrowAsSvg = function(pathOrBuffer, path/*{x, y}[]*/, thickness, color) {
     if (thickness <= 0) {
         throw new Error('thickness must be > 0');
     }
@@ -173,9 +173,9 @@ export function arrowAsSvg(pathOrBuffer: string | Buffer, path: {x: number, y: n
         throw new Error('path requires atleast 1 point');
     }
 
-    validateColorValue(color);
+    exports.validateColorValue(color);
 
-    const data = wrapImage(pathOrBuffer);
+    const data = exports.wrapImage(pathOrBuffer);
 
     path = path.map(e => ({
         x: e.x * data.width,
@@ -199,16 +199,16 @@ export function arrowAsSvg(pathOrBuffer: string | Buffer, path: {x: number, y: n
     );
 }
 
-export function textAsSvg(pathOrBuffer: string | Buffer, x: number, y: number, text: string, size: number, bgColor: string, fgColor: string) {
+exports.textAsSvg = function(pathOrBuffer, x, y, text, size, bgColor, fgColor) {
     if (size <= 0) {
         throw new Error('size must be > 0');
     }
 
-    validateColorValue(bgColor);
+    exports.validateColorValue(bgColor);
 
-    validateColorValue(fgColor);
+    exports.validateColorValue(fgColor);
 
-    const data = wrapImage(pathOrBuffer);
+    const data = exports.wrapImage(pathOrBuffer);
 
     x = x * data.width;
     y = y * data.height;
@@ -238,8 +238,8 @@ export function textAsSvg(pathOrBuffer: string | Buffer, x: number, y: number, t
   <feComposite in="SourceGraphic" operator="xor"/>
 </filter>
 </defs>
-<text filter="url(#solid)" x="${x}" y="${y}" font-size="${size}px" class="highlightText">${quoteAttr(text, false)}</text>
-<text x="${x}" y="${y}" font-size="${size}px" class="highlightText">${quoteAttr(text, false)}</text>
+<text filter="url(#solid)" x="${x}" y="${y}" font-size="${size}px" class="highlightText">${exports.quoteAttr(text, false)}</text>
+<text x="${x}" y="${y}" font-size="${size}px" class="highlightText">${exports.quoteAttr(text, false)}</text>
 </svg>`
     );
 }
@@ -249,14 +249,14 @@ export function textAsSvg(pathOrBuffer: string | Buffer, x: number, y: number, t
 
 
 
-export function validateColorValue(color: string) {
+exports.validateColorValue = function(color) {
     if (/^#([0-9a-f]{6}|[0-9a-f]{8})$/i.test(color) === false) {
         throw new Error(`${color} doesn't match RGB / RGBA hexidecimal notation (e.g. #ab10ff7f)`);
     }
 }
 
 // https://stackoverflow.com/a/9756789
-export function quoteAttr(s: string, preserveCR: boolean) {
+exports.quoteAttr = function(s, preserveCR/*boolean*/) {
     const preserveCRChar = preserveCR ? '&#13;' : '\n';
     return ('' + s) /* Forces the conversion to string. */
         .replace(/&/g, '&amp;') /* This MUST be the 1st replacement. */

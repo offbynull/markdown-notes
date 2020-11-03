@@ -1,26 +1,21 @@
-/**
- * MarkdownNotes
- * Copyright (c) Kasra Faghihi, All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3.0 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library.
- */
+const fs = require('fs');
+const cp = require('child_process');
 
-import FileSystem from 'fs-extra';
-import Crypto from 'crypto';
-import * as ImageUtils from './image_utils';
+const packageJson = JSON.parse(fs.readFileSync('package.json', { encoding: 'utf8' }));
+try {
+    for (const requiredModule of Object.keys(packageJson.dependencies)) {
+        require(requiredModule)
+    }
+} catch (e) {
+    cp.execSync('npm install', { stdio: [0, 1, 2] });
+}
 
-function processImage(srcImgData: Buffer, content: string) {
+
+const FileSystem = require('fs-extra');
+const Crypto = require('crypto');
+const ImageUtils = require('./image_utils');
+
+function processImage(srcImgData, content) {
     const lines = content.split(/[\r\n]/g);
     if (lines.length < 2) {
         throw new Error('Require at least 2 lines for images: alternative text, title');
@@ -31,10 +26,10 @@ function processImage(srcImgData: Buffer, content: string) {
 
     let svgData = ImageUtils.wrapAsSvg(srcImgData);
 
-    let bgColor: string = '#7f7f7fff';
-    let fgColor: string = '#000000ff';
-    let fontSize: number = 16;
-    let strokeWidth: number = 6;
+    let bgColor = '#7f7f7fff';
+    let fgColor = '#000000ff';
+    let fontSize = 16;
+    let strokeWidth = 6;
     for (let i = 3; i < lines.length; i++) {
         const line = lines[i].trim();
         if (line.length === 0) {
@@ -170,7 +165,7 @@ function processImage(srcImgData: Buffer, content: string) {
                     if (arr.length % 2 !== 0) {
                         throw new Error(`Require an even number of x/y points: ${line}`);
                     }
-                    const ret: {x: number, y: number}[] = [];
+                    const ret /*{x, y}[]*/ = [];
                     for (let i = 0; i < arr.length; i += 2) {
                         const xVal = parseFloat(arr[i]);
                         const yVal = parseFloat(arr[i+1]);
@@ -195,7 +190,7 @@ function processImage(srcImgData: Buffer, content: string) {
                     if (arr.length % 2 !== 0) {
                         throw new Error(`Require an even number of x/y points: ${line}`);
                     }
-                    const ret: {x: number, y: number}[] = [];
+                    const ret /*{x, y}[]*/ = [];
                     for (let i = 0; i < arr.length; i += 2) {
                         const xVal = parseFloat(arr[i]);
                         const yVal = parseFloat(arr[i+1]);
@@ -243,7 +238,7 @@ function processImage(srcImgData: Buffer, content: string) {
 
 
 
-function getRemainder(str: string, sep: RegExp, idx: number) {
+function getRemainder(str, sep /*regular exp*/, idx) {
     while (true) {
         const sepRes = sep.exec(str);
         if (sepRes === null) {
