@@ -22,10 +22,6 @@
 <li><a href="#H_Disabling">Disabling</a></li>
 <li><a href="#H_Disabling%20All">Disabling All</a></li>
 </ul>
-<li><a href="#H_Math%20Typesetting">Math Typesetting</a></li>
-<ul>
-<li><a href="#H_MathJax">MathJax</a></li>
-</ul>
 <li><a href="#H_File%20Output">File Output</a></li>
 <li><a href="#H_Macro">Macro</a></li>
 <ul>
@@ -367,22 +363,6 @@ Every instance of product in paragraph above should be linked to the chemistry r
 <li>Caffeine should NOT be linked back.</li>
 </ul>
 <p></p>
-<a name="H_Math%20Typesetting"></a><h1>Math Typesetting</h1>
-<p>You can typeset math expressions using different HTML type setting engines.</p>
-<div style="margin:2em; background-color: #e0e0e0;">
-<p><strong>⚠️NOTE️️️⚠️</strong></p>
-<p>Right now, the preferred method of typesetting is to use KaTeX because it's more lightweight. MathJax 3 may change this (we're using an inline version of MathJax 2).</p>
-</div>
-<a name="H_MathJax"></a><h2>MathJax</h2>
-<p>Add a MathJax TeX expression using mj inline/block tag:</p>
-<pre><code>```{mj}
-\frac{a}{b}
-```
-</code></pre>
-<p>Inline output: <code>{mj} \frac{a}{b}</code></p>
-<p>Block output:</p>
-<pre><code class="language-{mj}">\frac{a}{b}
-</code></pre>
 <a name="H_File%20Output"></a><h1>File Output</h1>
 <p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
 <p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
@@ -430,14 +410,14 @@ java
 <p>Be aware that the isolation regex (line 3) does not use a DOT_ALL flag. That is, the <code>.</code> meta-character doesn't match new lines. If you want to match new lines, use something like <code>[\s\S]</code> instance.</p>
 </div>
 <a name="H_Macro"></a><h1>Macro</h1>
-<p>You can define custom inline and block tags specific to your markdown environment (macros). When invoked, a custom tag pulls down a user-defined container (pulled from Dockerhub) and launches a custom script on it to process inputs from your markdown environment. The output of the container gets rendered as normal markdown as if it were normal markdown.</p>
-<p>A custom tag is defined by placing a special directory in the same directory as your input.md file. The name of the directory must end with either...</p>
+<p>You can define custom inline and block macros specific to your markdown environment. When invoked, a custom macro pulls down a user-defined container (pulled from Dockerhub) and launches a custom script/application on it to process inputs from your markdown environment. The output of the container gets rendered as if it were normal markdown.</p>
+<p>A macro is defined by placing a special directory in your root markdown directory. The name of the directory must end with either...</p>
 <ul>
-<li><code>macro_block_</code> -- custom tag will be exposed as a block tag</li>
-<li><code>macro_inline_</code> -- custom tag will be exposed as an inline tag</li>
-<li><code>macro_all_</code> -- custom tag will be exposed as either a block or inline tag</li>
+<li><code>macro_block_</code> -- custom macro will be exposed as a block code tag</li>
+<li><code>macro_inline_</code> -- custom macro will be exposed as an inline code tag</li>
+<li><code>macro_all_</code> -- custom macro will be exposed as either a block code tag or inline code tag</li>
 </ul>
-<p>...followed by the name of the custom tag. So for example, a directory name <code>mycustomtag_macro_block</code> will get invoked whenever you use a block tag named <code>mycustomtag</code> in your input.md file.</p>
+<p>...followed by the name of the custom macro. For example, a directory name <code>mycustomtag_macro_block</code> will get invoked whenever you drop in a block code tagged as <code>mycustomtag</code> in your input.md file.</p>
 <p>The structure of this special directory must be as follows:</p>
 <ul>
 <li><code>[MACRO_DIR]/container</code>: a directory containing container setup files.</li>
@@ -492,19 +472,7 @@ mkdir /output/<span class="hljs-variable">$rand</span>
 npm start -- <span class="hljs-variable">$rand</span>
 </code></pre>
 </div>
-<p>This sample file comes with a couple of simple macro examples that you can use as a reference. Each macro takes a piece of text and manipulates it to contain some extra markdown:</p>
-<pre><code>Output:
-
-```{testmacroblock}
-hello block
-```
-
-Some text before. `{testmacroinline} hello inline` Some text after.
-</code></pre>
-<p>Output:</p>
-<p>This is an BLOCK macro that outputs Markdown text with a link: <a href="http://www.google.com">hello block
-</a>!</p>
-<p>Some text before. <code>{testmacroinline} hello inline</code> Some text after.</p>
+<p>The subsections below contain various macro examples.</p>
 <a name="H_Example%3A%20Note"></a><h2>Example: Note</h2>
 <p>Input:</p>
 <pre><code>```{note}

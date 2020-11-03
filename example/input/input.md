@@ -378,32 +378,6 @@ Bookmark `{bm} caffeine`.
 
 `{bm-enable-all}`
 
-# Math Typesetting
-
-You can typeset math expressions using different HTML type setting engines.
-
-```{note}
-Right now, the preferred method of typesetting is to use KaTeX because it's more lightweight. MathJax 3 may change this (we're using an inline version of MathJax 2).
-```
-
-## MathJax
-
-Add a MathJax TeX expression using mj inline/block tag:
-
-````
-```{mj}
-\frac{a}{b}
-```
-````
-
-Inline output: `{mj} \frac{a}{b}`
-
-Block output:
-
-```{mj}
-\frac{a}{b}
-```
-
 # File Output
 
 **TODO**: Make this into a macro definition rather than having it baked in.
@@ -461,15 +435,15 @@ Be aware that the isolation regex (line 3) does not use a DOT_ALL flag. That is,
 
 # Macro
 
-You can define custom inline and block tags specific to your markdown environment (macros). When invoked, a custom tag pulls down a user-defined container (pulled from Dockerhub) and launches a custom script on it to process inputs from your markdown environment. The output of the container gets rendered as normal markdown as if it were normal markdown.
+You can define custom inline and block macros specific to your markdown environment. When invoked, a custom macro pulls down a user-defined container (pulled from Dockerhub) and launches a custom script/application on it to process inputs from your markdown environment. The output of the container gets rendered as if it were normal markdown.
 
-A custom tag is defined by placing a special directory in the same directory as your input.md file. The name of the directory must end with either...
+A macro is defined by placing a special directory in your root markdown directory. The name of the directory must end with either...
 
- * `macro_block_` -- custom tag will be exposed as a block tag
- * `macro_inline_` -- custom tag will be exposed as an inline tag
- * `macro_all_` -- custom tag will be exposed as either a block or inline tag
+ * `macro_block_` -- custom macro will be exposed as a block code tag
+ * `macro_inline_` -- custom macro will be exposed as an inline code tag
+ * `macro_all_` -- custom macro will be exposed as either a block code tag or inline code tag
 
-...followed by the name of the custom tag. So for example, a directory name `mycustomtag_macro_block` will get invoked whenever you use a block tag named `mycustomtag` in your input.md file.
+...followed by the name of the custom macro. For example, a directory name `mycustomtag_macro_block` will get invoked whenever you drop in a block code tagged as `mycustomtag` in your input.md file.
 
 The structure of this special directory must be as follows:
 
@@ -530,25 +504,7 @@ npm start -- $rand
 ```
 ````
 
-This sample file comes with a couple of simple macro examples that you can use as a reference. Each macro takes a piece of text and manipulates it to contain some extra markdown:
-
-````
-Output:
-
-```{testmacroblock}
-hello block
-```
-
-Some text before. `{testmacroinline} hello inline` Some text after.
-````
-
-Output:
-
-```{testmacroblock}
-hello block
-```
-
-Some text before. `{testmacroinline} hello inline` Some text after.
+The subsections below contain various macro examples.
 
 ## Example: Note
 
