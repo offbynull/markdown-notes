@@ -22,11 +22,11 @@
 <li><a href="#H_Disabling">Disabling</a></li>
 <li><a href="#H_Disabling%20All">Disabling All</a></li>
 </ul>
-<li><a href="#H_File%20Output">File Output</a></li>
 <li><a href="#H_Macro">Macro</a></li>
 <ul>
 <li><a href="#H_Example%3A%20Note">Example: Note</a></li>
 <li><a href="#H_Example%3A%20KaTeX">Example: KaTeX</a></li>
+<li><a href="#H_Example%3A%20Source-code%20File%20Output">Example: Source-code File Output</a></li>
 <li><a href="#H_Example%3A%20CSV%20Table">Example: CSV Table</a></li>
 <li><a href="#H_Example%3A%20GraphViz">Example: GraphViz</a></li>
 <li><a href="#H_Example%3A%20PlantUML">Example: PlantUML</a></li>
@@ -363,61 +363,15 @@ Every instance of product in paragraph above should be linked to the chemistry r
 <li>Caffeine should NOT be linked back.</li>
 </ul>
 <p></p>
-<a name="H_File%20Output"></a><h1>File Output</h1>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p><strong>TODO</strong>: Make this into a macro definition rather than having it baked in.</p>
-<p>Output text files using the output block tag:</p>
-<pre><code>```{output}
-InternalUtils.java
-java
-\n([ ]+static boolean isBalanced[\s\S]*?)\s+static boolean isCharged
-```
-</code></pre>
-<p>Output:</p>
-<pre class="hljs"><code><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isBalanced</span><span class="hljs-params">(ChemicalEquation ce)</span> </span>{
-    Multiset&lt;Element&gt; reactantElementBag = HashMultiset.create();
-    ce.reactants.items.stream()
-            .flatMap(i -&gt; nCopies(i.count, i.bond.items).stream())
-            .flatMap(i -&gt; i.stream())
-            .forEach(bu -&gt; reactantElementBag.add(bu.element, bu.count));
-    
-    Multiset&lt;Element&gt; productElementBag = HashMultiset.create();
-    ce.products.items.stream()
-            .flatMap(i -&gt; nCopies(i.count, i.bond.items).stream())
-            .flatMap(i -&gt; i.stream())
-            .forEach(bu -&gt; productElementBag.add(bu.element, bu.count));
-    
-    <span class="hljs-keyword">return</span> reactantElementBag.equals(productElementBag);
-}</code></pre><p>The output block takes in the following lines...</p>
-<ul>
-<li>1st line is the file path.</li>
-<li>2nd line (optional) is the language to use for highlighting syntax.</li>
-<li>3rd line (optional) is a regex that isolates the output to a specific portion of the file (capture group 1 is what get isolated).</li>
-</ul>
-<p>The output will automatically be un-indented.</p>
-<div style="margin:2em; background-color: #e0e0e0;">
-<p><strong>⚠️NOTE️️️⚠️</strong></p>
-<p>Be aware that the isolation regex (line 3) does not use a DOT_ALL flag. That is, the <code>.</code> meta-character doesn't match new lines. If you want to match new lines, use something like <code>[\s\S]</code> instance.</p>
-</div>
 <a name="H_Macro"></a><h1>Macro</h1>
-<p>You can define custom inline and block macros specific to your markdown environment. When invoked, a custom macro pulls down a user-defined container (pulled from Dockerhub) and launches a custom script/application on it to process inputs from your markdown environment. The output of the container gets rendered as if it were normal markdown.</p>
-<p>A macro is defined by placing a special directory in your root markdown directory. The name of the directory must end with either...</p>
+<p>You can define custom inline and block macros specific to your markdown environment. When invoked, a custom macro pulls down a container (pulled from Dockerhub) and launches a script/application on it. The macro input is passed into the application. The macro output gets rendered as if it were normal markdown.</p>
+<p>A macro is defined by placing a special directory in the same directory as your <code>input.md</code> file. The name of the directory must end with either...</p>
 <ul>
 <li><code>macro_block_</code> -- custom macro will be exposed as a block code tag</li>
 <li><code>macro_inline_</code> -- custom macro will be exposed as an inline code tag</li>
 <li><code>macro_all_</code> -- custom macro will be exposed as either a block code tag or inline code tag</li>
 </ul>
-<p>...followed by the name of the custom macro. For example, a directory name <code>mycustomtag_macro_block</code> will get invoked whenever you drop in a block code tagged as <code>mycustomtag</code> in your input.md file.</p>
+<p>...followed by the name of the custom macro. For example, a directory name <code>mycustomtag_macro_block</code> will get invoked whenever you drop in a block code tagged as <code>mycustomtag</code> in your <code>input.md</code> file.</p>
 <p>The structure of this special directory must be as follows:</p>
 <ul>
 <li><code>[MACRO_DIR]/container</code>: a directory containing container setup files.</li>
@@ -430,22 +384,29 @@ java
 </ul>
 <p>The <code>settings.json</code> file can be used to configure how the macro operates and what files to pass to it:</p>
 <ul>
-<li>Hardcoded extra (shared) inputs can be passed to the container when it runs via <code>copyInputs</code>. For example, multiple macros may require the same shared piece of code. Rather than placing a copy of that code in each tag's <code>input/</code> directory, you can place a single copy in the root of your markdown directory and have each tag reference it.</li>
+<li>Hardcoded extra (shared) inputs can be passed to the container when it runs via <code>copyInputs</code>. For example, multiple macros may require the same shared piece of code. Rather than placing a copy of that code in each macro's <code>[MACRO_DIR]/input/</code> directory, you can reference a single copy from each macro.</li>
 <li>User-defined extra (shared) inputs can be passed to the container when it runs via <code>copyInputsPrefix</code>. For example, the user can reference a specific image file for each usage of the macro to operate on.</li>
 </ul>
 <pre class="hljs"><code>{
-    <span class="hljs-attr">"copyInputs"</span>: [ <span class="hljs-string">"shared_dir1"</span>, <span class="hljs-string">"shared_dir2"</span> ], <span class="hljs-comment">// Paths in the root markdown environment that'll</span>
-                                                    <span class="hljs-comment">// be made available in the container's /input/</span>
-                                                    <span class="hljs-comment">// directory when it runs. </span>
-    <span class="hljs-attr">"copyInputsPrefix"</span>: <span class="hljs-string">"!"</span>, <span class="hljs-comment">// If defined, when the macro is, the user  can start it with lines</span>
-                             <span class="hljs-comment">// prefixed with this string (! in this case). These lines are dirs in</span>
-                             <span class="hljs-comment">// the root markdown environment that'll be made available in the</span>
-                             <span class="hljs-comment">// container's /input/ directory when it runs.</span>
+    <span class="hljs-comment">// copyInputs</span>
+    <span class="hljs-comment">//   &gt; If an array, the array elements must be paths. These paths get made available</span>
+    <span class="hljs-comment">//     in the container's /input directory when it runs.</span>
+    <span class="hljs-comment">//   &gt; If undefined, it's treated the same as an empty array.</span>
+    <span class="hljs-attr">"copyInputs"</span>: [ <span class="hljs-string">"shared_dir1"</span>, <span class="hljs-string">"shared_dir2"</span> ], 
+    <span class="hljs-comment">// copyInputsPrefix</span>
+    <span class="hljs-comment">//   &gt; If empty string, the first line of the macro usage must point to a path. That</span>
+    <span class="hljs-comment">//     path gets made available in the container's /input directory when it runs.</span>
+    <span class="hljs-comment">//   &gt; If non-empty string, starting lines of the macro usage prefixed with this</span>
+    <span class="hljs-comment">//     string must each point to a path. These paths get made available in the</span>
+    <span class="hljs-comment">//     container's /input directory when it runs.</span>
+    <span class="hljs-comment">//   &gt; If undefined, the macro usage can't reference any files.</span>
+    <span class="hljs-attr">"copyInputsPrefix"</span>: <span class="hljs-string">"!"</span>,
 }
 </code></pre>
-<p>The <code>container</code> sub-directory contains the files required to setup the container and the <code>input</code> sub-directory contains the files to expose to the container. When the macro gets used, the launcher ...</p>
-<ul>
-<li>copies <code>[MACRO_ENV_PATH]/input</code> to <code>/input</code> on the container.</li>
+<p>When a macro gets used, the system ...</p>
+<ol>
+<li>sets up a container based on <code>[MACRO_DIR]/container</code>.</li>
+<li>copies <code>[MACRO_DIR]/input</code> to <code>/input</code> on the container.</li>
 <li>copies <code>[MACRO_DIR]/settings.json</code> shared resources to <code>/input</code> on the container.</li>
 <li>stores macro type to <code>/input/input.mode</code> on the container (<code>block</code> or <code>inline</code>).</li>
 <li>stores macro contents to <code>/input/input.data</code> on the container.</li>
@@ -453,13 +414,14 @@ java
 <li>launches <code>/input/run.sh</code> on the container.</li>
 <li>expects output markdown in <code>/output/output.md</code> on the container.</li>
 <li>expects output css/js filepaths in <code>/output/output.injects</code> on the container (optional).</li>
-</ul>
+</ol>
 <p>Any other files generated inside the container's <code>/output</code> are assumed to be resources referenced by <code>/output/output.md</code> or <code>/output.output.injects</code> and as such will get copied over to the root markdown input directory. It's highly recommended that you place these resources in <code>/output/[RANDOM_OR_HASH_DIR]</code> instead of <code>/output</code>. Resources placed directly in <code>/output</code> may encounter name collisions when rendering.</p>
 <p>The contents of ...</p>
 <ul>
 <li><code>/output/output.md</code> is markdown text to replace the macro usage with.</li>
 <li><code>/output/output.injections</code> is JSON of type <code>Array&lt;[string, 'css' | 'js']&gt;</code> (e.g. <code>[  ["file1.css", "css"], ["file2.js", "js"] ]</code>) to inject into the rendered HTML's head tag.</li>
 </ul>
+<p>The subsections below contain various macro examples. To use them in your own markdown, copy the macro directory into your root markdown directory.</p>
 <div style="margin:2em; background-color: #e0e0e0;">
 <p><strong>⚠️NOTE️️️⚠️</strong></p>
 <p>You can streamline the generation of <code>/output/[RANDOM_DIR]</code> via the shell -- for example:</p>
@@ -472,7 +434,6 @@ mkdir /output/<span class="hljs-variable">$rand</span>
 npm start -- <span class="hljs-variable">$rand</span>
 </code></pre>
 </div>
-<p>The subsections below contain various macro examples.</p>
 <a name="H_Example%3A%20Note"></a><h2>Example: Note</h2>
 <p>Input:</p>
 <pre><code>```{note}
@@ -499,6 +460,42 @@ This is a custom note.
 <p>Inline equation <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mi>a</mi><mi>b</mi></mfrac></mrow><annotation encoding="application/x-tex">\frac{a}{b}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.040392em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.695392em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">b</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">a</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></p>
 <p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mi>a</mi><mi>b</mi></mfrac></mrow><annotation encoding="application/x-tex">\frac{a}{b}
 </annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.7935600000000003em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.10756em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">b</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">a</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<a name="H_Example%3A%20Source-code%20File%20Output"></a><h2>Example: Source-code File Output</h2>
+<p>Input:</p>
+<pre><code>```{output}
+InternalUtils.java
+java
+\n([ ]+static boolean isBalanced[\s\S]*?)\s+static boolean isCharged
+```
+</code></pre>
+<p>Output:</p>
+<pre class="hljs"><code><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isBalanced</span><span class="hljs-params">(ChemicalEquation ce)</span> </span>{
+    Multiset&lt;Element&gt; reactantElementBag = HashMultiset.create();
+    ce.reactants.items.stream()
+            .flatMap(i -&gt; nCopies(i.count, i.bond.items).stream())
+            .flatMap(i -&gt; i.stream())
+            .forEach(bu -&gt; reactantElementBag.add(bu.element, bu.count));
+    
+    Multiset&lt;Element&gt; productElementBag = HashMultiset.create();
+    ce.products.items.stream()
+            .flatMap(i -&gt; nCopies(i.count, i.bond.items).stream())
+            .flatMap(i -&gt; i.stream())
+            .forEach(bu -&gt; productElementBag.add(bu.element, bu.count));
+    
+    <span class="hljs-keyword">return</span> reactantElementBag.equals(productElementBag);
+}
+</code></pre>
+<p>The output block takes in the following lines...</p>
+<ul>
+<li>1st line is the file path.</li>
+<li>2nd line (optional) is the language to use for highlighting syntax.</li>
+<li>3rd line (optional) is a regex that isolates the output to a specific portion of the file (capture group 1 is what get isolated).</li>
+</ul>
+<p>The output will automatically be un-indented.</p>
+<div style="margin:2em; background-color: #e0e0e0;">
+<p><strong>⚠️NOTE️️️⚠️</strong></p>
+<p>Be aware that the isolation regex (line 3) does not use a DOT_ALL flag. That is, the <code>.</code> meta-character doesn't match new lines. If you want to match new lines, use something like <code>[\s\S]</code> instance.</p>
+</div>
 <a name="H_Example%3A%20CSV%20Table"></a><h2>Example: CSV Table</h2>
 <p>Input:</p>
 <pre><code>```{csv}
@@ -535,7 +532,9 @@ ATG,Antigua and Barbuda
     } <span class="hljs-keyword">catch</span> (err) {
         <span class="hljs-comment">// we couldn't parse the first line as a config, so just leave it in as-is</span>
     }
-}</code></pre><a name="H_Example%3A%20GraphViz"></a><h2>Example: GraphViz</h2>
+}
+</code></pre>
+<a name="H_Example%3A%20GraphViz"></a><h2>Example: GraphViz</h2>
 <p>Input:</p>
 <pre><code>```{dot}
 digraph {
@@ -601,7 +600,7 @@ test
 <a name="H_Example%3A%20Image%20Annotation"></a><h2>Example: Image Annotation</h2>
 <p>Input:</p>
 <pre><code>```{img}
-!201903_Ribosome.svg
+201903_Ribosome.svg
 Diagram of ribosome translating messanger RNA
 By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595
 

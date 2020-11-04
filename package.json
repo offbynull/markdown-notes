@@ -12,15 +12,12 @@
   "dependencies": {
     "browser-sync": "^2.26.12",
     "colors": "^1.4.0",
-    "csv-parse": "^4.12.0",
     "escape-html": "^1.0.3",
     "fs-extra": "^9.0.1",
     "github-markdown-css": "^4.0.0",
     "highlight.js": "^10.2.1",
-    "image-size": "^0.9.1",
     "jsdom": "^16.4.0",
     "markdown-it": "^11.0.1",
-    "mathjax-single-file": "github:pkra/MathJax-single-file#12.0.0",
     "tar": "^6.0.5",
     "typescript": "^4.0.3",
     "web-resource-inliner": "^5.0.0"
@@ -28,11 +25,9 @@
   "devDependencies": {
     "@types/browser-sync": "^2.26.1",
     "@types/colors": "^1.2.1",
-    "@types/csv-parse": "^1.2.2",
     "@types/escape-html": "1.0.0",
     "@types/fs-extra": "^8.1.1",
     "@types/highlight.js": "^9.12.4",
-    "@types/image-size": "^0.8.0",
     "@types/jest": "^26.0.14",
     "@types/jsdom": "^16.2.4",
     "@types/markdown-it": "10.0.2",

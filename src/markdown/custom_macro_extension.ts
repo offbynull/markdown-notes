@@ -61,7 +61,18 @@ export class CustomMacroExtension implements Extension {
             const raw = token.content; // DO NOT TRIM THIS
             const files = new Set<string>(definition.inputOverridePaths);
             let content = '';
-            if (prefix !== undefined) {
+            if (prefix === undefined) {       // if undefined, user-defined input files aren't allowed
+                return {
+                    inputCopyPaths: new Set<string>(),
+                    content: raw
+                };
+            } else if (prefix.length === 0) { // if empty string, there must be exactly user-defined input file
+                const lines = raw.split('\n');
+                return {
+                    inputCopyPaths: new Set<string>([lines[0]]),
+                    content: lines.slice(1).join('\n')
+                }
+            } else {                          // if non-empty string, starting lines containing the prefix are user-defined input files
                 const lines = raw.split('\n');
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i];
@@ -77,11 +88,6 @@ export class CustomMacroExtension implements Extension {
                     inputCopyPaths: files,
                     content: content
                 }
-            } else {
-                return {
-                    inputCopyPaths: new Set<string>(),
-                    content: raw
-                };
             }
         })();
 

@@ -378,110 +378,62 @@ Bookmark `{bm} caffeine`.
 
 `{bm-enable-all}`
 
-# File Output
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-**TODO**: Make this into a macro definition rather than having it baked in.
-
-Output text files using the output block tag:
-
-````
-```{output}
-InternalUtils.java
-java
-\n([ ]+static boolean isBalanced[\s\S]*?)\s+static boolean isCharged
-```
-````
-
-Output:
-
-```{output}
-InternalUtils.java
-java
-\n([ ]+static boolean isBalanced[\s\S]*?)\s+static boolean isCharged
-```
-
-The output block takes in the following lines...
- * 1st line is the file path.
- * 2nd line (optional) is the language to use for highlighting syntax.
- * 3rd line (optional) is a regex that isolates the output to a specific portion of the file (capture group 1 is what get isolated).
-
-The output will automatically be un-indented.
-
-```{note}
-Be aware that the isolation regex (line 3) does not use a DOT_ALL flag. That is, the `.` meta-character doesn't match new lines. If you want to match new lines, use something like `[\s\S]` instance.
-```
-
 # Macro
 
-You can define custom inline and block macros specific to your markdown environment. When invoked, a custom macro pulls down a user-defined container (pulled from Dockerhub) and launches a custom script/application on it to process inputs from your markdown environment. The output of the container gets rendered as if it were normal markdown.
+You can define custom inline and block macros specific to your markdown environment. When invoked, a custom macro pulls down a container (pulled from Dockerhub) and launches a script/application on it. The macro input is passed into the application. The macro output gets rendered as if it were normal markdown.
 
-A macro is defined by placing a special directory in your root markdown directory. The name of the directory must end with either...
+A macro is defined by placing a special directory in the same directory as your `input.md` file. The name of the directory must end with either...
 
  * `macro_block_` -- custom macro will be exposed as a block code tag
  * `macro_inline_` -- custom macro will be exposed as an inline code tag
  * `macro_all_` -- custom macro will be exposed as either a block code tag or inline code tag
 
-...followed by the name of the custom macro. For example, a directory name `mycustomtag_macro_block` will get invoked whenever you drop in a block code tagged as `mycustomtag` in your input.md file.
+...followed by the name of the custom macro. For example, a directory name `mycustomtag_macro_block` will get invoked whenever you drop in a block code tagged as `mycustomtag` in your `input.md` file.
 
 The structure of this special directory must be as follows:
 
-  * `[MACRO_DIR]/container`: a directory containing container setup files.
-  * `[MACRO_DIR]/container/Dockerfile`: a Dockerfile that sets up the container.
-  * `[MACRO_DIR]/container/*`: files/resources required by the `Dockerfile`.
-  * `[MACRO_DIR]/input`: a directory containing input files.
-  * `[MACRO_DIR]/input/run.sh`: a script that gets run when the container starts.
-  * `[MACRO_DIR]/input/*`: files/resources required by `run.sh` and/or whatever it invokes.
-  * `[MACRO_DIR]/settings.json`: a special settings file (described further below).
+ * `[MACRO_DIR]/container`: a directory containing container setup files.
+ * `[MACRO_DIR]/container/Dockerfile`: a Dockerfile that sets up the container.
+ * `[MACRO_DIR]/container/*`: files/resources required by the `Dockerfile`.
+ * `[MACRO_DIR]/input`: a directory containing input files.
+ * `[MACRO_DIR]/input/run.sh`: a script that gets run when the container starts.
+ * `[MACRO_DIR]/input/*`: files/resources required by `run.sh` and/or whatever it invokes.
+ * `[MACRO_DIR]/settings.json`: a special settings file (described further below).
 
 The `settings.json` file can be used to configure how the macro operates and what files to pass to it:
 
- * Hardcoded extra (shared) inputs can be passed to the container when it runs via `copyInputs`. For example, multiple macros may require the same shared piece of code. Rather than placing a copy of that code in each tag's `input/` directory, you can place a single copy in the root of your markdown directory and have each tag reference it.
+ * Hardcoded extra (shared) inputs can be passed to the container when it runs via `copyInputs`. For example, multiple macros may require the same shared piece of code. Rather than placing a copy of that code in each macro's `[MACRO_DIR]/input/` directory, you can reference a single copy from each macro.
  * User-defined extra (shared) inputs can be passed to the container when it runs via `copyInputsPrefix`. For example, the user can reference a specific image file for each usage of the macro to operate on.
 
 ```json
 {
-    "copyInputs": [ "shared_dir1", "shared_dir2" ], // Paths in the root markdown environment that'll
-                                                    // be made available in the container's /input/
-                                                    // directory when it runs. 
-    "copyInputsPrefix": "!", // If defined, when the macro is, the user  can start it with lines
-                             // prefixed with this string (! in this case). These lines are dirs in
-                             // the root markdown environment that'll be made available in the
-                             // container's /input/ directory when it runs.
+    // copyInputs
+    //   > If an array, the array elements must be paths. These paths get made available
+    //     in the container's /input directory when it runs.
+    //   > If undefined, it's treated the same as an empty array.
+    "copyInputs": [ "shared_dir1", "shared_dir2" ], 
+    // copyInputsPrefix
+    //   > If empty string, the first line of the macro usage must point to a path. That
+    //     path gets made available in the container's /input directory when it runs.
+    //   > If non-empty string, starting lines of the macro usage prefixed with this
+    //     string must each point to a path. These paths get made available in the
+    //     container's /input directory when it runs.
+    //   > If undefined, the macro usage can't reference any files.
+    "copyInputsPrefix": "!",
 }
 ```
 
-The `container` sub-directory contains the files required to setup the container and the `input` sub-directory contains the files to expose to the container. When the macro gets used, the launcher ...
+When a macro gets used, the system ...
 
- * copies `[MACRO_ENV_PATH]/input` to `/input` on the container.
- * copies `[MACRO_DIR]/settings.json` shared resources to `/input` on the container.
- * stores macro type to `/input/input.mode` on the container (`block` or `inline`).
- * stores macro contents to `/input/input.data` on the container.
- * stores macro `copyInputsPrefix` filepaths to `/input/input.files` on the container.
- * launches `/input/run.sh` on the container.
- * expects output markdown in `/output/output.md` on the container.
- * expects output css/js filepaths in `/output/output.injects` on the container (optional).
+ 1. sets up a container based on `[MACRO_DIR]/container`. 
+ 1. copies `[MACRO_DIR]/input` to `/input` on the container.
+ 1. copies `[MACRO_DIR]/settings.json` shared resources to `/input` on the container.
+ 1. stores macro type to `/input/input.mode` on the container (`block` or `inline`).
+ 1. stores macro contents to `/input/input.data` on the container.
+ 1. stores macro `copyInputsPrefix` filepaths to `/input/input.files` on the container.
+ 1. launches `/input/run.sh` on the container.
+ 1. expects output markdown in `/output/output.md` on the container.
+ 1. expects output css/js filepaths in `/output/output.injects` on the container (optional).
 
 Any other files generated inside the container's `/output` are assumed to be resources referenced by `/output/output.md` or `/output.output.injects` and as such will get copied over to the root markdown input directory. It's highly recommended that you place these resources in `/output/[RANDOM_OR_HASH_DIR]` instead of `/output`. Resources placed directly in `/output` may encounter name collisions when rendering.
 
@@ -489,6 +441,8 @@ The contents of ...
 
  * `/output/output.md` is markdown text to replace the macro usage with.
  * `/output/output.injections` is JSON of type `Array<[string, 'css' | 'js']>` (e.g. `[  ["file1.css", "css"], ["file2.js", "js"] ]`) to inject into the rendered HTML's head tag.
+
+The subsections below contain various macro examples. To use them in your own markdown, copy the macro directory into your root markdown directory.
 
 ````{note}
 You can streamline the generation of `/output/[RANDOM_DIR]` via the shell -- for example:
@@ -503,8 +457,6 @@ mkdir /output/$rand
 npm start -- $rand
 ```
 ````
-
-The subsections below contain various macro examples.
 
 ## Example: Note
 
@@ -544,6 +496,37 @@ Inline equation `{kt} \frac{a}{b}`
 
 ```{kt}
 \frac{a}{b}
+```
+
+## Example: Source-code File Output
+
+Input:
+
+````
+```{output}
+InternalUtils.java
+java
+\n([ ]+static boolean isBalanced[\s\S]*?)\s+static boolean isCharged
+```
+````
+
+Output:
+
+```{output}
+InternalUtils.java
+java
+\n([ ]+static boolean isBalanced[\s\S]*?)\s+static boolean isCharged
+```
+
+The output block takes in the following lines...
+ * 1st line is the file path.
+ * 2nd line (optional) is the language to use for highlighting syntax.
+ * 3rd line (optional) is a regex that isolates the output to a specific portion of the file (capture group 1 is what get isolated).
+
+The output will automatically be un-indented.
+
+```{note}
+Be aware that the isolation regex (line 3) does not use a DOT_ALL flag. That is, the `.` meta-character doesn't match new lines. If you want to match new lines, use something like `[\s\S]` instance.
 ```
 
 ## Example: CSV Table
@@ -720,7 +703,7 @@ Input:
 
 ````
 ```{img}
-!201903_Ribosome.svg
+201903_Ribosome.svg
 Diagram of ribosome translating messanger RNA
 By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595
 
@@ -740,7 +723,7 @@ poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
 Output:
 
 ```{img}
-!201903_Ribosome.svg
+201903_Ribosome.svg
 Diagram of ribosome translating messanger RNA
 By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595
 
