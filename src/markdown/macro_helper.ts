@@ -125,7 +125,7 @@ function parseSettingsFile(settingsFile: string) {
     }
 
     const settingsCopyInputsArr = settingsObj['copyInputs'] || [];
-    if (!Array.isArray(settingsCopyInputsArr) || (settingsCopyInputsArr as String[]).filter(x => typeof x !== 'string').length > 0) {
+    if (!Array.isArray(settingsCopyInputsArr) || settingsCopyInputsArr.filter(x => typeof x !== 'string').length > 0) {
         throw new Error('Expected a copyInputs setting of type String[]: ' + JSON.stringify(settingsObj));
     }
 
