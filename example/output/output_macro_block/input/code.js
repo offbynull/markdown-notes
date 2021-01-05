@@ -64,11 +64,10 @@ function knockback(input/*: string*/, count/*: number*/) {
 
 let filePath = fs.readFileSync('/input/input.files', 'utf8').trim();
 if (filePath.split('\n').length === 0) {
-    throw Error('No image file specified');
+    throw Error('No file specified');
 } else if (filePath.split('\n').length > 1) {
-    throw Error('Too many image files specified');
+    throw Error('Too many files specified');
 }
-filePath = '/input/' + filePath;
 
 const content = fs.readFileSync('/input/input.data', 'utf8').trim();
 const lines = content.split(/[\r\n]/g);
@@ -79,7 +78,7 @@ if (/^{.*}$/.exec(lang) !== null) {
     throw Error(`The language specified cannot be wrapped in curly braces: ${lang}`);
 }
 
-let data = fs.readFileSync(filePath, 'UTF-8');
+let data = fs.readFileSync('/input/' + filePath, 'UTF-8');
                 
 const isolation = regex.exec(data);
 if (isolation === null) {
@@ -88,10 +87,14 @@ if (isolation === null) {
 if (isolation[1] === undefined) {
     throw new Error(`Isolation regex ${regex} did not extract group 1 from data ${path}`);
 }
-data = isolation[1];
+found = isolation[1];
+linesUntilFoundStart = data.slice(0, isolation.index).split('\n').length + 1
+linesUntilFoundEnd = data.slice(0, isolation.index + found.length).split('\n').length + 1
 
-const trimCount = getStartingSpaceCount(data);
-data = knockback(data, trimCount);
+const trimCount = getStartingSpaceCount(found);
+found = knockback(found, trimCount);
 
-const ret = '```' + lang + '\n' + data + '\n```';
+const ret = ''
+        + '`{bm-disable-all}`[' + filePath + '](' + filePath + ') (lines ' + linesUntilFoundStart + ' to ' + linesUntilFoundEnd + '):`{bm-enable-all}`\n\n'
+        + '```' + lang + '\n' + found + '\n```';
 fs.writeFileSync('/output/output.md', ret, { encoding: 'utf8' });
