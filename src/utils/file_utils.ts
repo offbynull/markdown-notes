@@ -85,3 +85,21 @@ function internalSyncDirs(rootSrcDir: string, rootDstDir: string, srcDir: string
         FileSystem.removeSync(dstDeletePath);
     }
 }
+
+export function recursiveReadDir(dir: string): string[] {
+    const output: string[] = []
+    internalRecursiveReadDir(dir, dir, output);
+    return output
+}
+
+function internalRecursiveReadDir(rootOutputDir: string, currOutputDir: string, output: string[]) {
+    const outputDirEntries = FileSystem.readdirSync(currOutputDir);
+    for (const child of outputDirEntries) {
+        const absChild = Path.resolve(currOutputDir, child);
+        const stats = FileSystem.lstatSync(absChild);
+        output.push(child);
+        if (stats.isDirectory()) {
+            internalRecursiveReadDir(rootOutputDir, child, output);
+        }
+    }
+};

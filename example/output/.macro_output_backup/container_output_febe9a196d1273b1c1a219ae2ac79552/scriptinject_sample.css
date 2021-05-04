@@ -1,0 +1,3 @@
+.SCRIPTINJECT_CLASS:after {
+    content: "|ADDED_BY_CSS";
+  }

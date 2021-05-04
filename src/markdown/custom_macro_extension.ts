@@ -51,6 +51,13 @@ export class CustomMacroExtension implements Extension {
         this.definition = definition;
     }
 
+    public preProcess(context: ExtensionContext): void {
+        // Remove backups from previous runs
+        const macroOutputBackupDir = Path.resolve(context.realBasePath, ".macro_output_backup");
+        FileSystem.removeSync(macroOutputBackupDir);
+        FileSystem.mkdirpSync(macroOutputBackupDir);
+    }
+
     public process(markdownIt: MarkdownIt, token: Token, context: ExtensionContext, state: StateInline | StateBlock): void {
         const definition = this.definition;
         const name = token.type;
@@ -159,7 +166,19 @@ export class CustomMacroExtension implements Extension {
             {
                 overwrite: true,
                 errorOnExist: true,
-                filter: (p) => Path.relative(outputDir, p) !== 'output.md' && Path.relative(outputDir, p) !== 'output.injects'
+                filter: (p) => Path.relative(outputDir, p) !== 'output.md' && Path.relative(outputDir, p) !== 'output.injects' && Path.relative(outputDir, p) !== '.macro_output_backup'
+            }
+        );
+
+        // Make a backup of the output. This is useful if you're switching between multiple workstations but the macro isn't deterministic -- you can copy over these backups directly into the cache on each workstation
+        // so that you're not checking in a competing version of the output each time you switch workstations. 
+        const relativeCacheDir = Path.relative(context.realCachePath, dirOverrides.finalCacheDir);
+        const macroOutputBackupDir = Path.resolve(context.realBasePath, ".macro_output_backup", relativeCacheDir);
+        FileSystem.mkdirpSync(macroOutputBackupDir);
+        FileSystem.copySync(outputDir, macroOutputBackupDir,
+            {
+                overwrite: true,
+                errorOnExist: true
             }
         );
     

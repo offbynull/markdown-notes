@@ -1,0 +1,1 @@
+<p><img src="img_562703ad89e1df7cb54db3b742d828de/data.svg" alt="By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595" title="" /></p>

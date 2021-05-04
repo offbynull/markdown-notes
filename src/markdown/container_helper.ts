@@ -20,122 +20,6 @@ import FileSystem from 'fs-extra';
 import Crypto from 'crypto';
 import Path from 'path';
 import * as Buildah from '../buildah/buildah';
-import { ExtensionContext } from './extender_plugin';
-import CsvParse from 'csv-parse/lib/sync';
-import escapeHTML from 'escape-html';
-
-export function runSingleOutputGeneratingContainer(
-    friendlyName: string,
-    containerDir: string,
-    inputDir: string,
-    inputOverrides: Map<string, string | Buffer>,
-    outputDir: string,
-    extraVolumeMappings: Buildah.LaunchVolumeMapping[],
-    extensionContext: ExtensionContext
-) {
-    // Run container
-    const dirOverrides = runContainer(
-        friendlyName,
-        containerDir,
-        inputDir,
-        inputOverrides,
-        outputDir,
-        extraVolumeMappings,
-        extensionContext.realCachePath);
-    inputDir = dirOverrides.updatedInputDir;
-    outputDir = dirOverrides.updatedOutputDir;
-
-    // Get output
-    const outputFiles = FileSystem.readdirSync(outputDir);
-    if (outputFiles.length !== 1) {
-        throw new Error('Require exactly 1 output, but was ' + outputFiles.length + ' outputs');
-    }
-    const outputFile = Path.resolve(outputDir, outputFiles[0]);
-
-    // Interpret output based on filetype
-    if (outputFile.toLowerCase().endsWith('.txt')) {
-        const data = FileSystem.readFileSync(outputFile, { encoding: 'utf8' });
-        return `<pre>${escapeHTML(data)}</pre>`;
-    } else if (outputFile.toLowerCase().endsWith('.svg')
-        || outputFile.toLowerCase().endsWith('.png')
-        || outputFile.toLowerCase().endsWith('.gif')
-        || outputFile.toLowerCase().endsWith('.jpg')
-        || outputFile.toLowerCase().endsWith('.jpeg')) {
-        const imageHtmlPath = extensionContext.injectFile(outputFile);
-        return `<p><img src="${escapeHTML(imageHtmlPath)}" alt="Generated image" /></p>`;
-    } else if (outputFile.toLowerCase().endsWith('.csv')) {
-        const data = FileSystem.readFileSync(outputFile, { encoding: 'utf8' });
-        const records = CsvParse(data, {
-            // eslint-disable-next-line @typescript-eslint/camelcase
-            relax_column_count: true
-        });
-
-        if (Array.isArray(records) === false) {
-            throw 'CSV did not parse to array'; // this should never happen
-        }
-
-        const recordsAsArray = records as string[][];
-        let ret = '';
-        ret += '<table>';
-        for (let i = 0; i < recordsAsArray.length; i++) {
-            const record = recordsAsArray[i];
-            const headerRow = i === 0;
-            ret += '<tr>';
-            for (let j = 0; j < record.length; j++) {
-                const data = record[j];
-                ret += headerRow ? '<th>' : '<td>';
-                ret += escapeHTML(data);
-                ret += headerRow ? '</th>' : '</td>';
-            }
-            ret += '</tr>';
-        }
-        ret += '</table>';
-        return ret;
-    } else {
-        throw new Error('Generated output file contains unknown extension: ' + outputFile);
-    }
-}
-
-export function runMarkdownGeneratingContainer(
-    friendlyName: string,
-    containerDir: string,
-    inputDir: string,
-    inputOverrides: Map<string, string | Buffer>,
-    outputDir: string,
-    extraVolumeMappings: Buildah.LaunchVolumeMapping[],
-    extensionContext: ExtensionContext
-) {
-    // Run container
-    const dirOverrides = runContainer(
-        friendlyName,
-        containerDir,
-        inputDir,
-        inputOverrides,
-        outputDir,
-        extraVolumeMappings,
-        extensionContext.realCachePath);
-    inputDir = dirOverrides.updatedInputDir;
-    outputDir = dirOverrides.updatedOutputDir;
-
-    // Read in output markdown
-    const outputMdPath = Path.resolve(outputDir, 'output.md');
-    if (!FileSystem.existsSync(outputMdPath) || !FileSystem.lstatSync(outputMdPath).isFile()) {
-        throw new Error('No output.md found');
-    }
-    const outputMd = FileSystem.readFileSync(outputMdPath, { encoding: 'utf8' });
-
-    // Copy over output files generated to base path (do not copy output.md, fail if a file already exists)
-    FileSystem.copySync(outputDir, extensionContext.realBasePath,
-        {
-            overwrite: true,
-            errorOnExist: true,
-            filter: (p) => Path.relative(outputDir, p) !== 'output.md' /* copy if the file isn't ./output.md */
-        }
-    );
-
-    // Return markdown for rendering
-    return outputMd;
-}
 
 export function runContainer(
     friendlyName: string,
@@ -190,7 +74,7 @@ export function runContainer(
         FileSystem.removeSync(tmpDir);
     }
 
-    return { updatedInputDir: inputDir, updatedOutputDir: outputDir };
+    return { updatedInputDir: inputDir, updatedOutputDir: outputDir, finalCacheDir: ch.cachedOutputDir };
 }
 
 export class ContainerHelper {

@@ -92,6 +92,7 @@ export class ExtensionContext {
 
 export interface Extension {
     readonly tokenIds: ReadonlyArray<TokenIdentifier>;
+    preProcess?: (context: ExtensionContext) => void;
     process?: (markdownIt: MarkdownIt, token: Token, context: ExtensionContext, state: StateInline | StateBlock) => void;
     postProcess?: (markdownIt: MarkdownIt, tokens: Token[], context: ExtensionContext) => void;
     render?: (markdownIt: MarkdownIt, tokens: ReadonlyArray<Token>, tokenIdx: number, context: ExtensionContext) => string;
@@ -191,6 +192,15 @@ function findRule<R extends RuleInline | RuleBlock>(markdownIt: MarkdownIt, name
         throw name + ' rule not found';
     }
     return ret;
+}
+
+
+function invokePreProcessors(extenderConfig: ExtenderConfig, context: ExtensionContext): void {
+    for (const extension of extenderConfig.extensions()) {
+        if (extension.preProcess !== undefined) {
+            extension.preProcess(context);
+        }
+    }
 }
 
 function invokePostProcessors(extenderConfig: ExtenderConfig, markdownIt: MarkdownIt, tokens: Token[], context: ExtensionContext): void {
@@ -332,6 +342,7 @@ export function extender(markdownIt: MarkdownIt, extenderConfig: ExtenderConfig)
     // potentially manipulate them prior to rendering)
     const oldMdParse = markdownIt.parse;
     markdownIt.parse = function(src, env): Token[] {
+        invokePreProcessors(extenderConfig, context);
         const tokens = oldMdParse.apply(markdownIt, [src, env]);
         invokePostProcessors(extenderConfig, markdownIt, tokens, context);
         return tokens;
