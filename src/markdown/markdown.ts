@@ -36,7 +36,7 @@ export default class Markdown {
         this.markdownIt = new MarkdownIt('commonmark', {
             highlight: (str, lang) => { // This just applies highlight.js classes -- CSS for classes applied in another area
                 if (lang && HighlightJs.getLanguage(lang)) {
-                    return '<pre class="hljs"><code>' + HighlightJs.highlight(lang, str).value + '</code></pre>';
+                    return '<pre class="hljs"><code>' + HighlightJs.highlight(str, { language: lang }).value + '</code></pre>';
                 }
                 return ''; // use external default escaping
             }

@@ -4,7 +4,7 @@ import FileSystem from 'fs-extra';
 
 function wrapImage(pathOrBuffer: string | Buffer) {
     const imgBuffer = pathOrBuffer instanceof Buffer ? pathOrBuffer : FileSystem.readFileSync(pathOrBuffer);
-    const imgData = ImageSize.imageSize(imgBuffer);
+    const imgData = ImageSize(imgBuffer);
     const imgMimeType = (() => {
         switch (imgData.type) {
             case 'svg':

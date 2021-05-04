@@ -20,7 +20,7 @@ import * as BrowserSync from 'browser-sync';
 
 import FileSystem from 'fs-extra';
 import Process from 'process';
-import { StringDecoder, NodeStringDecoder } from 'string_decoder';
+import { StringDecoder } from 'string_decoder';
 import Colors from 'colors/safe';
 import ChildProcess from 'child_process';
 import { killProcessHierarchy } from './utils/process_utils';
@@ -68,7 +68,7 @@ const inputWatcher = bs.watch(
     }
 );
 
-function logOutput(prefix: string, data: Buffer, state: { decoder: NodeStringDecoder, partialLine: string }) {
+function logOutput(prefix: string, data: Buffer, state: { decoder: StringDecoder, partialLine: string }) {
     const strSegment = state.decoder.write(data);
     state.partialLine += strSegment;
     while (true) {

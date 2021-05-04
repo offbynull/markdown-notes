@@ -5,6 +5,11 @@ import Markdown from './markdown/markdown';
 import { inlineHtml } from './utils/html_utils';
 import { macroScan } from './markdown/macro_helper';
 
+const majorNodeVer = /^v(\d+)/g.exec(Process.version);
+if (majorNodeVer == null || Number(majorNodeVer[1]) < 16) {
+    throw new Error(`Node version is too old: ${Process.version}`);
+}
+
 if (Process.argv.length !== 6) {
     throw 'Invalid arguments: ' + JSON.stringify(Process.argv);
 }
