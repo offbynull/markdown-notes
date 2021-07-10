@@ -1,4 +1,5 @@
 import * as FileSystem from 'fs-extra';
+import Gitignore from 'gitignore-fs';
 import * as Path from 'path';
 import * as Tar from 'tar';
 
@@ -103,3 +104,10 @@ function internalRecursiveReadDir(rootOutputDir: string, currOutputDir: string, 
         }
     }
 };
+
+export function copySyncButRespectGitIgnore(src: string, dst: string) {
+    const gitignore = new Gitignore();
+    FileSystem.copySync(src, dst, {
+        filter: p => !gitignore.ignoresSync(p) 
+    });
+}

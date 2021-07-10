@@ -27,6 +27,7 @@ import StateCore from 'markdown-it/lib/rules_core/state_core';
 import StateInline from 'markdown-it/lib/rules_inline/state_inline';
 import StateBlock from 'markdown-it/lib/rules_block/state_block';
 import { JSDOM } from 'jsdom';
+import { copySyncButRespectGitIgnore } from '../utils/file_utils';
 
 export class CustomMacroExtension implements Extension {
     public readonly tokenIds: ReadonlyArray<TokenIdentifier>;
@@ -112,7 +113,7 @@ export class CustomMacroExtension implements Extension {
             if (data.inputCopyPaths.size > 0) {
                 const tempInputDir = Path.resolve(workDir, 'input');
                 FileSystem.mkdirpSync(tempInputDir);
-                FileSystem.copySync(dirInfo.containerInputDir, tempInputDir); // copy original inputs folder to new inputs folder
+                copySyncButRespectGitIgnore(dirInfo.containerInputDir, tempInputDir); // copy original inputs folder to new inputs folder
                 copyPaths(context.realInputPath, [...data.inputCopyPaths], tempInputDir); // copy requested files from root markdown input folder to new inputs folder
                 return tempInputDir;
             } else {
@@ -228,6 +229,6 @@ function copyPaths(srcBase: string, paths: ReadonlyArray<string>, dstBase: strin
             console.log(`Original destination exists -- overwriting existing: ${relPath} (${src} to ${dst})`);
         }
         FileSystem.mkdirpSync(dstDir);
-        FileSystem.copySync(src, dst);
+        copySyncButRespectGitIgnore(src, dst);
     }
 }

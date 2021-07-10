@@ -20,6 +20,7 @@ import FileSystem from 'fs-extra';
 import Crypto from 'crypto';
 import Path from 'path';
 import * as Buildah from '../buildah/buildah';
+import { copySyncButRespectGitIgnore } from '../utils/file_utils';
 
 export function runContainer(
     friendlyName: string,
@@ -34,7 +35,7 @@ export function runContainer(
     let tmpDir: string | null = null;
     if (inputOverrides.size !== 0) {
         tmpDir = FileSystem.mkdtempSync('/tmp/inputoverrides');
-        FileSystem.copySync(inputDir, tmpDir);
+        copySyncButRespectGitIgnore(inputDir, tmpDir);
         for (const e of inputOverrides.entries()) {
             const overridePath = Path.normalize(Path.resolve(tmpDir, e[0]));
             if (Path.relative(tmpDir, overridePath).startsWith('..')) {
