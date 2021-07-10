@@ -4,6 +4,7 @@ import * as Path from 'path';
 import Markdown from './markdown/markdown';
 import { inlineHtml } from './utils/html_utils';
 import { macroScan } from './markdown/macro_helper';
+import { copySyncButRespectGitIgnore } from './utils/file_utils';
 
 const majorNodeVer = /^v(\d+)/g.exec(Process.version);
 if (majorNodeVer == null || Number(majorNodeVer[1]) < 16) {
@@ -29,7 +30,8 @@ const pack = (() => {
 })();
 const tempRenderPath = Process.argv[5];
 
-FileSystem.copySync(inputPath, tempRenderPath);
+// For consistent rendering across machines, don't include input files that are in gitignore
+copySyncButRespectGitIgnore(inputPath, tempRenderPath);
 
 // Render input.md to output.html
 const mdInput = FileSystem.readFileSync(tempRenderPath + '/input.md', { encoding: 'utf8'});

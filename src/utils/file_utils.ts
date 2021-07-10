@@ -1,4 +1,5 @@
 import * as FileSystem from 'fs-extra';
+import Gitignore from 'gitignore-fs';
 import * as Path from 'path';
 import * as Tar from 'tar';
 
@@ -103,3 +104,20 @@ function internalRecursiveReadDir(rootOutputDir: string, currOutputDir: string, 
         }
     }
 };
+
+export function copySyncButRespectGitIgnore(src: string, dst: string, options?: FileSystem.CopyOptionsSync) {
+    const gitignore = new Gitignore();
+    const oldOptFilter = options?.filter || (() => true);
+    const newOptFilter = (src: string, dst: string) => {
+        if (FileSystem.lstatSync(src).isDirectory() && !src.endsWith('/')) {
+            src += '/';  // the library said it requires this -- a slash at the end if its a dir
+        }
+        return (oldOptFilter(src, dst) && !gitignore.ignoresSync(src));
+    };
+    if (options !== undefined) {
+        options.filter = newOptFilter;
+    } else {
+        options = { filter: newOptFilter };
+    }
+    FileSystem.copySync(src, dst, options);
+}
