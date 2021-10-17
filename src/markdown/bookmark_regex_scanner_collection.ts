@@ -135,64 +135,22 @@ export class BookmarkRegexScannerCollection {
         return found.entry.anchorId;
     }
 
-    public scan(text: string): ScanResult | null {
-        const matches: CaptureEntry[] = [];
-        for (const entry of this.entries) {
-            if (entry.entry.enabled === false) {
-                continue;
-            }
-
-            const match = entry.scanner.scan(text);
-            if (match !== null) {
-                matches.push({
-                    capture: match,
-                    entry: entry.entry
-                });
-            }
+    public findKeyByMatch(text: string): BookmarkKey | null {
+        const finalMatch = this.findAndFilterDownToSingleMatch(text);
+        if (finalMatch === null) {
+            return null;
+        } else {
+            return finalMatch.entry.origKey;
         }
+    }
 
-        if (matches.length === 0) {
+    public scan(text: string): ScanResult | null {
+        const finalMatch = this.findAndFilterDownToSingleMatch(text);
+        
+        // If nothing found or not enabled, return nuull
+        if (finalMatch === null || finalMatch.entry.enabled === false) {
             return null;
         }
-
-
-        let filterMatches = matches;
-
-        // Sort by earliest matches on the full capture
-        filterMatches = filterMatches.slice().sort((a, b) => a.capture.fullIndex < b.capture.fullIndex ? -1 : 1);
-        const earliestFullMatchIdx = filterMatches[0].capture.captureIndex;
-        filterMatches = filterMatches.filter(m => m.capture.captureIndex === earliestFullMatchIdx);
-
-        // Sort by longest matches on the capture group
-        filterMatches = filterMatches.slice().sort((a, b) => a.capture.captureMatch.length > b.capture.captureMatch.length ? -1 : 1);
-        const longestCaptureMatchIdx = filterMatches[0].capture.captureMatch.length;
-        filterMatches = filterMatches.filter(m => m.capture.captureMatch.length === longestCaptureMatchIdx);
-
-        // Sort by longest matches on full capture
-        filterMatches = filterMatches.slice().sort((a, b) => a.capture.fullMatch.length > b.capture.fullMatch.length ? -1 : 1);
-        const longestFullMatchIdx = filterMatches[0].capture.fullMatch.length;
-        filterMatches = filterMatches.filter(m => m.capture.fullMatch.length === longestFullMatchIdx);
-
-        // If any of the remaining matches were error matches, only return the error match if nothing else was matched. For example, imagine the following markup...
-        //    `{bm} base/(base)_nucleotide/i`
-        //    `{bm} base/(base)_pH/i`
-        //    `{bm-ambiguous} Disambiguate using either base_pH or base_nucleotide/(base)/i`
-        // ...the term base_pH will match both the 2nd bookmark and the error, but base_pH is clearly correct. No error should be thrown.
-        const normalMatches = filterMatches.filter(m => m.entry instanceof NormalBookmarkEntry);
-        const errorMatches = filterMatches.filter(m => m.entry instanceof ErrorBookmarkEntry);
-        const finalMatch = (() => {
-            if (normalMatches.length === 0 && errorMatches.length >= 1) { // nothing matched except for errors -- show the errors
-                return errorMatches[0];
-            } else if (normalMatches.length === 1) { // exactly 1 thing matched -- ignore any errors that may have matched as well (for reasoning discussed in block comment above)
-                return normalMatches[0];
-            } else {
-                const errorObjs = {
-                    matchedBookmarks: normalMatches.map(em => ({ regex: em.entry.origKey, anchorId: (em.entry as NormalBookmarkEntry).anchorId, block: text })),
-                    matchedAmbiguities: errorMatches.map(em => ({ regex: em.entry.origKey, errorMessage: (em.entry as ErrorBookmarkEntry).errorText, block: text }))
-                }
-                throw 'Conflicting bookmark matched:\n' + JSON.stringify(errorObjs, null, 2);
-            }
-        })();
 
         // If redirected, walk to the final target
         let walkedToEntry = finalMatch.entry;
@@ -224,11 +182,13 @@ export class BookmarkRegexScannerCollection {
 
         // Return
         if (walkedToEntry instanceof ErrorBookmarkEntry) {
-            const errorObjs = {
-                matchedAmbiguities: errorMatches.map(em => ({ regex: em.entry.origKey, errorMessage: (em.entry as ErrorBookmarkEntry).errorText, block: text })),
+            const errorObj = {
+                key: walkedToEntry.origKey,
+                message: (walkedToEntry as ErrorBookmarkEntry).errorText,
+                block: text,
                 redirectChain: walkChain
             };
-            throw 'Bookmark disambiguation errors matched:\n' + JSON.stringify(errorObjs, null, 2);
+            throw 'Error Bookmark matched:\n' + JSON.stringify(errorObj, null, 2);
         } else if (walkedToEntry instanceof NormalBookmarkEntry) {
             return {
                 fullIndex: finalMatch.capture.fullIndex,
@@ -243,6 +203,57 @@ export class BookmarkRegexScannerCollection {
         } else {
             throw 'This should never happen'
         }
+    }
+
+    private findAndFilterDownToSingleMatch(text: string): CaptureEntry | null {
+        const matches: CaptureEntry[] = [];
+        for (const entry of this.entries) {
+            const match = entry.scanner.scan(text);
+            if (match !== null) {
+                matches.push({
+                    capture: match,
+                    entry: entry.entry
+                });
+            }
+        }
+
+        if (matches.length === 0) {
+            return null;
+        }
+
+        let filterMatches = matches;
+
+        // Sort by earliest matches on the full capture
+        filterMatches = filterMatches.slice().sort((a, b) => a.capture.fullIndex < b.capture.fullIndex ? -1 : 1);
+        const earliestFullMatchIdx = filterMatches[0].capture.captureIndex;
+        filterMatches = filterMatches.filter(m => m.capture.captureIndex === earliestFullMatchIdx);
+
+        // Sort by longest matches on the capture group
+        filterMatches = filterMatches.slice().sort((a, b) => a.capture.captureMatch.length > b.capture.captureMatch.length ? -1 : 1);
+        const longestCaptureMatchIdx = filterMatches[0].capture.captureMatch.length;
+        filterMatches = filterMatches.filter(m => m.capture.captureMatch.length === longestCaptureMatchIdx);
+
+        // Sort by longest matches on full capture
+        filterMatches = filterMatches.slice().sort((a, b) => a.capture.fullMatch.length > b.capture.fullMatch.length ? -1 : 1);
+        const longestFullMatchIdx = filterMatches[0].capture.fullMatch.length;
+        filterMatches = filterMatches.filter(m => m.capture.fullMatch.length === longestFullMatchIdx);
+
+        // Ensure single match and return
+        if (filterMatches.length > 1) {
+            const errorObjs = {
+                matchedBookmarks: filterMatches
+                    .filter(m => m.entry instanceof NormalBookmarkEntry)
+                    .map(em => ({ regex: em.entry.origKey, anchorId: (em.entry as NormalBookmarkEntry).anchorId, block: text })),
+                matchedAmbiguities: filterMatches
+                    .filter(m => m.entry instanceof ErrorBookmarkEntry)
+                    .map(em => ({ regex: em.entry.origKey, errorMessage: (em.entry as ErrorBookmarkEntry).errorText, block: text }))
+            };
+            throw 'Conflicting bookmarks matched:\n' + JSON.stringify(errorObjs, null, 2);
+        } else if (filterMatches.length === 1) {
+            return filterMatches[0];
+        }
+        
+        throw 'This should never happen'; // input matches should have had at least 1 element
     }
 }
 

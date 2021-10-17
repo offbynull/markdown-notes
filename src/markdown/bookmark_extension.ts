@@ -266,49 +266,64 @@ export class BookmarkExtension implements Extension {
                 continue;
             } else if (token.type === 'bm-enable') {
                 const broken = breakOnSlashes(token.content);
-                if (broken.length !== 2) {
+                if (broken.length !== 1) {
                     throw 'Incorrect number of arguments in bm-enable tag: ' + JSON.stringify(broken) + '\n'
                         + '------\n'
                         + 'Examples:\n'
-                        + '  `{bm-enable} (existing\\s+regex1)/i`\n'
+                        + '  `{bm-enable} text for bookmark`\n'
                         + 'Tag arguments are delimited using forward slash (\). Use \\ to escape the delimiter (\\/).';
                 }
-                const key = new BookmarkKey(broken[0], broken[1]);
+                const key = bookmarkData.scanner.findKeyByMatch(broken[0]);
+                if (key === null) {
+                    throw `Text in bm-enable tag doesn't match any bookmark: ${JSON.stringify(broken)}`;
+                }
                 bookmarkData.scanner.enableBookmark(key, true);
             } else if (token.type === 'bm-disable') {
                 const broken = breakOnSlashes(token.content);
-                if (broken.length !== 2) {
+                if (broken.length !== 1) {
                     throw 'Incorrect number of arguments in bm-disable tag: ' + JSON.stringify(broken) + '\n'
                         + '------\n'
                         + 'Examples:\n'
-                        + '  `{bm-disable} (existing\\s+regex1)/i`\n'
+                        + '  `{bm-disable} text for bookmark`\n'
                         + 'Tag arguments are delimited using forward slash (\). Use \\ to escape the delimiter (\\/).';
                 }
-                const key = new BookmarkKey(broken[0], broken[1]);
+                const key = bookmarkData.scanner.findKeyByMatch(broken[0]);
+                if (key === null) {
+                    throw `Text in bm-disable tag doesn't match any bookmark: ${JSON.stringify(broken)}`;
+                }
                 bookmarkData.scanner.enableBookmark(key, false);
             } else if (token.type === 'bm-redirect') {
                 const broken = breakOnSlashes(token.content);
-                if (broken.length !== 4) {
+                if (broken.length !== 2) {
                     throw 'Incorrect number of arguments in bm-redirect tag: ' + JSON.stringify(broken) + '\n'
                         + '------\n'
                         + 'Examples:\n'
-                        + '  `{bm-redirect} (existing\\s+regex1)/i/(existing\\s+regex2)/i`\n'
+                        + '  `{bm-redirect} text for from bookmark/text for to bookmark`\n'
                         + 'Tag arguments are delimited using forward slash (\). Use \\ to escape the delimiter (\\/).';
                 }
-                const fromKey = new BookmarkKey(broken[0], broken[1]);
-                const toKey = new BookmarkKey(broken[2], broken[3]);
+                const fromKey = bookmarkData.scanner.findKeyByMatch(broken[0]);
+                const toKey = bookmarkData.scanner.findKeyByMatch(broken[1]);
+                if (fromKey === null) {
+                    throw `From text in bm-redirect tag doesn't match any bookmark: ${JSON.stringify(broken)}`;
+                }
+                if (toKey === null) {
+                    throw `To text in bm-redirect tag doesn't match any bookmark: ${JSON.stringify(broken)}`;
+                }
                 bookmarkData.scanner.redirectBookmark(fromKey, toKey);
                 continue;
             } else if (token.type === 'bm-reset') {
                 const broken = breakOnSlashes(token.content);
-                if (broken.length !== 2) {
+                if (broken.length !== 1) {
                     throw 'Incorrect number of arguments in bm-reset tag: ' + JSON.stringify(broken) + '\n'
                         + '------\n'
                         + 'Examples:\n'
-                        + '  `{bm-reset} (existing\\s+regex1)/i`\n'
+                        + '  `{bm-reset} text for bookmark`\n'
                         + 'Tag arguments are delimited using forward slash (\). Use \\ to escape the delimiter (\\/).';
                 }
-                const key = new BookmarkKey(broken[0], broken[1]);
+                const key = bookmarkData.scanner.findKeyByMatch(broken[0]);
+                if (key === null) {
+                    throw `Text in bm-reset tag doesn't match any bookmark: ${JSON.stringify(broken)}`;
+                }
                 bookmarkData.scanner.redirectBookmark(key, null);
                 continue;
             }
@@ -329,24 +344,25 @@ export class BookmarkExtension implements Extension {
 
             let replacementTokens: Token[] = [];
             if (token.type === 'bm-target') {
-                // Output a piece of text but link it to a bookmark that doesn't belong to
+                // Output a piece of text but link it to a bookmark for some other piece of text that isn't displayed
                 const broken = breakOnSlashes(token.content);
-                if (broken.length !== 3) {
+                if (broken.length !== 2) {
                     throw 'Incorrect number of arguments in bm-target tag: ' + JSON.stringify(broken) + '\n'
                         + '------\n'
                         + 'Examples:\n'
-                        + '  `{bm-target} text to link/(existing\\s+regex1)/i`\n'
+                        + '  `{bm-target} display text/text for bookmark`\n'
                         + 'Tag arguments are delimited using forward slash (\). Use \\ to escape the delimiter (\\/).';
                 }
                 const text = broken[0];
-                const key = new BookmarkKey(broken[1], broken[2]);
-                const anchorId = bookmarkData.scanner.getNormalBookmarkAnchorId(key);
+                const targetText = broken[1];
+                const scanRes = bookmarkData.scanner.scan(targetText);
+                const anchorId = scanRes?.anchorId;
 
-                if (anchorId === null) {
+                if (anchorId === null || anchorId === undefined) {
                     throw 'No anchor ID for bookmark (is the bookmark from a bm-ignore tag?)\n'
                         + '\n'
-                        + 'Regex: ' + key.regex + '\n'
-                        + 'Flags: ' + key.flags + '\n';
+                        + 'Display text: ' + text + '\n'
+                        + 'Target text: ' + targetText + '\n';
                 }
 
                 replacementTokens.push(new Token('bookmark_link_open', 'a', 1));

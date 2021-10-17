@@ -241,25 +241,14 @@ OUTPUT NOT POSSIBLE BECAUSE THROWN ERROR WOULD CANCEL RENDER.
 
 A bm / bm-ignore / bm-error tag can be redirected to another bm / bm-ignore / bm-error tag using `{bm} bm-redirect`, then reset back to normal using the `{bm} bm-reset` tag. That is, you can make it so that if the linker matches a piece of text, instead of performing the intended action, it'll perform the action for some other bookmark.
  
-The bm-redirect tag takes in 4 arguments: `` `{bm-redirect} <SRC_REGEX>/<SRC_REGEX_FLAGS>/<DST_REGEX>/<DST_REGEX_FLAGS>` ``...
+The bm-redirect tag takes in 2 arguments: `` `{bm-redirect} <SRC_TEXT>/<DST_TEXT>` ``...
 
- 1. `<SRC_REGEX>`: Regex used by tag being redirected from.
+ 1. `<SRC_TEXT>`: Text that targets the bookmark being redirected from.
+ 2. `<DST_TEXT>`: Text that targets the bookmark being redirected to.
 
- 2. `<SRC_REGEX_FLAGS>`: Regex flags used by tag being redirected from.
+The bm-reset tag takes 1 arguments: `` `{bm-reset} <DST_TEXT>` ``...
 
- 3. `<DST_REGEX>`: Regex used by tag being redirected to.
-
- 4. `<DST_REGEX_FLAGS>`: Regex flags used by tag being redirected to.
-
-The bm-reset tag takes 2 arguments: `` `{bm-reset} <SRC_REGEX>/<SRC_REGEX_FLAGS>` ``...
-
- 1. `<SRC_REGEX>`: Regex used by tag that's being redirected.
-
- 2. `<SRC_REGEX_FLAGS>`: Regex flags used by tag that's being redirected.
-
-```{note}
-As you can probably infer, the key for bookmarking is regex + regex flags.
-```
+ 1. `<DST_TEXT>`: Text that targets a bookmark.
 
 Why's this useful? Imagine the following use-case: you're writing a document on biology and chemistry. You have 2 sections in the document that the word base relates to: base as in the pH scale and base as in a nucleotide base. Since the word base is being used in 2 different contexts, you create bookmarks that explicitly look for a suffix:
 
@@ -283,11 +272,11 @@ Example usage / output:
 * `{bm} product/(product)_MATH/i` (math multiplication)
 * `{bm} product/(product)_CHEM/i` (chemistry)
 
-`{bm-redirect} (product)/i/(product)_CHEM/i`
+`{bm-redirect} product/product_CHEM`
 
 Much of chemistry research is focused on the synthesis and characterization of beneficial products, as well as the detection and removal of undesirable products. Synthetic chemists can be subdivided into research chemists who design new chemicals and pioneer new methods for synthesizing chemicals, as well as process chemists who scale up chemical production and make it safer, more environmentally sustainable, and more efficient.[3] Other fields include natural product chemists who isolate products created by living organisms and then characterize and study these products.
 
-`{bm-reset} (product)/i`
+`{bm-reset} product`
 
 Every instance of product in paragraph above should be linked to the chemistry reference.
 ```
@@ -297,11 +286,11 @@ Every instance of product in paragraph above should be linked to the chemistry r
 * `{bm} product/(product)_MATH/i` (math multiplication)
 * `{bm} product/(product)_CHEM/i` (chemistry)
 
-`{bm-redirect} (product)/i/(product)_CHEM/i`
+`{bm-redirect} product/product_CHEM`
 
 Much of chemistry research is focused on the synthesis and characterization of beneficial products, as well as the detection and removal of undesirable products. Synthetic chemists can be subdivided into research chemists who design new chemicals and pioneer new methods for synthesizing chemicals, as well as process chemists who scale up chemical production and make it safer, more environmentally sustainable, and more efficient.[3] Other fields include natural product chemists who isolate products created by living organisms and then characterize and study these products.
 
-`{bm-reset} (product)/i`
+`{bm-reset} product`
 
 Every instance of product in paragraph above should be linked to the chemistry reference.
 
@@ -309,13 +298,10 @@ Every instance of product in paragraph above should be linked to the chemistry r
 
 Any piece of text can be directed directed to a bm tag it wasn't intended for using `{bm} bm-target`. That is, you can make it so that a piece of text specifically links to some other bookmark that wouldn't normally link that piece of text.
  
-The bm-target tag takes in 3 arguments: `` `{bm-target} <OUTPUT>/<REGEX>/<REGEX_FLAGS>` ``...
+The bm-target tag takes in 2 arguments: `` `{bm-target} <OUTPUT>/<SRC_TEXT>` ``...
 
  1. `<OUTPUT>`: Text to output and linkify.
-
- 2. `<REGEX>`: Regex used by the bm tag being targeted.
-
- 3. `<REGEX_FLAGS>`: Regex flags used by the bm tag being targeted.
+ 2. `<DST_TEXT>`: Text that targets the bookmark being redirected to.
 
 
 ```{note}
@@ -330,31 +316,35 @@ Example usage / output:
 `{bm} junk bookmark`
 
 * this should point to junk bookmark.
-* this one should also point to `{bm-target} the bookmark above/(junk bookmark)/i`.
+* this one should also point to `{bm-target} the bookmark above/junk bookmark`.
 ```
 
 `{bm} junk bookmark`
 
 * this should point to junk bookmark.
-* this one should also point to `{bm-target} the bookmark above/(junk bookmark)/i`.
+* this one should also point to `{bm-target} the bookmark above/junk bookmark`.
 
 ## Disabling
 
-A bm / bm-ignore / bm-error tag can be temporarily disabled and then re-enabled using the bm-disable and bm-enable tags. Disabling a bookmark doesn't mean that other bookmarks can't redirect to it, it just means that the linker will ignore this bookmark when matching text.
+A bm / bm-ignore / bm-error tag can be temporarily disabled and then re-enabled using the `{bm} bm-disable` and `{bm} bm-enable` tags. Disabling a bookmark doesn't mean that other bookmarks can't redirect to it, it just means that the linker will ignore this bookmark when matching text.
 
 Why's this useful? Imagine that you set a bookmark match to produce an error (bm-error) but in certain cases you want to use that matched text without generating an error. Disabling allows for that.
+
+The bm-disable and bm-enable tag both take 1 argument each: `` `{bm-reset} <DST_TEXT>` ``...
+
+ 1. `<DST_TEXT>`: Text that targets a bookmark.
 
 Example usage / output:
 
 ```
 Bookmark `{bm} Sao Paulo`.
 * Sao Paulo should be linked back.
-* `{bm-disable} (Sao Paulo)/i` Sao Paulo should NOT be linked back `{bm-enable} (Sao Paulo)/i`.
+* `{bm-disable} Sao Paulo` Sao Paulo should NOT be linked back `{bm-enable} Sao Paulo`.
 ```
 
 Bookmark `{bm} Sao Paulo`.
 * Sao Paulo should be linked back.
-* `{bm-disable} (Sao Paulo)/i` Sao Paulo should NOT be linked back `{bm-enable} (Sao Paulo)/i`.
+* `{bm-disable} Sao Paulo` Sao Paulo should NOT be linked back `{bm-enable} Sao Paulo`.
 
 ## Disabling All
 

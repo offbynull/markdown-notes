@@ -242,34 +242,15 @@ Bookmark <a name="BM_(basic)_pH%2Fi"></a><strong>basic</strong> when suffix is _
 <p>OUTPUT NOT POSSIBLE BECAUSE THROWN ERROR WOULD CANCEL RENDER.</p>
 <a name="H_Redirecting%20(all%20instances)"></a><h2>Redirecting (all instances)</h2>
 <p>A <a href="#BM_(bm)%2Fi">bm</a> / <a href="#BM_(bm-ignore)%2Fi">bm-ignore</a> / <a href="#BM_(bm-error)%2Fi">bm-error</a> tag can be redirected to another <a href="#BM_(bm)%2Fi">bm</a> / <a href="#BM_(bm-ignore)%2Fi">bm-ignore</a> / <a href="#BM_(bm-error)%2Fi">bm-error</a> tag using <a name="BM_(bm-redirect)%2Fi"></a><strong>bm-redirect</strong>, then reset back to normal using the <a name="BM_(bm-reset)%2Fi"></a><strong>bm-reset</strong> tag. That is, you can make it so that if the linker matches a piece of text, instead of performing the intended action, it'll perform the action for some other bookmark.</p>
-<p>The <a href="#BM_(bm-redirect)%2Fi">bm-redirect</a> tag takes in 4 arguments: <code>`{bm-redirect} &lt;SRC_REGEX&gt;/&lt;SRC_REGEX_FLAGS&gt;/&lt;DST_REGEX&gt;/&lt;DST_REGEX_FLAGS&gt;`</code>...</p>
+<p>The <a href="#BM_(bm-redirect)%2Fi">bm-redirect</a> tag takes in 2 arguments: <code>`{bm-redirect} &lt;SRC_TEXT&gt;/&lt;DST_TEXT&gt;`</code>...</p>
 <ol>
-<li>
-<p><code>&lt;SRC_REGEX&gt;</code>: Regex used by tag being redirected from.</p>
-</li>
-<li>
-<p><code>&lt;SRC_REGEX_FLAGS&gt;</code>: Regex flags used by tag being redirected from.</p>
-</li>
-<li>
-<p><code>&lt;DST_REGEX&gt;</code>: Regex used by tag being redirected to.</p>
-</li>
-<li>
-<p><code>&lt;DST_REGEX_FLAGS&gt;</code>: Regex flags used by tag being redirected to.</p>
-</li>
+<li><code>&lt;SRC_TEXT&gt;</code>: Text that targets the bookmark being redirected from.</li>
+<li><code>&lt;DST_TEXT&gt;</code>: Text that targets the bookmark being redirected to.</li>
 </ol>
-<p>The <a href="#BM_(bm-reset)%2Fi">bm-reset</a> tag takes 2 arguments: <code>`{bm-reset} &lt;SRC_REGEX&gt;/&lt;SRC_REGEX_FLAGS&gt;`</code>...</p>
+<p>The <a href="#BM_(bm-reset)%2Fi">bm-reset</a> tag takes 1 arguments: <code>`{bm-reset} &lt;DST_TEXT&gt;`</code>...</p>
 <ol>
-<li>
-<p><code>&lt;SRC_REGEX&gt;</code>: Regex used by tag that's being redirected.</p>
-</li>
-<li>
-<p><code>&lt;SRC_REGEX_FLAGS&gt;</code>: Regex flags used by tag that's being redirected.</p>
-</li>
+<li><code>&lt;DST_TEXT&gt;</code>: Text that targets a bookmark.</li>
 </ol>
-<div style="margin:2em; background-color: #e0e0e0;">
-<p><strong>⚠️NOTE️️️⚠️</strong></p>
-<p>As you can probably infer, the key for bookmarking is regex + regex flags.</p>
-</div>
 <p>Why's this useful? Imagine the following use-case: you're writing a document on biology and chemistry. You have 2 sections in the document that the word base relates to: base as in the pH scale and base as in a nucleotide base. Since the word base is being used in 2 different contexts, you create bookmarks that explicitly look for a suffix:</p>
 <pre><code>`{bm-ignore} base`
 `{bm} base/(base)_pH/i`
@@ -287,11 +268,11 @@ Bookmark <a name="BM_(basic)_pH%2Fi"></a><strong>basic</strong> when suffix is _
 * `{bm} product/(product)_MATH/i` (math multiplication)
 * `{bm} product/(product)_CHEM/i` (chemistry)
 
-`{bm-redirect} (product)/i/(product)_CHEM/i`
+`{bm-redirect} product/product_CHEM`
 
 Much of chemistry research is focused on the synthesis and characterization of beneficial products, as well as the detection and removal of undesirable products. Synthetic chemists can be subdivided into research chemists who design new chemicals and pioneer new methods for synthesizing chemicals, as well as process chemists who scale up chemical production and make it safer, more environmentally sustainable, and more efficient.[3] Other fields include natural product chemists who isolate products created by living organisms and then characterize and study these products.
 
-`{bm-reset} (product)/i`
+`{bm-reset} product`
 
 Every instance of product in paragraph above should be linked to the chemistry reference.
 </code></pre>
@@ -306,17 +287,10 @@ Every instance of product in paragraph above should be linked to the chemistry r
 <p>Every instance of product in paragraph above should be linked to the chemistry reference.</p>
 <a name="H_Redirecting%20(single%20instance)"></a><h2>Redirecting (single instance)</h2>
 <p>Any piece of text can be directed directed to a <a href="#BM_(bm)%2Fi">bm</a> tag it wasn't intended for using <a name="BM_(bm-target)%2Fi"></a><strong>bm-target</strong>. That is, you can make it so that a piece of text specifically links to some other bookmark that wouldn't normally link that piece of text.</p>
-<p>The <a href="#BM_(bm-target)%2Fi">bm-target</a> tag takes in 3 arguments: <code>`{bm-target} &lt;OUTPUT&gt;/&lt;REGEX&gt;/&lt;REGEX_FLAGS&gt;`</code>...</p>
+<p>The <a href="#BM_(bm-target)%2Fi">bm-target</a> tag takes in 2 arguments: <code>`{bm-target} &lt;OUTPUT&gt;/&lt;SRC_TEXT&gt;`</code>...</p>
 <ol>
-<li>
-<p><code>&lt;OUTPUT&gt;</code>: Text to output and linkify.</p>
-</li>
-<li>
-<p><code>&lt;REGEX&gt;</code>: Regex used by the <a href="#BM_(bm)%2Fi">bm</a> tag being targeted.</p>
-</li>
-<li>
-<p><code>&lt;REGEX_FLAGS&gt;</code>: Regex flags used by the <a href="#BM_(bm)%2Fi">bm</a> tag being targeted.</p>
-</li>
+<li><code>&lt;OUTPUT&gt;</code>: Text to output and linkify.</li>
+<li><code>&lt;DST_TEXT&gt;</code>: Text that targets the bookmark being redirected to.</li>
 </ol>
 <div style="margin:2em; background-color: #e0e0e0;">
 <p><strong>⚠️NOTE️️️⚠️</strong></p>
@@ -327,7 +301,7 @@ Every instance of product in paragraph above should be linked to the chemistry r
 <pre><code>`{bm} junk bookmark`
 
 * this should point to junk bookmark.
-* this one should also point to `{bm-target} the bookmark above/(junk bookmark)/i`.
+* this one should also point to `{bm-target} the bookmark above/junk bookmark`.
 </code></pre>
 <p><a name="BM_(junk%20bookmark)%2Fi"></a><strong>junk bookmark</strong></p>
 <ul>
@@ -335,12 +309,16 @@ Every instance of product in paragraph above should be linked to the chemistry r
 <li>this one should also point to <a href="#BM_(junk bookmark)/i">the bookmark above</a>.</li>
 </ul>
 <a name="H_Disabling"></a><h2>Disabling</h2>
-<p>A <a href="#BM_(bm)%2Fi">bm</a> / <a href="#BM_(bm-ignore)%2Fi">bm-ignore</a> / <a href="#BM_(bm-error)%2Fi">bm-error</a> tag can be temporarily disabled and then re-enabled using the <a href="#BM_(bm)%2Fi">bm</a>-disable and <a href="#BM_(bm)%2Fi">bm</a>-enable tags. Disabling a bookmark doesn't mean that other bookmarks can't redirect to it, it just means that the linker will ignore this bookmark when matching text.</p>
+<p>A <a href="#BM_(bm)%2Fi">bm</a> / <a href="#BM_(bm-ignore)%2Fi">bm-ignore</a> / <a href="#BM_(bm-error)%2Fi">bm-error</a> tag can be temporarily disabled and then re-enabled using the <a name="BM_(bm-disable)%2Fi"></a><strong>bm-disable</strong> and <a name="BM_(bm-enable)%2Fi"></a><strong>bm-enable</strong> tags. Disabling a bookmark doesn't mean that other bookmarks can't redirect to it, it just means that the linker will ignore this bookmark when matching text.</p>
 <p>Why's this useful? Imagine that you set a bookmark match to produce an error (<a href="#BM_(bm-error)%2Fi">bm-error</a>) but in certain cases you want to use that matched text without generating an error. Disabling allows for that.</p>
+<p>The <a href="#BM_(bm-disable)%2Fi">bm-disable</a> and <a href="#BM_(bm-enable)%2Fi">bm-enable</a> tag both take 1 argument each: <code>`{bm-reset} &lt;DST_TEXT&gt;`</code>...</p>
+<ol>
+<li><code>&lt;DST_TEXT&gt;</code>: Text that targets a bookmark.</li>
+</ol>
 <p>Example usage / output:</p>
 <pre><code>Bookmark `{bm} Sao Paulo`.
 * Sao Paulo should be linked back.
-* `{bm-disable} (Sao Paulo)/i` Sao Paulo should NOT be linked back `{bm-enable} (Sao Paulo)/i`.
+* `{bm-disable} Sao Paulo` Sao Paulo should NOT be linked back `{bm-enable} Sao Paulo`.
 </code></pre>
 <p>Bookmark <a name="BM_(Sao%20Paulo)%2Fi"></a><strong>Sao Paulo</strong>.</p>
 <ul>
