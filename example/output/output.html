@@ -365,12 +365,12 @@ Every instance of product in paragraph above should be linked to the chemistry r
 <li>Hardcoded extra (shared) inputs can be passed to the container when it runs via <code>copyInputs</code>. For example, multiple macros may require the same shared piece of code. Rather than placing a copy of that code in each macro's <code>[MACRO_DIR]/input/</code> directory, you can reference a single copy from each macro.</li>
 <li>User-defined extra (shared) inputs can be passed to the container when it runs via <code>copyInputsPrefix</code>. For example, the user can reference a specific image file for each usage of the macro to operate on.</li>
 </ul>
-<pre class="hljs"><code>{
+<pre class="hljs"><code><span class="hljs-punctuation">{</span>
     <span class="hljs-comment">// copyInputs</span>
     <span class="hljs-comment">//   &gt; If an array, the array elements must be paths. These paths get made available</span>
     <span class="hljs-comment">//     in the container's /input directory when it runs.</span>
     <span class="hljs-comment">//   &gt; If undefined, it's treated the same as an empty array.</span>
-    <span class="hljs-attr">"copyInputs"</span>: [ <span class="hljs-string">"shared_dir1"</span>, <span class="hljs-string">"shared_dir2"</span> ], 
+    <span class="hljs-attr">"copyInputs"</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span> <span class="hljs-string">"shared_dir1"</span><span class="hljs-punctuation">,</span> <span class="hljs-string">"shared_dir2"</span> <span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span> 
     <span class="hljs-comment">// copyInputsPrefix</span>
     <span class="hljs-comment">//   &gt; If empty string, the first line of the macro usage must point to a path. That</span>
     <span class="hljs-comment">//     path gets made available in the container's /input directory when it runs.</span>
@@ -378,8 +378,8 @@ Every instance of product in paragraph above should be linked to the chemistry r
     <span class="hljs-comment">//     string must each point to a path. These paths get made available in the</span>
     <span class="hljs-comment">//     container's /input directory when it runs.</span>
     <span class="hljs-comment">//   &gt; If undefined, the macro usage can't reference any files.</span>
-    <span class="hljs-attr">"copyInputsPrefix"</span>: <span class="hljs-string">"!"</span>,
-}
+    <span class="hljs-attr">"copyInputsPrefix"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">"!"</span><span class="hljs-punctuation">,</span>
+<span class="hljs-punctuation">}</span>
 </code></pre>
 <p>When a macro gets used, the system ...</p>
 <ol>
@@ -448,7 +448,7 @@ java
 </code></pre>
 <p>Output:</p>
 <p><a href="InternalUtils.java">InternalUtils.java</a> (lines 13 to 28):</p>
-<pre class="hljs"><code><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isBalanced</span><span class="hljs-params">(ChemicalEquation ce)</span> </span>{
+<pre class="hljs"><code><span class="hljs-keyword">static</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">isBalanced</span><span class="hljs-params">(ChemicalEquation ce)</span> {
     Multiset&lt;Element&gt; reactantElementBag = HashMultiset.create();
     ce.reactants.items.stream()
             .flatMap(i -&gt; nCopies(i.count, i.bond.items).stream())
@@ -494,18 +494,18 @@ ATG,Antigua and Barbuda
 <table><tbody><tr><th>Code</th><th>Country</th></tr><tr><td>AFG</td><td>Afghanistan</td></tr><tr><td>ALB</td><td>Albania</td></tr><tr><td>ALG</td><td>Algeria</td></tr><tr><td>ASA</td><td>American Samoa</td></tr><tr><td>AND</td><td>Andorra</td></tr><tr><td>ANG</td><td>Angola</td></tr><tr><td>AIA</td><td>Anguilla</td></tr><tr><td>ATG</td><td>Antigua and Barbuda</td></tr></tbody></table><p>CSV parsing can optionally be configured if by a single-line JSON object preceded by !!...</p>
 <p><a href="csv_macro_block/input/code.js">csv_macro_block/input/code.js</a> (lines 30 to 48):</p>
 <pre class="hljs"><code><span class="hljs-keyword">let</span> config = {};
-<span class="hljs-keyword">if</span> (lines.length &gt; <span class="hljs-number">0</span> &amp;&amp; lines[<span class="hljs-number">0</span>].startsWith(<span class="hljs-string">'!!'</span>)) {
+<span class="hljs-keyword">if</span> (lines.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span> &amp;&amp; lines[<span class="hljs-number">0</span>].<span class="hljs-title function_">startsWith</span>(<span class="hljs-string">'!!'</span>)) {
     <span class="hljs-keyword">try</span> {
-        <span class="hljs-keyword">const</span> configText = lines[<span class="hljs-number">0</span>].substring(<span class="hljs-number">2</span>);
-        config = <span class="hljs-built_in">JSON</span>.parse(configText);
-        <span class="hljs-keyword">if</span> ((<span class="hljs-keyword">typeof</span>(config.firstLineHeader) === <span class="hljs-string">'boolean'</span> || config.firstLineHeader === <span class="hljs-literal">undefined</span>)
-                &amp;&amp; (<span class="hljs-keyword">typeof</span>(config.quote) === <span class="hljs-string">'string'</span> || config.quote === <span class="hljs-literal">undefined</span>)
-                &amp;&amp; (<span class="hljs-keyword">typeof</span>(config.delimiter) === <span class="hljs-string">'string'</span> || config.delimiter === <span class="hljs-literal">undefined</span>)
-                &amp;&amp; (<span class="hljs-keyword">typeof</span>(config.escape) === <span class="hljs-string">'string'</span> || config.escape === <span class="hljs-literal">undefined</span>)
-                &amp;&amp; (<span class="hljs-keyword">typeof</span>(config.comment) === <span class="hljs-string">'string'</span> || config.comment === <span class="hljs-literal">undefined</span>)
-                &amp;&amp; (<span class="hljs-keyword">typeof</span>(config.skipEmptyLines) === <span class="hljs-string">'boolean'</span> || config.skipEmptyLines === <span class="hljs-literal">undefined</span>)) {
-            lines.shift(); <span class="hljs-comment">// removes the first line</span>
-            content = lines.join(<span class="hljs-string">'\n'</span>);
+        <span class="hljs-keyword">const</span> configText = lines[<span class="hljs-number">0</span>].<span class="hljs-title function_">substring</span>(<span class="hljs-number">2</span>);
+        config = <span class="hljs-variable constant_">JSON</span>.<span class="hljs-title function_">parse</span>(configText);
+        <span class="hljs-keyword">if</span> ((<span class="hljs-title function_">typeof</span>(config.<span class="hljs-property">firstLineHeader</span>) === <span class="hljs-string">'boolean'</span> || config.<span class="hljs-property">firstLineHeader</span> === <span class="hljs-literal">undefined</span>)
+                &amp;&amp; (<span class="hljs-title function_">typeof</span>(config.<span class="hljs-property">quote</span>) === <span class="hljs-string">'string'</span> || config.<span class="hljs-property">quote</span> === <span class="hljs-literal">undefined</span>)
+                &amp;&amp; (<span class="hljs-title function_">typeof</span>(config.<span class="hljs-property">delimiter</span>) === <span class="hljs-string">'string'</span> || config.<span class="hljs-property">delimiter</span> === <span class="hljs-literal">undefined</span>)
+                &amp;&amp; (<span class="hljs-title function_">typeof</span>(config.<span class="hljs-property">escape</span>) === <span class="hljs-string">'string'</span> || config.<span class="hljs-property">escape</span> === <span class="hljs-literal">undefined</span>)
+                &amp;&amp; (<span class="hljs-title function_">typeof</span>(config.<span class="hljs-property">comment</span>) === <span class="hljs-string">'string'</span> || config.<span class="hljs-property">comment</span> === <span class="hljs-literal">undefined</span>)
+                &amp;&amp; (<span class="hljs-title function_">typeof</span>(config.<span class="hljs-property">skipEmptyLines</span>) === <span class="hljs-string">'boolean'</span> || config.<span class="hljs-property">skipEmptyLines</span> === <span class="hljs-literal">undefined</span>)) {
+            lines.<span class="hljs-title function_">shift</span>(); <span class="hljs-comment">// removes the first line</span>
+            content = lines.<span class="hljs-title function_">join</span>(<span class="hljs-string">'\n'</span>);
         } <span class="hljs-keyword">else</span> {
             config = {};
         }
@@ -710,8 +710,8 @@ poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
 <span class="hljs-keyword">import</span> java.nio.file.*;
 <span class="hljs-keyword">import</span> java.util.*;
 
-<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Main</span> </span>{
-  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Throwable </span>{
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Main</span> {
+  <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Throwable {
     Files.write(Paths.get(<span class="hljs-string">"/output/text.txt"</span>), <span class="hljs-string">"hello world"</span>.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
   }
 }
