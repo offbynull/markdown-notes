@@ -4,7 +4,7 @@ import * as Path from 'path';
 import Markdown from './markdown/markdown';
 import { inlineHtml } from './utils/html_utils';
 import { macroScan } from './markdown/macro_helper';
-import { copySyncButRespectGitIgnore } from './utils/file_utils';
+import { gitRespectingCopySync as gitExclusionRespectingCopySync } from './utils/file_utils';
 
 const majorNodeVer = /^v(\d+)/g.exec(Process.version);
 if (majorNodeVer == null || Number(majorNodeVer[1]) < 16) {
@@ -30,8 +30,12 @@ const pack = (() => {
 })();
 const tempRenderPath = Process.argv[5];
 
-// For consistent rendering across machines, don't include input files that are in gitignore
-copySyncButRespectGitIgnore(inputPath, tempRenderPath);
+// For consistent rendering across machines, don't include input files that are excluded in git / that are empty dirs
+gitExclusionRespectingCopySync(inputPath, tempRenderPath, undefined,
+    p => console.warn(`Git consistency issue: Empty directory at ${p}`),
+    p => console.warn(`Git consistency issue: Ignored file staged/committed at ${p}`),
+    undefined
+);
 
 // Render input.md to output.html
 const mdInput = FileSystem.readFileSync(tempRenderPath + '/input.md', { encoding: 'utf8'});

@@ -15,7 +15,6 @@
     "escape-html": "^1.0.3",
     "fs-extra": "^10.0.0",
     "github-markdown-css": "^4.0.0",
-    "gitignore-fs": "^2.1.0",
     "highlight.js": "^11.2.0",
     "image-size": "^1.0.0",
     "jsdom": "^18.0.0",

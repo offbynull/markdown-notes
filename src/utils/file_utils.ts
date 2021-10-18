@@ -1,7 +1,7 @@
 import * as FileSystem from 'fs-extra';
-import Gitignore from 'gitignore-fs';
 import * as Path from 'path';
 import * as Tar from 'tar';
+import { isGitInstalled, listTrackedIgnoredFiles, listUntrackedIgnoredFiles } from './git_utils';
 
 export function targzDir(dir: string, outputFile: string) {
     const filesToTar = FileSystem.readdirSync(dir);
@@ -105,19 +105,34 @@ function internalRecursiveReadDir(rootOutputDir: string, currOutputDir: string, 
     }
 };
 
-export function copySyncButRespectGitIgnore(src: string, dst: string, options?: FileSystem.CopyOptionsSync) {
-    const gitignore = new Gitignore();
-    const oldOptFilter = options?.filter || (() => true);
-    const newOptFilter = (src: string, dst: string) => {
-        if (FileSystem.lstatSync(src).isDirectory() && !src.endsWith('/')) {
-            src += '/';  // the library said it requires this -- a slash at the end if its a dir
+export function gitRespectingCopySync(
+    src: string,
+    dst: string,
+    options?: FileSystem.CopyOptionsSync,
+    emptyDirSkipNotifier?: (path: string) => void,
+    gitTrackedIgnoreSeenNotifier?: (path: string) => void,
+    gitUntrackedIgnoreSkipNotifier?: (path: string) => void
+) {
+    if (isGitInstalled(src)) {
+        listTrackedIgnoredFiles(src).forEach(p => gitTrackedIgnoreSeenNotifier && gitTrackedIgnoreSeenNotifier(p));
+        const untrackedIgnoreFiles = listUntrackedIgnoredFiles(src);
+        const oldOptFilter = options?.filter || (() => true);
+        const newOptFilter = (src: string, dst: string) => {
+            if (FileSystem.lstatSync(src).isDirectory() && !FileSystem.readdirSync(src).some(() => true)) {
+                emptyDirSkipNotifier && emptyDirSkipNotifier(src);
+                return false; // empty dirs aren't stored in git, don't include them
+            }
+            const ignored = untrackedIgnoreFiles.includes(src)
+            if (untrackedIgnoreFiles.includes(src)) {
+                gitUntrackedIgnoreSkipNotifier && gitUntrackedIgnoreSkipNotifier(src);
+            }
+            return (oldOptFilter(src, dst) && !ignored);
+        };
+        if (options !== undefined) {
+            options.filter = newOptFilter;
+        } else {
+            options = { filter: newOptFilter };
         }
-        return (oldOptFilter(src, dst) && !gitignore.ignoresSync(src));
-    };
-    if (options !== undefined) {
-        options.filter = newOptFilter;
-    } else {
-        options = { filter: newOptFilter };
     }
     FileSystem.copySync(src, dst, options);
 }
