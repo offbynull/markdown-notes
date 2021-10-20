@@ -89,18 +89,20 @@ function internalSyncDirs(rootSrcDir: string, rootDstDir: string, srcDir: string
 
 export function recursiveReadDir(dir: string): string[] {
     const output: string[] = []
-    internalRecursiveReadDir(dir, dir, output);
+    internalRecursiveReadDir(dir, '', output, 0);
     return output
 }
 
-function internalRecursiveReadDir(rootOutputDir: string, currOutputDir: string, output: string[]) {
-    const outputDirEntries = FileSystem.readdirSync(currOutputDir);
-    for (const child of outputDirEntries) {
-        const absChild = Path.resolve(currOutputDir, child);
+function internalRecursiveReadDir(rootDir: string, relDir: string, output: string[], level: number) {
+    const absDir = Path.resolve(rootDir, relDir);
+    const children = FileSystem.readdirSync(absDir);
+    for (const child of children) {
+        const relChild = level === 0 ? child : (relDir + '/' + child);
+        const absChild = Path.resolve(rootDir, './' + relChild);
         const stats = FileSystem.lstatSync(absChild);
-        output.push(child);
+        output.push(relChild);
         if (stats.isDirectory()) {
-            internalRecursiveReadDir(rootOutputDir, child, output);
+            internalRecursiveReadDir(rootDir, relChild, output, level + 1);
         }
     }
 };
@@ -115,18 +117,24 @@ export function gitRespectingCopySync(
 ) {
     if (isGitInstalled(src)) {
         listTrackedIgnoredFiles(src).forEach(p => gitTrackedIgnoreSeenNotifier && gitTrackedIgnoreSeenNotifier(p));
-        const untrackedIgnoreFiles = listUntrackedIgnoredFiles(src);
+        const untrackedIgnoreFiles = new Set(listUntrackedIgnoredFiles(src));
         const oldOptFilter = options?.filter || (() => true);
         const newOptFilter = (src: string, dst: string) => {
-            if (FileSystem.lstatSync(src).isDirectory() && !FileSystem.readdirSync(src).some(() => true)) {
-                emptyDirSkipNotifier && emptyDirSkipNotifier(src);
-                return false; // empty dirs aren't stored in git, don't include them
+            if (FileSystem.lstatSync(src).isDirectory()) {
+                const srcChildren = new Set(recursiveReadDir(src).map(p => src + '/' + p));
+                for (const ignoredFile of untrackedIgnoreFiles) {
+                    srcChildren.delete(ignoredFile);
+                }
+                if (srcChildren.size === 0) {
+                    emptyDirSkipNotifier && emptyDirSkipNotifier(src);
+                    return false; // empty dirs aren't stored in git, don't include them
+                }
             }
-            const ignored = untrackedIgnoreFiles.includes(src)
-            if (untrackedIgnoreFiles.includes(src)) {
+            if (untrackedIgnoreFiles.has(src)) {
                 gitUntrackedIgnoreSkipNotifier && gitUntrackedIgnoreSkipNotifier(src);
+                return false;
             }
-            return (oldOptFilter(src, dst) && !ignored);
+            return oldOptFilter(src, dst);
         };
         if (options !== undefined) {
             options.filter = newOptFilter;

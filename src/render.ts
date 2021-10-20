@@ -28,21 +28,26 @@ const pack = (() => {
             throw new Error(`${Process.argv[4]} unrecognized. Must be either true or false.`);
     }
 })();
-const tempRenderPath = Process.argv[5];
+const tempPath = Process.argv[5];
 
-// For consistent rendering across machines, don't include input files that are excluded in git / that are empty dirs
-gitExclusionRespectingCopySync(inputPath, tempRenderPath, undefined,
+const tempInputPath = tempPath + '/input';
+const tempRenderPath = tempPath + '/output';
+
+// For consistent rendering across machines, don't include input files that are excluded in git / that are empty dirs. Copy
+// input into a temp folder where exluded files and empty dirs are not included. That temp folder is used for the render.
+gitExclusionRespectingCopySync(inputPath, tempInputPath, undefined,
     p => console.warn(`Git consistency issue: Empty directory at ${p}`),
     p => console.warn(`Git consistency issue: Ignored file staged/committed at ${p}`),
     undefined
 );
+FileSystem.copySync(tempInputPath, tempRenderPath);
 
 // Render input.md to output.html
 const mdInput = FileSystem.readFileSync(tempRenderPath + '/input.md', { encoding: 'utf8'});
 FileSystem.unlinkSync(tempRenderPath + '/input.md');
 
-const customMacroDefs = macroScan(inputPath);
-const mdOutput = new Markdown(cachePath, inputPath, '', tempRenderPath, customMacroDefs).render(mdInput);
+const customMacroDefs = macroScan(tempInputPath);
+const mdOutput = new Markdown(cachePath, tempInputPath, '', tempRenderPath, customMacroDefs).render(mdInput);
 if (pack) {
     // Inline rendered file
     inlineHtml(mdOutput, tempRenderPath, (inlineOutput) => {
