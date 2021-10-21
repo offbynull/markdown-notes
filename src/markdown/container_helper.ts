@@ -86,7 +86,8 @@ export class ContainerHelper {
         private readonly containerDir: string,
         private readonly inputDir: string,
         private readonly outputDir: string,
-        private readonly cacheDir: string
+        private readonly cacheDir: string,
+        private readonly hashFilename: string = '.__UNIQUE_INPUT_ID'
     ) {
         const containerHasher = Crypto.createHash('md5');
         hashDirectory(containerHasher, containerDir);
@@ -97,6 +98,8 @@ export class ContainerHelper {
         dataHasher.update(this.containerHash);
         dataHasher.update('data');
         hashDirectory(dataHasher, inputDir);
+        dataHasher.update('hashfilename');
+        dataHasher.update
         this.dataHash = dataHasher.digest('hex');
 
         this.cachedOutputDir = Path.resolve(this.cacheDir, 'container_output_' + this.dataHash);
@@ -143,9 +146,9 @@ export class ContainerHelper {
         const environmentVariables: Buildah.EnvironmentVariable[] = [
             // new Buildah.EnvironmentVariable('__UNIQUE_INPUT_ID', this.friendlyName + '_' + this.dataHash)
         ];
-        // SHOULD BE PASSING INPUT ID AS AN ENV VAR BUT THE VERSION OF BUILDAH IS TOO LATE TO SUPPORT IT. REVISIT LATER.
+        // SHOULD BE PASSING INPUT ID AS AN ENV VAR BUT THE VERSION OF BUILDAH IS TOO OLD TO SUPPORT IT (--env flag missing). REVISIT LATER.
         FileSystem.writeFileSync(
-            this.inputDir + '/' + '.__UNIQUE_INPUT_ID',
+            this.inputDir + '/' + this.hashFilename,
             this.friendlyName + '_' + this.dataHash,
             {
                 encoding: 'utf-8',

@@ -389,29 +389,18 @@ Every instance of product in paragraph above should be linked to the chemistry r
 <li>stores macro type to <code>/input/input.mode</code> on the container (<code>block</code> or <code>inline</code>).</li>
 <li>stores macro contents to <code>/input/input.data</code> on the container.</li>
 <li>stores macro <code>copyInputsPrefix</code> filepaths to <code>/input/input.files</code> on the container.</li>
+<li>stores a unique ID to <code>/input/.__UNIQUE_INPUT_ID</code> on the container.</li>
 <li>launches <code>/input/run.sh</code> on the container.</li>
 <li>expects output markdown in <code>/output/output.md</code> on the container.</li>
 <li>expects output css/js filepaths in <code>/output/output.injects</code> on the container (optional).</li>
 </ol>
-<p>Any other files generated inside the container's <code>/output</code> are assumed to be resources referenced by <code>/output/output.md</code> or <code>/output.output.injects</code> and as such will get copied over to the root markdown input directory. It's highly recommended that you place these resources in <code>/output/[RANDOM_OR_HASH_DIR]</code> instead of <code>/output</code>. Resources placed directly in <code>/output</code> may encounter name collisions when rendering.</p>
-<p>The contents of ...</p>
+<p>Any other files generated inside the container's <code>/output</code> are assumed to be resources referenced by <code>/output/output.md</code> or <code>/output.output.injects</code> and as such will get copied over to the root markdown input directory. The contents of ...</p>
 <ul>
 <li><code>/output/output.md</code> is markdown text to replace the macro usage with.</li>
 <li><code>/output/output.injections</code> is JSON of type <code>Array&lt;[string, 'css' | 'js']&gt;</code> (e.g. <code>[  ["file1.css", "css"], ["file2.js", "js"] ]</code>) to inject into the rendered HTML's head tag.</li>
 </ul>
+<p>It's highly recommended that you don't write resources directly into <code>/output</code> directory due to filename collisions (e.g. two containers may decide to write to <code>/output/my_image.png</code>). Instead, <code>/input/.__UNIQUE_INPUT_ID</code> contains a hash of the input text into the container and the container itself, making it a unique and consistent ID. Placing resources in <code>/output/$(cat /input/.__UNIQUE_INPUT_ID)</code> instead of <code>/output</code> will ensure collisions don't happen.</p>
 <p>The subsections below contain various macro examples. To use them in your own markdown, copy the macro directory into your root markdown directory.</p>
-<div style="margin:2em; background-color: #e0e0e0;">
-<p><strong>⚠️NOTE️️️⚠️</strong></p>
-<p>You can streamline the generation of <code>/output/[RANDOM_DIR]</code> via the shell -- for example:</p>
-<pre class="hljs"><code>rand=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13)
-<span class="hljs-comment"># Script should write markdown to /output/output.md</span>
-<span class="hljs-comment"># Script should write markdown resources to /output/$rand/ but reference them</span>
-<span class="hljs-comment">#   in markdown as $rand/ (e.g. output to /output/$rand/out.png but reference</span>
-<span class="hljs-comment">#   in output.md as $rand/out.png).</span>
-mkdir /output/<span class="hljs-variable">$rand</span>
-npm start -- <span class="hljs-variable">$rand</span>
-</code></pre>
-</div>
 <a name="H_Example%3A%20Note"></a><h2>Example: Note</h2>
 <p>Input:</p>
 <pre><code>```{note}
@@ -525,7 +514,7 @@ digraph {
 ```
 </code></pre>
 <p>Output:</p>
-<p><img src="dot_c88d843c414c8d5c810d97bd511d11d3.svg" alt="Dot diagram"></p>
+<p><img src="dot_f612019907a80c4b2c669befe8a3bc8c.svg" alt="Dot diagram"></p>
 <a name="H_Example%3A%20PlantUML"></a><h2>Example: PlantUML</h2>
 <p>Input:</p>
 <pre><code>```{plantuml}
@@ -544,7 +533,7 @@ class Enrollment {
 ```
 </code></pre>
 <p>Output:</p>
-<p><img src="plantuml_ed44860a2fef9e16a3da6524cc4ce1e4.svg" alt="PlantUML diagram"></p>
+<p><img src="plantuml_fcb9aa3bee2a939a29c71905ed271b35.svg" alt="PlantUML diagram"></p>
 <a name="H_Example%3A%20Svgbob"></a><h2>Example: Svgbob</h2>
 <p>Input:</p>
 <pre><code>```{svgbob}
@@ -559,7 +548,7 @@ class Enrollment {
 ```
 </code></pre>
 <p>Output:</p>
-<p><img src="svgbob_ffe1e58494f2f6f11ef024f19f63bee3.svg.svg" alt="Kroki diagram output"></p>
+<p><img src="svgbob_bbbedf4a61bdfb2dca5e2c33e77cc532.svg.svg" alt="Kroki diagram output"></p>
 <a name="H_Example%3A%20LaTeX%20Chemfig"></a><h2>Example: LaTeX Chemfig</h2>
 <p>Input:</p>
 <pre><code>```{chemfig}
@@ -567,7 +556,7 @@ class Enrollment {
 ```
 </code></pre>
 <p>Output:</p>
-<p><img src="chemfig_37ca8a1081757b9961700ec5196e5c88.svg" alt="Chemfig diagram"></p>
+<p><img src="chemfig_49608393f517768fbef87b0af89d7eaf.svg" alt="Chemfig diagram"></p>
 <p>All preamble and postamble text for the LaTeX document is automatically added by this extension -- only the chemfig LaTeX package is loaded.  For details on chemfig syntax, see <a href="https://en.wikibooks.org/w/index.php?title=LaTeX/Chemical_Graphics&amp;oldid=3452092">here</a>.</p>
 <a name="H_Example%3A%20Script%20Injection%20(CSS%2FJS)"></a><h2>Example: Script Injection (CSS/JS)</h2>
 <p>Input:</p>

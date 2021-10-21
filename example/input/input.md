@@ -421,32 +421,19 @@ When a macro gets used, the system ...
  1. stores macro type to `/input/input.mode` on the container (`block` or `inline`).
  1. stores macro contents to `/input/input.data` on the container.
  1. stores macro `copyInputsPrefix` filepaths to `/input/input.files` on the container.
+ 1. stores a unique ID to `/input/.__UNIQUE_INPUT_ID` on the container.
  1. launches `/input/run.sh` on the container.
  1. expects output markdown in `/output/output.md` on the container.
  1. expects output css/js filepaths in `/output/output.injects` on the container (optional).
 
-Any other files generated inside the container's `/output` are assumed to be resources referenced by `/output/output.md` or `/output.output.injects` and as such will get copied over to the root markdown input directory. It's highly recommended that you place these resources in `/output/[RANDOM_OR_HASH_DIR]` instead of `/output`. Resources placed directly in `/output` may encounter name collisions when rendering.
-
-The contents of ...
+Any other files generated inside the container's `/output` are assumed to be resources referenced by `/output/output.md` or `/output.output.injects` and as such will get copied over to the root markdown input directory. The contents of ...
 
  * `/output/output.md` is markdown text to replace the macro usage with.
  * `/output/output.injections` is JSON of type `Array<[string, 'css' | 'js']>` (e.g. `[  ["file1.css", "css"], ["file2.js", "js"] ]`) to inject into the rendered HTML's head tag.
 
+It's highly recommended that you don't write resources directly into `/output` directory due to filename collisions (e.g. two containers may decide to write to `/output/my_image.png`). Instead, `/input/.__UNIQUE_INPUT_ID` contains a hash of the input text into the container and the container itself, making it a unique and consistent ID. Placing resources in `/output/$(cat /input/.__UNIQUE_INPUT_ID)` instead of `/output` will ensure collisions don't happen.
+
 The subsections below contain various macro examples. To use them in your own markdown, copy the macro directory into your root markdown directory.
-
-````{note}
-You can streamline the generation of `/output/[RANDOM_DIR]` via the shell -- for example:
-
-```bash
-rand=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13)
-# Script should write markdown to /output/output.md
-# Script should write markdown resources to /output/$rand/ but reference them
-#   in markdown as $rand/ (e.g. output to /output/$rand/out.png but reference
-#   in output.md as $rand/out.png).
-mkdir /output/$rand
-npm start -- $rand
-```
-````
 
 ## Example: Note
 
