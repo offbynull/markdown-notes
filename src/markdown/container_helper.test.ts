@@ -15,7 +15,7 @@ test('must create and run container', () => {
     FileSystem.writeFileSync(inputDir + '/run.sh', 'echo hello world! > /output/out.data');
 
     const helper = new ContainerHelper('test_container', envDir, inputDir, outputDir, cacheDir);
-    helper.run([]);
+    helper.run();
 
     const output = FileSystem.readFileSync(outputDir + '/out.data', { encoding: 'utf8' });
     expect(output).toBe('hello world!\n');

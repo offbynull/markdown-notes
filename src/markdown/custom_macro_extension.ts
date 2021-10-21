@@ -127,7 +127,6 @@ export class CustomMacroExtension implements Extension {
             inputDir,
             inputOverrides,
             outputDir,
-            [],
             context.realCachePath);
         inputDir = dirOverrides.updatedInputDir;  // new dir contains input overrides and user-defined inputs 
         outputDir = dirOverrides.updatedOutputDir;  // may be cached output

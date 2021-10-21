@@ -1,4 +1,4 @@
-NAME=puml_$(md5sum < /input/input.data | cut -d " " -f1).svg
+NAME=`cat /input/.__UNIQUE_INPUT_ID`.svg
 java -Djava.awt.headless=true -jar /opt/plantuml-1.2019.8.jar -tsvg -pipe < /input/input.data > /output/$NAME
 if [ ! $? -eq 0 ]; then
     exit 1

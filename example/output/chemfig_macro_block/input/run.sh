@@ -1,4 +1,4 @@
-NAME=chemfig_$(md5sum < /input/input.data | cut -d " " -f1).svg
+NAME=`cat /input/.__UNIQUE_INPUT_ID`.svg
 INPUT="$(cat /input/input.data)"
 
 mkdir -p /tmp/work

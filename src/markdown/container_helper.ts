@@ -27,7 +27,6 @@ export function runContainer(
     inputDir: string,
     inputOverrides: Map<string, string | Buffer>,
     outputDir: string,
-    extraVolumeMappings: Buildah.LaunchVolumeMapping[],
     cacheDir: string
 ) {
     // If input overrides available, copy inputs to tmp dir and apply overrides    
@@ -66,7 +65,7 @@ export function runContainer(
     if (ch.isAlreadyProcessed()) { // If so, use the cached output
         outputDir = ch.cachedOutputDir;
     } else { // If not, run container
-        ch.run(extraVolumeMappings);
+        ch.run();
     }
 
     // Remove tmp directory if it was created
@@ -104,12 +103,12 @@ export class ContainerHelper {
         this.cachedContainerDir = Path.resolve(this.cacheDir, 'container_env_' + this.containerHash);
     }
 
-    public run(extraVolumeMappings?: Buildah.LaunchVolumeMapping[]) {
+    public run() {
         if (this.isAlreadyProcessed()) {
             return;
         }
         this.initializeContainer();
-        this.launchContainer(extraVolumeMappings || []);
+        this.launchContainer();
     }
 
     private initializeContainer() {
@@ -124,7 +123,7 @@ export class ContainerHelper {
         Buildah.createContainerRaw(envDir, this.containerHash);
     }
 
-    private launchContainer(extraVolumeMappings: Buildah.LaunchVolumeMapping[]) {
+    private launchContainer() {
         if (this.isAlreadyProcessed()) {
             return;
         }
@@ -140,13 +139,26 @@ export class ContainerHelper {
         const volumeMappings = [
             new Buildah.LaunchVolumeMapping(this.inputDir, '/input', 'r'),
             new Buildah.LaunchVolumeMapping(this.outputDir, '/output', 'rw')            
-        ].concat(extraVolumeMappings);
+        ];
+        const environmentVariables: Buildah.EnvironmentVariable[] = [
+            // new Buildah.EnvironmentVariable('__UNIQUE_INPUT_ID', this.friendlyName + '_' + this.dataHash)
+        ];
+        // SHOULD BE PASSING INPUT ID AS AN ENV VAR BUT THE VERSION OF BUILDAH IS TOO LATE TO SUPPORT IT. REVISIT LATER.
+        FileSystem.writeFileSync(
+            this.inputDir + '/' + '.__UNIQUE_INPUT_ID',
+            this.friendlyName + '_' + this.dataHash,
+            {
+                encoding: 'utf-8',
+                flag: 'wx'  // write but don't overwrite
+            }
+        );
         Buildah.launchContainer(
             envDir,
             this.containerHash,
             ['sh', '/input/run.sh'],
             {
-                volumeMappings: volumeMappings
+                volumeMappings: volumeMappings,
+                environmentVariables: environmentVariables
             }
         );
 

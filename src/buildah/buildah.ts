@@ -104,6 +104,7 @@ export function existsContainer(environmentDir: string, containerName: string) {
 export interface LaunchContainerConfiguration {
     timeout?: number;
     volumeMappings?: LaunchVolumeMapping[];
+    environmentVariables?: EnvironmentVariable[];
 }
 
 export class LaunchVolumeMapping {
@@ -125,10 +126,21 @@ export class LaunchVolumeMapping {
     }
 }
 
+export class EnvironmentVariable {
+    public readonly name: string;
+    public readonly value: string;
+
+    public constructor(name: string, value: string) {
+        this.name = name;
+        this.value = value;
+    }
+}
+
 export function launchContainer(environmentDir: string, containerName: string, command: string[], config?: LaunchContainerConfiguration) {
     createEnvIfNotExists(environmentDir);
     const timeout = config === undefined ? undefined : config.timeout;
     const volumeMappings = config === undefined ? undefined : config.volumeMappings;
+    const environmentVariables = config === undefined ? undefined : config.environmentVariables;
 
 
     // Make sure params are valid
@@ -154,6 +166,11 @@ export function launchContainer(environmentDir: string, containerName: string, c
                 }
             })();
             args.push('--volume', volumeMapping.hostPath + ':' + volumeMapping.guestPath + ':' + volMode);
+        }
+    }
+    if (environmentVariables !== undefined) {
+        for (const environmentVariable of environmentVariables) {
+            args.push('--env', environmentVariable.name + '=' + environmentVariable.value);
         }
     }
     args.push('run', containerName);
