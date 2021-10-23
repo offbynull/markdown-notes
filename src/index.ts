@@ -24,6 +24,8 @@ import { StringDecoder } from 'string_decoder';
 import Colors from 'colors/safe';
 import ChildProcess from 'child_process';
 import { killProcessHierarchy } from './utils/process_utils';
+import { isGitInstalled } from './utils/git_utils';
+import { recursiveReadDir } from './utils/file_utils';
 
 process.on('warning', e => console.warn(e.stack));
 
@@ -53,6 +55,10 @@ if (FileSystem.existsSync(inputPath) === false) {
 
 if (FileSystem.existsSync(outputPath) === false) {
     FileSystem.mkdirSync(outputPath);
+}
+
+if (isGitInstalled(inputPath)) {
+    console.log(Colors.yellow('GIT DETECTED: ') + 'Paths under the input directory that are ignored by git will be ignored by the render.');
 }
 
 //

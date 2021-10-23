@@ -5,6 +5,7 @@ import Markdown from './markdown/markdown';
 import { inlineHtml } from './utils/html_utils';
 import { macroScan } from './markdown/macro_helper';
 import { gitRespectingCopySync as gitExclusionRespectingCopySync } from './utils/file_utils';
+import { isGitInstalled } from './utils/git_utils';
 
 const majorNodeVer = /^v(\d+)/g.exec(Process.version);
 if (majorNodeVer == null || Number(majorNodeVer[1]) < 16) {
@@ -34,12 +35,17 @@ const tempInputPath = tempPath + '/input';
 const tempRenderPath = tempPath + '/output';
 
 // For consistent rendering across machines, don't include input files that are excluded in git / that are empty dirs. Copy
-// input into a temp folder where exluded files and empty dirs are not included. That temp folder is used for the render.
-gitExclusionRespectingCopySync(inputPath, tempInputPath, undefined,
-    p => console.warn(`Git consistency issue: Empty directory at ${p}`),
-    p => console.warn(`Git consistency issue: Ignored file staged/committed at ${p}`),
-    undefined
-);
+// input into a temp folder where excluded files and empty dirs are not included. That temp folder is used for the render.
+if (isGitInstalled(inputPath)) {
+    gitExclusionRespectingCopySync(inputPath, tempInputPath, undefined,
+        undefined /* p => console.debug(`Git skip: Empty directory at ${p}`) */,
+        p => console.warn(`Git consistency issue: Ignored file staged/committed at ${p}`),
+        undefined /* p => console.debug(`Git skip: Ignored file at ${p}`) */
+    );
+} else {
+    FileSystem.copySync(inputPath, tempInputPath); // This seems wasteful, maybe just do tempInputPath = inputPath here because inputs are only ever read from / never written to
+}
+
 FileSystem.copySync(tempInputPath, tempRenderPath);
 
 // Render input.md to output.html
