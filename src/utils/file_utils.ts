@@ -144,3 +144,38 @@ export function gitRespectingCopySync(
     }
     FileSystem.copySync(src, dst, options);
 }
+
+export function recursiveCheckForMissingOrMismatched(srcDir: string, dstDir: string) {
+    const badPaths = [];
+    const children = recursiveReadDir(srcDir);
+    const srcPaths = children.map(p => Path.resolve(srcDir, p));
+    const dstPaths = children.map(p => Path.resolve(dstDir, p));
+    for (let i = 0; i < children.length; i++) {
+        if (!FileSystem.existsSync(dstPaths[i])) {
+            badPaths.push(dstPaths[i]);
+            continue;
+        }
+        const srcLstat = FileSystem.lstatSync(srcPaths[i]);
+        const dstLstat = FileSystem.lstatSync(dstPaths[i]);
+        if (srcLstat.isDirectory() && dstLstat.isDirectory()) {
+            continue; // ok -- both dir
+        }
+        if (srcLstat.isFile() && dstLstat.isFile() && srcLstat.size === dstLstat.size && FileSystem.readFileSync(srcPaths[i]).equals(FileSystem.readFileSync(dstPaths[i]))) {
+            continue; // ok -- both match
+        }
+        badPaths.push(dstPaths[i]);
+    }
+    return badPaths;
+}
+
+export function forceAllChildrenToDestination(srcDir: string, dstDir: string) {
+    const children = FileSystem.readdirSync(srcDir);
+    const srcPaths = children.map(p => Path.resolve(srcDir, p));
+    const dstPaths = children.map(p => Path.resolve(dstDir, p));
+    for (let i = 0; i < children.length; i++) {
+        if (FileSystem.existsSync(dstPaths[i])) {
+            FileSystem.removeSync(dstPaths[i]);
+        }
+        FileSystem.copySync(srcPaths[i], dstPaths[i]);
+    }
+}

@@ -89,7 +89,7 @@ function logOutput(prefix: string, data: Buffer, state: { decoder: StringDecoder
 }
 
 
-FileSystem.removeSync(outputPath);
+// FileSystem.removeSync(outputPath);
 FileSystem.mkdirpSync(outputPath);
 FileSystem.writeFileSync(outputPath + '/output.html', '<html><head></head><body><p>Awaiting initial render...</p></body></html>');
 

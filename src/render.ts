@@ -4,7 +4,7 @@ import * as Path from 'path';
 import Markdown from './markdown/markdown';
 import { inlineHtml } from './utils/html_utils';
 import { macroScan } from './markdown/macro_helper';
-import { gitRespectingCopySync as gitExclusionRespectingCopySync } from './utils/file_utils';
+import { forceAllChildrenToDestination, gitRespectingCopySync as gitExclusionRespectingCopySync, recursiveCheckForMissingOrMismatched } from './utils/file_utils';
 import { isGitInstalled } from './utils/git_utils';
 
 const majorNodeVer = /^v(\d+)/g.exec(Process.version);
@@ -33,6 +33,23 @@ const tempPath = Process.argv[5];
 
 const tempInputPath = tempPath + '/input';
 const tempRenderPath = tempPath + '/output';
+
+// Ensure the cache is consistent with what's in last render's macro outputs. Why? In certain cases, the exact same macro produces different outputs on different machines. For
+// example, sometimes macros that output images put the timestamp that image was generated as metadata in the image. This especially becomes a problem when using version control.
+// This check helps keep things consistent across machines.
+const outputMacroBackupsPath = outputPath + '/.macro_output_backup'; 
+if (FileSystem.pathExistsSync(outputMacroBackupsPath)) {
+    const mismatched = recursiveCheckForMissingOrMismatched(outputMacroBackupsPath, cachePath);
+    if (mismatched.length > 0) {
+        console.warn("Cache consistency issue: Previous render produced macro outputs that are inconsistent with what's in the cache...");
+        for (const p of mismatched) {
+            console.warn(p);
+        }
+        console.warn('--------');
+        console.warn(`Synching cache with previously rendered macros...`);
+        forceAllChildrenToDestination(outputMacroBackupsPath, cachePath);
+    }
+}
 
 // For consistent rendering across machines, don't include input files that are excluded in git / that are empty dirs. Copy
 // input into a temp folder where excluded files and empty dirs are not included. That temp folder is used for the render.

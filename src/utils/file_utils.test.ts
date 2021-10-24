@@ -1,5 +1,5 @@
 import * as FileSystem from 'fs-extra';
-import { recursiveReadDir, syncDirs } from './file_utils';
+import { forceAllChildrenToDestination, recursiveCheckForMissingOrMismatched, recursiveReadDir, syncDirs } from './file_utils';
 
 test('must sync directories', () => {
     const srcRoot = FileSystem.mkdtempSync('/tmp/file_utils.test');
@@ -41,4 +41,48 @@ test('must list directories recursive', () => {
     const res = recursiveReadDir(srcRoot);
 
     expect(res).toEqual(['0', '0/a', '0/a/0', '0/a/1', '0/b', '0/b/0']);
+});
+
+
+test('must detect inconsistency', () => {
+    const srcRoot = FileSystem.mkdtempSync('/tmp/file_utils.test');
+    const dstRoot = FileSystem.mkdtempSync('/tmp/file_utils.test');
+    FileSystem.mkdirpSync(srcRoot + '/0/a/0');
+    FileSystem.mkdirpSync(srcRoot + '/0/a/1');
+    FileSystem.mkdirpSync(srcRoot + '/0/a/2/z');
+    FileSystem.mkdirpSync(dstRoot + '/0/a/0');
+    FileSystem.mkdirpSync(dstRoot + '/0/a/2/z');
+
+    FileSystem.writeFileSync(srcRoot + '/0/a/0/file1', 'okay1');
+    FileSystem.writeFileSync(dstRoot + '/0/a/0/file1', 'okay1');
+    FileSystem.writeFileSync(dstRoot + '/0/a/2/file2', 'okay2');
+    FileSystem.writeFileSync(srcRoot + '/0/a/2/z/file3', 'okay3');
+    FileSystem.writeFileSync(srcRoot + '/0/a/2/z/file1', 'GOOD');
+    FileSystem.writeFileSync(dstRoot + '/0/a/2/z/file1', 'BAD');
+
+    const res = recursiveCheckForMissingOrMismatched(srcRoot, dstRoot);
+    expect(res).toEqual([dstRoot + '/0/a/2/z/file1']);
+});
+
+
+
+test('must correct inconsistency', () => {
+    const srcRoot = FileSystem.mkdtempSync('/tmp/file_utils.test');
+    const dstRoot = FileSystem.mkdtempSync('/tmp/file_utils.test');
+    FileSystem.mkdirpSync(srcRoot + '/0/a/0');
+    FileSystem.mkdirpSync(srcRoot + '/0/a/1');
+    FileSystem.mkdirpSync(srcRoot + '/0/a/2/z');
+    FileSystem.mkdirpSync(dstRoot + '/0/a/0');
+    FileSystem.mkdirpSync(dstRoot + '/0/a/2/z');
+
+    FileSystem.writeFileSync(srcRoot + '/0/a/0/file1', 'okay1');
+    FileSystem.writeFileSync(dstRoot + '/0/a/0/file1', 'okay1');
+    FileSystem.writeFileSync(dstRoot + '/0/a/2/file2', 'okay2');
+    FileSystem.writeFileSync(srcRoot + '/0/a/2/z/file3', 'okay3');
+    FileSystem.writeFileSync(srcRoot + '/0/a/2/z/file1', 'GOOD');
+    FileSystem.writeFileSync(dstRoot + '/0/a/2/z/file1', 'BAD');
+
+    forceAllChildrenToDestination(srcRoot, dstRoot);
+    const res = recursiveCheckForMissingOrMismatched(srcRoot, dstRoot);
+    expect(res).toEqual([]);
 });
