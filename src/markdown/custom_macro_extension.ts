@@ -127,7 +127,9 @@ export class CustomMacroExtension implements Extension {
             inputDir,
             inputOverrides,
             outputDir,
-            context.realCachePath);
+            context.realMachineCachePath,
+            context.realOldLocalCachePath,
+            context.realNewLocalCachePath);
         inputDir = dirOverrides.updatedInputDir;  // new dir contains input overrides and user-defined inputs 
         outputDir = dirOverrides.updatedOutputDir;  // may be cached output
 
@@ -166,18 +168,6 @@ export class CustomMacroExtension implements Extension {
                 overwrite: true,
                 errorOnExist: true,
                 filter: (p) => Path.relative(outputDir, p) !== 'output.md' && Path.relative(outputDir, p) !== 'output.injects' && Path.relative(outputDir, p) !== '.macro_output_backup'
-            }
-        );
-
-        // Make a backup of the output. This is useful if you're switching between multiple workstations but the macro isn't deterministic -- you can copy over these backups directly into the cache on each workstation
-        // so that you're not checking in a competing version of the output each time you switch workstations. 
-        const relativeCacheDir = Path.relative(context.realCachePath, dirOverrides.finalCacheDir);
-        const macroOutputBackupDir = Path.resolve(context.realBasePath, ".macro_output_backup", relativeCacheDir);
-        FileSystem.mkdirpSync(macroOutputBackupDir);
-        FileSystem.copySync(outputDir, macroOutputBackupDir,
-            {
-                overwrite: true,
-                errorOnExist: true
             }
         );
     

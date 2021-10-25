@@ -42,6 +42,7 @@ const path = (() => {
 })();
 const inputPath = path + '/input';
 const outputPath = path + '/output';
+const localCachePath = path + '/cache';
 
 if (FileSystem.existsSync(path) === false) {
     FileSystem.mkdirSync(path);
@@ -111,7 +112,7 @@ inputWatcher.on('change', () => {
     activeChildTmpDir = FileSystem.mkdtempSync('/tmp/render');
     activeChildProc = ChildProcess.fork(
         'dist/render',
-        [ inputPath, outputPath, 'false', activeChildTmpDir ],  
+        [ localCachePath, inputPath, outputPath, activeChildTmpDir ],  
         { silent: true } // 'silent' allows reading in stdout/stderr
     );
     const exitMarker = { flag: false };

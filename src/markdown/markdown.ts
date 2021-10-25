@@ -32,7 +32,15 @@ export default class Markdown {
     private readonly htmlBasePath: string;
     private readonly realBasePath: string;
 
-    public constructor(realCachePath: string, realInputPath: string, htmlBasePath: string, realBasePath: string, customMacroDefinitions: MacroDefinition[]) {
+    public constructor(
+        realMachineCachePath: string,
+        realOldLocalCachePath: string,
+        realNewLocalCachePath: string,
+        realInputPath: string,
+        htmlBasePath: string,
+        realBasePath: string,
+        customMacroDefinitions: MacroDefinition[]
+    ) {
         this.markdownIt = new MarkdownIt('commonmark', {
             highlight: (str, lang) => { // This just applies highlight.js classes -- CSS for classes applied in another area
                 if (lang && HighlightJs.getLanguage(lang)) {
@@ -45,7 +53,7 @@ export default class Markdown {
         this.htmlBasePath = htmlBasePath;
         this.realBasePath = realBasePath;
 
-        const extenderConfig: ExtenderConfig = new ExtenderConfig(realCachePath, realInputPath, realBasePath, htmlBasePath);
+        const extenderConfig: ExtenderConfig = new ExtenderConfig(realMachineCachePath, realOldLocalCachePath, realNewLocalCachePath, realInputPath, realBasePath, htmlBasePath);
         extenderConfig.register(new TitleExtension());
         extenderConfig.register(new BookmarkExtension());
         extenderConfig.register(new BookmarkLinkerControllerExtension());

@@ -20,8 +20,7 @@
     "jsdom": "^18.0.0",
     "markdown-it": "^12.2.0",
     "tar": "^6.1.11",
-    "typescript": "^4.4.4",
-    "web-resource-inliner": "^5.0.0"
+    "typescript": "^4.4.4"
   },
   "//": "@types/express-serve-static-core to stop typescript from erroring with the following error...    (see https://stackoverflow.com/a/68947383)",
   "//": "  node_modules/@types/express-serve-static-core/index.d.ts:493:18 - error TS2430: Interface 'Response' incorrectly extends interface 'ServerResponse'.",
@@ -43,7 +42,6 @@
     "@types/markdown-it": "12.2.3",
     "@types/node": "^16.11.0",
     "@types/tar": "^4.0.5",
-    "@types/web-resource-inliner": "^4.2.1",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
     "eslint": "^8.0.1",

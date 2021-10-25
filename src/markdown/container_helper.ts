@@ -27,7 +27,9 @@ export function runContainer(
     inputDir: string,
     inputOverrides: Map<string, string | Buffer>,
     outputDir: string,
-    cacheDir: string
+    machineCacheDir: string,
+    oldLocalCacheDir: string,
+    newLocalCacheDir: string
 ) {
     // If input overrides available, copy inputs to tmp dir and apply overrides    
     let tmpDir: string | null = null;
@@ -58,35 +60,35 @@ export function runContainer(
         containerDir,
         inputDir,
         outputDir,
-        cacheDir
+        machineCacheDir,
+        oldLocalCacheDir,
+        newLocalCacheDir
     );
 
-    // Has there been a previous run of this container for this specific input?
-    if (ch.isAlreadyProcessed()) { // If so, use the cached output
-        outputDir = ch.cachedOutputDir;
-    } else { // If not, run container
-        ch.run();
-    }
+    ch.run();
 
     // Remove tmp directory if it was created
     if (tmpDir !== null) {
         FileSystem.removeSync(tmpDir);
     }
 
-    return { updatedInputDir: inputDir, updatedOutputDir: outputDir, finalCacheDir: ch.cachedOutputDir };
+    return { updatedInputDir: inputDir, updatedOutputDir: outputDir, finalCacheDir: ch.newCachedOutputDir };
 }
 
 export class ContainerHelper {
     private readonly containerHash: string;
     public readonly dataHash: string;
     public readonly cachedContainerDir: string;
-    public readonly cachedOutputDir: string;
+    public readonly oldCachedOutputDir: string;
+    public readonly newCachedOutputDir: string;
     constructor(
         private readonly friendlyName: string,
         private readonly containerDir: string,
         private readonly inputDir: string,
         private readonly outputDir: string,
-        private readonly cacheDir: string,
+        private readonly machineCacheDir: string,
+        private readonly oldLocalCacheDir: string,
+        private readonly newLocalCacheDir: string,
         private readonly hashFilename: string = '.__UNIQUE_INPUT_ID'
     ) {
         const containerHasher = Crypto.createHash('md5');
@@ -102,16 +104,28 @@ export class ContainerHelper {
         dataHasher.update
         this.dataHash = dataHasher.digest('hex');
 
-        this.cachedOutputDir = Path.resolve(this.cacheDir, 'container_output_' + this.dataHash);
-        this.cachedContainerDir = Path.resolve(this.cacheDir, 'container_env_' + this.containerHash);
+        this.oldCachedOutputDir = Path.resolve(this.oldLocalCacheDir, 'container_output_' + this.dataHash);
+        this.newCachedOutputDir = Path.resolve(this.newLocalCacheDir, 'container_output_' + this.dataHash);
+        this.cachedContainerDir = Path.resolve(this.machineCacheDir, 'container_env_' + this.containerHash);
     }
 
     public run() {
-        if (this.isAlreadyProcessed()) {
+        // Is already cached? Copy from old cache to new cache
+        if (FileSystem.existsSync(this.oldCachedOutputDir)) {
+            if (!FileSystem.lstatSync(this.oldCachedOutputDir).isDirectory()) {
+                throw new Error('Non-directory exists for cached output? ' + this.oldCachedOutputDir);
+            }
+            FileSystem.copySync(this.oldCachedOutputDir, this.outputDir);
+            FileSystem.copySync(this.oldCachedOutputDir, this.newCachedOutputDir);
             return;
         }
+
+        // Run
         this.initializeContainer();
         this.launchContainer();
+        
+        // Cache output
+        FileSystem.copySync(this.outputDir, this.newCachedOutputDir);
     }
 
     private initializeContainer() {
@@ -127,10 +141,6 @@ export class ContainerHelper {
     }
 
     private launchContainer() {
-        if (this.isAlreadyProcessed()) {
-            return;
-        }
-
         console.log(`Launching ${this.friendlyName} container`);
 
         const scriptFile = Path.resolve(this.inputDir, 'run.sh');
@@ -164,21 +174,6 @@ export class ContainerHelper {
                 environmentVariables: environmentVariables
             }
         );
-
-        FileSystem.copySync(this.outputDir, this.cachedOutputDir)
-    }
-
-    public isAlreadyProcessed() {
-        const outDir = this.cachedOutputDir;
-        if (!FileSystem.existsSync(outDir)) {
-            return false;
-        }
-
-        if (!FileSystem.lstatSync(outDir).isDirectory()) {
-            throw new Error('Non-directory exists for cached output? ' + outDir);
-        }
-
-        return true;
     }
 }
 

@@ -50,7 +50,9 @@ export class TokenIdentifier {
 }
 
 export class ExtensionContext {
-    public readonly realCachePath: string;
+    public readonly realMachineCachePath: string;
+    public readonly realOldLocalCachePath: string;
+    public readonly realNewLocalCachePath: string;
     public readonly realInputPath: string;
     public readonly realBasePath: string;
     public readonly htmlBasePath: string;
@@ -58,11 +60,15 @@ export class ExtensionContext {
     public readonly shared: Map<string, any>;
 
     public constructor(
-        realCachePath: string,
+        realMachineCachePath: string,
+        realOldLocalCachePath: string,
+        realNewLocalCachePath: string,
         inputPath: string,
         realBasePath: string,
         htmlBasePath: string) {
-        this.realCachePath = realCachePath;
+        this.realMachineCachePath = realMachineCachePath;
+        this.realOldLocalCachePath = realOldLocalCachePath;
+        this.realNewLocalCachePath = realNewLocalCachePath;
         this.realInputPath = inputPath;
         this.realBasePath = realBasePath;
         this.htmlBasePath = htmlBasePath;
@@ -118,15 +124,19 @@ export class NameEntry {
 }
 
 export class ExtenderConfig {
-    public readonly realCachePath: string;
+    public readonly realMachineCachePath: string;
+    public readonly realOldLocalCachePath: string;
+    public readonly realNewLocalCachePath: string;
     public readonly realInputPath: string;
     public readonly realBasePath: string;
     public readonly htmlBasePath: string;
     private readonly exts: Extension[];
     private readonly nameLookup: Map<string, NameEntry>;
 
-    public constructor(realCachePath: string, realInputPath: string, realBasePath: string, htmlBasePath: string) {
-        this.realCachePath = realCachePath;
+    public constructor(realMachineCachePath: string, realOldLocalCachePath: string, realNewLocalCachePath: string, realInputPath: string, realBasePath: string, htmlBasePath: string) {
+        this.realMachineCachePath = realMachineCachePath;
+        this.realOldLocalCachePath = realOldLocalCachePath;
+        this.realNewLocalCachePath = realNewLocalCachePath;
         this.realInputPath = realInputPath;
         this.realBasePath = realBasePath;
         this.htmlBasePath = htmlBasePath;
@@ -239,7 +249,9 @@ function addRenderersToMarkdown(extenderConfig: ExtenderConfig, markdownIt: Mark
 
 export function extender(markdownIt: MarkdownIt, extenderConfig: ExtenderConfig): void {
     const context = new ExtensionContext(
-        extenderConfig.realCachePath,
+        extenderConfig.realMachineCachePath,
+        extenderConfig.realOldLocalCachePath,
+        extenderConfig.realNewLocalCachePath,
         extenderConfig.realInputPath,
         extenderConfig.realBasePath,
         extenderConfig.htmlBasePath);
