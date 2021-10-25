@@ -16,12 +16,12 @@ if (Process.argv.length !== 6) {
 }
 
 const machineCachePath = Path.resolve(process.cwd(), '.cache');
-const existingLocalCachePath = Process.argv[2];
+const existingRenderCachePath = Process.argv[2];
 const inputPath = Process.argv[3];
 const outputPath = Process.argv[4];
 const tempPath = Process.argv[5];
 
-const tempLocalCachePath = tempPath + '/cache';
+const tempRenderCachePath = tempPath + '/cache';
 const tempInputPath = tempPath + '/input';
 const tempRenderPath = tempPath + '/output';
 
@@ -44,9 +44,9 @@ const mdInput = FileSystem.readFileSync(tempRenderPath + '/input.md', { encoding
 FileSystem.unlinkSync(tempRenderPath + '/input.md');
 
 const customMacroDefs = macroScan(tempInputPath);
-const mdOutput = new Markdown(machineCachePath, existingLocalCachePath, tempLocalCachePath, tempInputPath, '', tempRenderPath, customMacroDefs).render(mdInput);
+const mdOutput = new Markdown(machineCachePath, existingRenderCachePath, tempRenderCachePath, tempInputPath, '', tempRenderPath, customMacroDefs).render(mdInput);
 FileSystem.writeFileSync(tempRenderPath + '/output.html', mdOutput);
 FileSystem.removeSync(outputPath);
 FileSystem.renameSync(tempRenderPath, outputPath);
-FileSystem.removeSync(existingLocalCachePath);
-FileSystem.renameSync(tempLocalCachePath, existingLocalCachePath);
+FileSystem.removeSync(existingRenderCachePath);
+FileSystem.renameSync(tempRenderCachePath, existingRenderCachePath);

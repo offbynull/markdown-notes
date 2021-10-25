@@ -52,10 +52,6 @@ export class CustomMacroExtension implements Extension {
     }
 
     public preProcess(context: ExtensionContext): void {
-        // Remove backups from previous runs
-        const macroOutputBackupDir = Path.resolve(context.realBasePath, ".macro_output_backup");
-        FileSystem.removeSync(macroOutputBackupDir);
-        FileSystem.mkdirpSync(macroOutputBackupDir);
     }
 
     public process(markdownIt: MarkdownIt, token: Token, context: ExtensionContext, state: StateInline | StateBlock): void {
@@ -128,8 +124,8 @@ export class CustomMacroExtension implements Extension {
             inputOverrides,
             outputDir,
             context.realMachineCachePath,
-            context.realOldLocalCachePath,
-            context.realNewLocalCachePath);
+            context.realOldRenderCachePath,
+            context.realNewRenderCachePath);
         inputDir = dirOverrides.updatedInputDir;  // new dir contains input overrides and user-defined inputs 
         outputDir = dirOverrides.updatedOutputDir;  // may be cached output
 

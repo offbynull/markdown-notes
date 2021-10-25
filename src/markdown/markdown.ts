@@ -34,8 +34,8 @@ export default class Markdown {
 
     public constructor(
         realMachineCachePath: string,
-        realOldLocalCachePath: string,
-        realNewLocalCachePath: string,
+        realOldRenderCachePath: string,
+        realNewRenderCachePath: string,
         realInputPath: string,
         htmlBasePath: string,
         realBasePath: string,
@@ -53,7 +53,7 @@ export default class Markdown {
         this.htmlBasePath = htmlBasePath;
         this.realBasePath = realBasePath;
 
-        const extenderConfig: ExtenderConfig = new ExtenderConfig(realMachineCachePath, realOldLocalCachePath, realNewLocalCachePath, realInputPath, realBasePath, htmlBasePath);
+        const extenderConfig: ExtenderConfig = new ExtenderConfig(realMachineCachePath, realOldRenderCachePath, realNewRenderCachePath, realInputPath, realBasePath, htmlBasePath);
         extenderConfig.register(new TitleExtension());
         extenderConfig.register(new BookmarkExtension());
         extenderConfig.register(new BookmarkLinkerControllerExtension());

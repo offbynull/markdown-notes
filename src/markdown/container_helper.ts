@@ -23,13 +23,13 @@ import * as Buildah from '../buildah/buildah';
 
 export function runContainer(
     friendlyName: string,
-    containerDir: string,
+    containerSetupDir: string,
     inputDir: string,
     inputOverrides: Map<string, string | Buffer>,
     outputDir: string,
     machineCacheDir: string,
-    oldLocalCacheDir: string,
-    newLocalCacheDir: string
+    oldRenderCacheDir: string,
+    newRenderCacheDir: string
 ) {
     // If input overrides available, copy inputs to tmp dir and apply overrides    
     let tmpDir: string | null = null;
@@ -57,12 +57,12 @@ export function runContainer(
     // Create container helper
     const ch = new ContainerHelper(
         friendlyName,
-        containerDir,
+        containerSetupDir,
         inputDir,
         outputDir,
         machineCacheDir,
-        oldLocalCacheDir,
-        newLocalCacheDir
+        oldRenderCacheDir,
+        newRenderCacheDir
     );
 
     ch.run();
@@ -72,27 +72,28 @@ export function runContainer(
         FileSystem.removeSync(tmpDir);
     }
 
-    return { updatedInputDir: inputDir, updatedOutputDir: outputDir, finalCacheDir: ch.newCachedOutputDir };
+    return { updatedInputDir: inputDir, updatedOutputDir: outputDir, finalCacheDir: ch.cachedOutputInNewRenderDir };
 }
 
 export class ContainerHelper {
     private readonly containerHash: string;
     public readonly dataHash: string;
-    public readonly cachedContainerDir: string;
-    public readonly oldCachedOutputDir: string;
-    public readonly newCachedOutputDir: string;
+    public readonly containerDir: string;
+    public readonly cachedOutputInOldRenderDir: string;
+    public readonly cachedOutputInNewRenderDir: string;
+    public readonly cachedOutputInMachineDir: string;
     constructor(
         private readonly friendlyName: string,
-        private readonly containerDir: string,
+        private readonly setupDir: string,  // files required to setup the container
         private readonly inputDir: string,
         private readonly outputDir: string,
-        private readonly machineCacheDir: string,
-        private readonly oldLocalCacheDir: string,
-        private readonly newLocalCacheDir: string,
+        machineCacheDir: string,
+        oldRenderCacheDir: string,
+        newRenderCacheDir: string,
         private readonly hashFilename: string = '.__UNIQUE_INPUT_ID'
     ) {
         const containerHasher = Crypto.createHash('md5');
-        hashDirectory(containerHasher, containerDir);
+        hashDirectory(containerHasher, setupDir);
         this.containerHash = containerHasher.digest('hex');
 
         const dataHasher = Crypto.createHash('md5');
@@ -101,22 +102,38 @@ export class ContainerHelper {
         dataHasher.update('data');
         hashDirectory(dataHasher, inputDir);
         dataHasher.update('hashfilename');
-        dataHasher.update
+        dataHasher.update(hashFilename);
         this.dataHash = dataHasher.digest('hex');
 
-        this.oldCachedOutputDir = Path.resolve(this.oldLocalCacheDir, 'container_output_' + this.dataHash);
-        this.newCachedOutputDir = Path.resolve(this.newLocalCacheDir, 'container_output_' + this.dataHash);
-        this.cachedContainerDir = Path.resolve(this.machineCacheDir, 'container_env_' + this.containerHash);
+        const renderDirName = 'container_output_' + this.dataHash;
+        const containerDirName = 'container_env_' + this.containerHash;
+        this.cachedOutputInOldRenderDir = Path.resolve(oldRenderCacheDir, renderDirName);
+        this.cachedOutputInNewRenderDir = Path.resolve(newRenderCacheDir, renderDirName);
+        this.cachedOutputInMachineDir = Path.resolve(machineCacheDir, renderDirName);
+        this.containerDir = Path.resolve(machineCacheDir, containerDirName);  // location of the actual container
     }
 
     public run() {
-        // Is already cached? Copy from old cache to new cache
-        if (FileSystem.existsSync(this.oldCachedOutputDir)) {
-            if (!FileSystem.lstatSync(this.oldCachedOutputDir).isDirectory()) {
-                throw new Error('Non-directory exists for cached output? ' + this.oldCachedOutputDir);
+        // Is it cached from the last render? Copy it to the new render + the new render cache + the machine cache.
+        // Is it cached in the machine cache? Copy it to the new render + the new render cache.
+        // Otherwise, render it + copy it to the new render + the new render cache + the machine cache.
+        if (FileSystem.existsSync(this.cachedOutputInOldRenderDir)) {
+            if (!FileSystem.lstatSync(this.cachedOutputInOldRenderDir).isDirectory()) {
+                throw new Error('Non-directory exists for cached output? ' + this.cachedOutputInOldRenderDir);
             }
-            FileSystem.copySync(this.oldCachedOutputDir, this.outputDir);
-            FileSystem.copySync(this.oldCachedOutputDir, this.newCachedOutputDir);
+            FileSystem.removeSync(this.cachedOutputInNewRenderDir);
+            FileSystem.removeSync(this.cachedOutputInMachineDir);
+            FileSystem.copySync(this.cachedOutputInOldRenderDir, this.cachedOutputInNewRenderDir);
+            FileSystem.copySync(this.cachedOutputInOldRenderDir, this.cachedOutputInMachineDir);
+            FileSystem.copySync(this.cachedOutputInOldRenderDir, this.outputDir);
+            return;
+        } else if (FileSystem.existsSync(this.cachedOutputInMachineDir)) {
+            if (!FileSystem.lstatSync(this.cachedOutputInMachineDir).isDirectory()) {
+                throw new Error('Non-directory exists for cached output? ' + this.cachedOutputInOldRenderDir);
+            }
+            FileSystem.removeSync(this.cachedOutputInNewRenderDir);
+            FileSystem.copySync(this.cachedOutputInMachineDir, this.cachedOutputInNewRenderDir);
+            FileSystem.copySync(this.cachedOutputInMachineDir, this.outputDir);
             return;
         }
 
@@ -125,18 +142,21 @@ export class ContainerHelper {
         this.launchContainer();
         
         // Cache output
-        FileSystem.copySync(this.outputDir, this.newCachedOutputDir);
+        FileSystem.removeSync(this.cachedOutputInNewRenderDir);
+        FileSystem.removeSync(this.cachedOutputInMachineDir);
+        FileSystem.copySync(this.outputDir, this.cachedOutputInNewRenderDir);
+        FileSystem.copySync(this.outputDir, this.cachedOutputInMachineDir);
     }
 
     private initializeContainer() {
-        const envDir = this.cachedContainerDir;
+        const envDir = this.containerDir;
         if (Buildah.existsContainer(envDir, this.containerHash)) {
             return;
         }
 
         console.log(`Initializing ${this.friendlyName} container (may take several minutes)`);
 
-        FileSystem.copySync(this.containerDir, envDir);
+        FileSystem.copySync(this.setupDir, envDir);
         Buildah.createContainerRaw(envDir, this.containerHash);
     }
 
@@ -148,7 +168,7 @@ export class ContainerHelper {
             throw new Error('Missing run.sh');
         }
 
-        const envDir = this.cachedContainerDir;
+        const envDir = this.containerDir;
         const volumeMappings = [
             new Buildah.LaunchVolumeMapping(this.inputDir, '/input', 'r'),
             new Buildah.LaunchVolumeMapping(this.outputDir, '/output', 'rw')            
