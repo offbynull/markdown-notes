@@ -133,7 +133,7 @@ export class CustomMacroExtension implements Extension {
         const outputMd = (() => {
             const path = Path.resolve(outputDir, 'output.md');
             if (!FileSystem.existsSync(path) || !FileSystem.lstatSync(path).isFile()) {
-                throw new Error(`The macro ${name} didn't generate output.md`);
+                throw new Error(`The macro ${name} didn't generate output.md\n\n${data.content}`);
             }
             return FileSystem.readFileSync(path, { encoding: 'utf8' });
         })();

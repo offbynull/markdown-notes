@@ -114,6 +114,11 @@ export class ContainerHelper {
     }
 
     public run() {
+        // ALL CALLS TO FileSystem.removeSync() COMMENTED OUT...
+        //   You'll end up with half-deleted dirs if process gets killed but they'll still be looked at as valid cache
+        //   items to be used. You shouldn't be deleting anyways because if the hash is the same it means everything else
+        //   was more or less exactly the same. So what's the point of deleting?
+
         // Is it cached from the last render? Copy it to the new render + the new render cache + the machine cache.
         // Is it cached in the machine cache? Copy it to the new render + the new render cache.
         // Otherwise, render it + copy it to the new render + the new render cache + the machine cache.
@@ -121,8 +126,8 @@ export class ContainerHelper {
             if (!FileSystem.lstatSync(this.cachedOutputInOldRenderDir).isDirectory()) {
                 throw new Error('Non-directory exists for cached output? ' + this.cachedOutputInOldRenderDir);
             }
-            FileSystem.removeSync(this.cachedOutputInNewRenderDir);
-            FileSystem.removeSync(this.cachedOutputInMachineDir);
+            // FileSystem.removeSync(this.cachedOutputInNewRenderDir);
+            // FileSystem.removeSync(this.cachedOutputInMachineDir);
             FileSystem.copySync(this.cachedOutputInOldRenderDir, this.cachedOutputInNewRenderDir);
             FileSystem.copySync(this.cachedOutputInOldRenderDir, this.cachedOutputInMachineDir);
             FileSystem.copySync(this.cachedOutputInOldRenderDir, this.outputDir);
@@ -131,7 +136,7 @@ export class ContainerHelper {
             if (!FileSystem.lstatSync(this.cachedOutputInMachineDir).isDirectory()) {
                 throw new Error('Non-directory exists for cached output? ' + this.cachedOutputInOldRenderDir);
             }
-            FileSystem.removeSync(this.cachedOutputInNewRenderDir);
+            // FileSystem.removeSync(this.cachedOutputInNewRenderDir);
             FileSystem.copySync(this.cachedOutputInMachineDir, this.cachedOutputInNewRenderDir);
             FileSystem.copySync(this.cachedOutputInMachineDir, this.outputDir);
             return;
@@ -142,8 +147,8 @@ export class ContainerHelper {
         this.launchContainer();
         
         // Cache output
-        FileSystem.removeSync(this.cachedOutputInNewRenderDir);
-        FileSystem.removeSync(this.cachedOutputInMachineDir);
+        // FileSystem.removeSync(this.cachedOutputInNewRenderDir);
+        // FileSystem.removeSync(this.cachedOutputInMachineDir);
         FileSystem.copySync(this.outputDir, this.cachedOutputInNewRenderDir);
         FileSystem.copySync(this.outputDir, this.cachedOutputInMachineDir);
     }
