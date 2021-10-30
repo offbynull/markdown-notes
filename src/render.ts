@@ -38,6 +38,7 @@ if (isGitInstalled(inputPath)) {
 }
 
 FileSystem.copySync(tempInputPath, tempRenderPath);
+FileSystem.mkdirpSync(tempRenderCachePath);
 
 // Render input.md to output.html
 const mdInput = FileSystem.readFileSync(tempRenderPath + '/input.md', { encoding: 'utf8'});
