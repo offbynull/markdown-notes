@@ -114,29 +114,27 @@ export class ContainerHelper {
     }
 
     public run() {
-        // ALL CALLS TO FileSystem.removeSync() COMMENTED OUT...
-        //   You'll end up with half-deleted dirs if process gets killed but they'll still be looked at as valid cache
-        //   items to be used. You shouldn't be deleting anyways because if the hash is the same it means everything else
-        //   was more or less exactly the same. So what's the point of deleting?
-
         // Is it cached from the last render? Copy it to the new render + the new render cache + the machine cache.
         // Is it cached in the machine cache? Copy it to the new render + the new render cache.
         // Otherwise, render it + copy it to the new render + the new render cache + the machine cache.
+        
+        // cachedOutputInMachineDir is the important dir -- you should not have incomplete data written to it if a SIGKILL happens
+        // ON SIGKILL:
+        //    * newRenderDir will be fine if incomplete (it gets ignored on SIGKILL).
+        //    * oldRenderDir will be fine (should never be written to, only read from).
+        //    * machineDir will HOPEFULLY be fine (writes go to a temp dir, which gets renamed to the machine dir on completion -- if rename is atomic then a SIGKILL won't put bad data in machine cache)
         if (FileSystem.existsSync(this.cachedOutputInOldRenderDir)) {
             if (!FileSystem.lstatSync(this.cachedOutputInOldRenderDir).isDirectory()) {
                 throw new Error('Non-directory exists for cached output? ' + this.cachedOutputInOldRenderDir);
             }
-            // FileSystem.removeSync(this.cachedOutputInNewRenderDir);
-            // FileSystem.removeSync(this.cachedOutputInMachineDir);
             FileSystem.copySync(this.cachedOutputInOldRenderDir, this.cachedOutputInNewRenderDir);
-            FileSystem.copySync(this.cachedOutputInOldRenderDir, this.cachedOutputInMachineDir);
             FileSystem.copySync(this.cachedOutputInOldRenderDir, this.outputDir);
+            this.safeCopyToMachineCache(this.cachedOutputInOldRenderDir);
             return;
         } else if (FileSystem.existsSync(this.cachedOutputInMachineDir)) {
             if (!FileSystem.lstatSync(this.cachedOutputInMachineDir).isDirectory()) {
                 throw new Error('Non-directory exists for cached output? ' + this.cachedOutputInOldRenderDir);
             }
-            // FileSystem.removeSync(this.cachedOutputInNewRenderDir);
             FileSystem.copySync(this.cachedOutputInMachineDir, this.cachedOutputInNewRenderDir);
             FileSystem.copySync(this.cachedOutputInMachineDir, this.outputDir);
             return;
@@ -147,10 +145,28 @@ export class ContainerHelper {
         this.launchContainer();
         
         // Cache output
-        // FileSystem.removeSync(this.cachedOutputInNewRenderDir);
-        // FileSystem.removeSync(this.cachedOutputInMachineDir);
         FileSystem.copySync(this.outputDir, this.cachedOutputInNewRenderDir);
-        FileSystem.copySync(this.outputDir, this.cachedOutputInMachineDir);
+        this.safeCopyToMachineCache(this.outputDir);
+    }
+
+    private safeCopyToMachineCache(src: string) {
+        // This process can be killed at any time. If we were copying to the machine cache as the kill happened, the machine cache directory would have
+        // partial data in it. That data would then get used for subsequent renders, meaning you'd see a bad output (partial output).
+        //
+        // To avoid this problem, this method copies first to a tmp dir, then RENAMES that the machine cache dir. It should be an atomic operation (I hope).
+        //
+        // If this doesn't work, the only other solution is to hash the contents of the directory and store it WITH the directory. When reading the
+        // contents of the directory, you'd have to first hash it and compare it with the hash that's there to make sure its the same. If it isn't the same,
+        // the machine cache directory is no good (replace it). The same if the hash isn't there -- the machine directory is no good (replace it).
+        //
+        // If that doesn't work either, then the idea of the machine cache needs to go away. You'll just have to re-process the output if it goes away
+        // in a render then gets subsequently introduced again in a future render.
+        if (FileSystem.existsSync(this.cachedOutputInMachineDir)) {
+            return;
+        }
+        const tmpDir = FileSystem.mkdtempSync('temp-dir-destined-for-machine-cache');
+        FileSystem.copySync(src, tmpDir);
+        FileSystem.renameSync(tmpDir, this.cachedOutputInMachineDir);
     }
 
     private initializeContainer() {
