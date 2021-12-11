@@ -26,6 +26,7 @@ import ChildProcess from 'child_process';
 import { killProcessHierarchy } from './utils/process_utils';
 import { isGitInstalled } from './utils/git_utils';
 import { recursiveReadDir } from './utils/file_utils';
+import { resolve } from 'path';
 
 process.on('warning', e => console.warn(e.stack));
 
@@ -110,9 +111,14 @@ inputWatcher.on('change', () => {
     }
 
     activeChildTmpDir = FileSystem.mkdtempSync('/tmp/render');
+    const activeChildTmpWorkDir = resolve(activeChildTmpDir, 'work');
+    const activeChildTmpOutputDir = resolve(activeChildTmpDir, 'output');
+    const activeChildTmpRenderCacheDir = resolve(activeChildTmpDir, 'localcache');
+    FileSystem.mkdirpSync(activeChildTmpWorkDir)
+    FileSystem.mkdirpSync(activeChildTmpOutputDir)
     activeChildProc = ChildProcess.fork(
         'dist/render',
-        [ localCachePath, inputPath, outputPath, activeChildTmpDir ],  
+        [ localCachePath, inputPath, activeChildTmpOutputDir, activeChildTmpRenderCacheDir, activeChildTmpWorkDir ],  
         { silent: true } // 'silent' allows reading in stdout/stderr
     );
     const exitMarker = { flag: false };
@@ -143,6 +149,10 @@ inputWatcher.on('change', () => {
         }
         switch (code) {
             case 0:
+                FileSystem.removeSync(outputPath);
+                FileSystem.renameSync(activeChildTmpOutputDir, outputPath);
+                FileSystem.removeSync(localCachePath);
+                FileSystem.renameSync(activeChildTmpRenderCacheDir, localCachePath);
                 console.log('Render completed.');
                 break;
             default:
