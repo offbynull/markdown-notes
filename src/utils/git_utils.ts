@@ -25,7 +25,7 @@ export function getGitRoot(dir: string): string | null {
 }
 
 export function listTrackedIgnoredFiles(dir: string): string[] {
-    const ret = spawnSync(`git`, [`ls-files`, `-i`, '-o', `--exclude-standard`], { cwd: dir, encoding: 'utf8' });
+    const ret = spawnSync(`git`, [`ls-files`, `-i`, '-c', `--exclude-standard`], { cwd: dir, encoding: 'utf8' });
     if (ret.status !== 0) {
         throw `git returned error: \n\n${ret.stdout}\n\n${ret.stderr}`;
     }
