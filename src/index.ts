@@ -193,8 +193,9 @@ inputWatcher.emit('change'); // Trigger fake change to replace the placeholder w
 // Kill all child processes on cleanup -- https://stackoverflow.com/a/49392671
 //
 ['exit', 'SIGINT', 'SIGUSR1', 'SIGUSR2', 'uncaughtException', 'SIGTERM'].forEach(eventType => {
-    Process.on(eventType as any, () => {
+    Process.on(eventType as any, (...args) => {
         console.log(`Performing cleanup (${eventType})...`);
+        console.log(` (args: ${args})`);
         if (activeChildProc !== undefined) {
             killProcessHierarchy('' + activeChildProc.pid);
             activeChildProc.kill('SIGKILL');
