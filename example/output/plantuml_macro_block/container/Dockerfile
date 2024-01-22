@@ -9,6 +9,6 @@ RUN apk add --no-cache graphviz
 # install temporarily so we can download plantuml
 RUN apk add --no-cache wget                   
 RUN mkdir -p /opt
-WORKDIR /opt
+WORKDIR /_macro
 RUN wget https://repo1.maven.org/maven2/net/sourceforge/plantuml/plantuml/1.2019.8/plantuml-1.2019.8.jar
-RUN apk del --no-cache wget
+COPY run.sh .

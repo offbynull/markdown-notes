@@ -19,7 +19,7 @@
 import FileSystem from 'fs-extra';
 import Crypto from 'crypto';
 import Path from 'path';
-import * as Buildah from '../buildah/buildah';
+import * as Podman from '../podman/podman';
 
 export function runContainer(
     friendlyName: string,
@@ -105,8 +105,8 @@ export class ContainerHelper {
         dataHasher.update(hashFilename);
         this.dataHash = dataHasher.digest('hex');
 
-        const renderDirName = 'container_output_' + this.dataHash;
-        const containerDirName = 'container_env_' + this.containerHash;
+        const renderDirName = 'output_' + this.dataHash;
+        const containerDirName = 'container_' + friendlyName + '_' + this.containerHash;
         this.cachedOutputInOldRenderDir = Path.resolve(oldRenderCacheDir, renderDirName);
         this.cachedOutputInNewRenderDir = Path.resolve(newRenderCacheDir, renderDirName);
         this.cachedOutputInMachineDir = Path.resolve(machineCacheDir, renderDirName);
@@ -171,33 +171,28 @@ export class ContainerHelper {
 
     private initializeContainer() {
         const envDir = this.containerDir;
-        if (Buildah.existsContainer(envDir, this.containerHash)) {
+        if (Podman.existsImage(envDir, this.containerHash)) {
             return;
         }
 
         console.log(`Initializing ${this.friendlyName} container (may take several minutes)`);
 
         FileSystem.copySync(this.setupDir, envDir);
-        Buildah.createContainerRaw(envDir, this.containerHash);
+        Podman.createImageRaw(envDir, this.containerHash);
     }
 
     private launchContainer() {
         console.log(`Launching ${this.friendlyName} container`);
 
-        const scriptFile = Path.resolve(this.inputDir, 'run.sh');
-        if (!FileSystem.existsSync(scriptFile) || !FileSystem.lstatSync(scriptFile).isFile()) {
-            throw new Error('Missing run.sh');
-        }
-
         const envDir = this.containerDir;
         const volumeMappings = [
-            new Buildah.LaunchVolumeMapping(this.inputDir, '/input', 'r'),
-            new Buildah.LaunchVolumeMapping(this.outputDir, '/output', 'rw')            
+            new Podman.LaunchVolumeMapping(this.inputDir, '/input', 'r'),
+            new Podman.LaunchVolumeMapping(this.outputDir, '/output', 'rw')            
         ];
-        const environmentVariables: Buildah.EnvironmentVariable[] = [
-            // new Buildah.EnvironmentVariable('__UNIQUE_INPUT_ID', this.friendlyName + '_' + this.dataHash)
+        const environmentVariables: Podman.EnvironmentVariable[] = [
+            // new Podman.EnvironmentVariable('__UNIQUE_INPUT_ID', this.friendlyName + '_' + this.dataHash)
         ];
-        // SHOULD BE PASSING INPUT ID AS AN ENV VAR BUT THE VERSION OF BUILDAH IS TOO OLD TO SUPPORT IT (--env flag missing). REVISIT LATER.
+        // SHOULD BE PASSING INPUT ID AS AN ENV VAR BUT THE VERSION OF Podman IS TOO OLD TO SUPPORT IT (--env flag missing). REVISIT LATER.
         FileSystem.writeFileSync(
             this.inputDir + '/' + this.hashFilename,
             this.friendlyName + '_' + this.dataHash,
@@ -206,10 +201,10 @@ export class ContainerHelper {
                 flag: 'wx'  // write but don't overwrite
             }
         );
-        Buildah.launchContainer(
+        Podman.launchContainer(
             envDir,
             this.containerHash,
-            ['sh', '/input/run.sh'],
+            ['sh', '/_macro/run.sh'],
             {
                 volumeMappings: volumeMappings,
                 environmentVariables: environmentVariables

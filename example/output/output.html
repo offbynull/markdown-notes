@@ -31,9 +31,7 @@
 <li><a href="#H_Example%3A%20GraphViz">Example: GraphViz</a></li>
 <li><a href="#H_Example%3A%20PlantUML">Example: PlantUML</a></li>
 <li><a href="#H_Example%3A%20Svgbob">Example: Svgbob</a></li>
-<li><a href="#H_Example%3A%20LaTeX%20Chemfig">Example: LaTeX Chemfig</a></li>
 <li><a href="#H_Example%3A%20Script%20Injection%20(CSS%2FJS)">Example: Script Injection (CSS/JS)</a></li>
-<li><a href="#H_Example%3A%20Image%20Annotation">Example: Image Annotation</a></li>
 </ul>
 <li><a href="#H_Standard%20Markdown">Standard Markdown</a></li>
 <ul>
@@ -355,9 +353,7 @@ Every instance of product in paragraph above should be linked to the chemistry r
 <li><code>[MACRO_DIR]/container</code>: a directory containing container setup files.</li>
 <li><code>[MACRO_DIR]/container/Dockerfile</code>: a Dockerfile that sets up the container.</li>
 <li><code>[MACRO_DIR]/container/*</code>: files/resources required by the <code>Dockerfile</code>.</li>
-<li><code>[MACRO_DIR]/input</code>: a directory containing input files.</li>
-<li><code>[MACRO_DIR]/input/run.sh</code>: a script that gets run when the container starts.</li>
-<li><code>[MACRO_DIR]/input/*</code>: files/resources required by <code>run.sh</code> and/or whatever it invokes.</li>
+<li><code>[MACRO_DIR]/input/*</code>: files/resources required by container to run.</li>
 <li><code>[MACRO_DIR]/settings.json</code>: a special settings file (described further below).</li>
 </ul>
 <p>The <code>settings.json</code> file can be used to configure how the macro operates and what files to pass to it:</p>
@@ -390,7 +386,7 @@ Every instance of product in paragraph above should be linked to the chemistry r
 <li>stores macro contents to <code>/input/input.data</code> on the container.</li>
 <li>stores macro <code>copyInputsPrefix</code> filepaths to <code>/input/input.files</code> on the container.</li>
 <li>stores a unique ID to <code>/input/.__UNIQUE_INPUT_ID</code> on the container.</li>
-<li>launches <code>/input/run.sh</code> on the container.</li>
+<li>launches <code>/_macro/run.sh</code> on the container.</li>
 <li>expects output markdown in <code>/output/output.md</code> on the container.</li>
 <li>expects output css/js filepaths in <code>/output/output.injects</code> on the container (optional).</li>
 </ol>
@@ -480,29 +476,7 @@ ATG,Antigua and Barbuda
 ```
 </code></pre>
 <p>Output:</p>
-<table><tbody><tr><th>Code</th><th>Country</th></tr><tr><td>AFG</td><td>Afghanistan</td></tr><tr><td>ALB</td><td>Albania</td></tr><tr><td>ALG</td><td>Algeria</td></tr><tr><td>ASA</td><td>American Samoa</td></tr><tr><td>AND</td><td>Andorra</td></tr><tr><td>ANG</td><td>Angola</td></tr><tr><td>AIA</td><td>Anguilla</td></tr><tr><td>ATG</td><td>Antigua and Barbuda</td></tr></tbody></table><p>CSV parsing can optionally be configured if by a single-line JSON object preceded by !!...</p>
-<p><a href="csv_macro_block/input/code.js">csv_macro_block/input/code.js</a> (lines 30 to 48):</p>
-<pre class="hljs"><code><span class="hljs-keyword">let</span> config = {};
-<span class="hljs-keyword">if</span> (lines.<span class="hljs-property">length</span> &gt; <span class="hljs-number">0</span> &amp;&amp; lines[<span class="hljs-number">0</span>].<span class="hljs-title function_">startsWith</span>(<span class="hljs-string">'!!'</span>)) {
-    <span class="hljs-keyword">try</span> {
-        <span class="hljs-keyword">const</span> configText = lines[<span class="hljs-number">0</span>].<span class="hljs-title function_">substring</span>(<span class="hljs-number">2</span>);
-        config = <span class="hljs-variable constant_">JSON</span>.<span class="hljs-title function_">parse</span>(configText);
-        <span class="hljs-keyword">if</span> ((<span class="hljs-title function_">typeof</span>(config.<span class="hljs-property">firstLineHeader</span>) === <span class="hljs-string">'boolean'</span> || config.<span class="hljs-property">firstLineHeader</span> === <span class="hljs-literal">undefined</span>)
-                &amp;&amp; (<span class="hljs-title function_">typeof</span>(config.<span class="hljs-property">quote</span>) === <span class="hljs-string">'string'</span> || config.<span class="hljs-property">quote</span> === <span class="hljs-literal">undefined</span>)
-                &amp;&amp; (<span class="hljs-title function_">typeof</span>(config.<span class="hljs-property">delimiter</span>) === <span class="hljs-string">'string'</span> || config.<span class="hljs-property">delimiter</span> === <span class="hljs-literal">undefined</span>)
-                &amp;&amp; (<span class="hljs-title function_">typeof</span>(config.<span class="hljs-property">escape</span>) === <span class="hljs-string">'string'</span> || config.<span class="hljs-property">escape</span> === <span class="hljs-literal">undefined</span>)
-                &amp;&amp; (<span class="hljs-title function_">typeof</span>(config.<span class="hljs-property">comment</span>) === <span class="hljs-string">'string'</span> || config.<span class="hljs-property">comment</span> === <span class="hljs-literal">undefined</span>)
-                &amp;&amp; (<span class="hljs-title function_">typeof</span>(config.<span class="hljs-property">skipEmptyLines</span>) === <span class="hljs-string">'boolean'</span> || config.<span class="hljs-property">skipEmptyLines</span> === <span class="hljs-literal">undefined</span>)) {
-            lines.<span class="hljs-title function_">shift</span>(); <span class="hljs-comment">// removes the first line</span>
-            content = lines.<span class="hljs-title function_">join</span>(<span class="hljs-string">'\n'</span>);
-        } <span class="hljs-keyword">else</span> {
-            config = {};
-        }
-    } <span class="hljs-keyword">catch</span> (err) {
-        <span class="hljs-comment">// we couldn't parse the first line as a config, so just leave it in as-is</span>
-    }
-}
-</code></pre>
+<table><tbody><tr><th>Code</th><th>Country</th></tr><tr><td>AFG</td><td>Afghanistan</td></tr><tr><td>ALB</td><td>Albania</td></tr><tr><td>ALG</td><td>Algeria</td></tr><tr><td>ASA</td><td>American Samoa</td></tr><tr><td>AND</td><td>Andorra</td></tr><tr><td>ANG</td><td>Angola</td></tr><tr><td>AIA</td><td>Anguilla</td></tr><tr><td>ATG</td><td>Antigua and Barbuda</td></tr></tbody></table><p>CSV parsing can optionally be configured if by a single-line JSON object preceded by !!.</p>
 <a name="H_Example%3A%20GraphViz"></a><h2>Example: GraphViz</h2>
 <p>Input:</p>
 <pre><code>```{dot}
@@ -514,7 +488,7 @@ digraph {
 ```
 </code></pre>
 <p>Output:</p>
-<p><img src="dot_e760879e91f1b30bbc9a80c980c71328.svg" alt="Dot diagram"></p>
+<p><img src="dot_fd32a8cdba936c6909c0b66625436c62.svg" alt="Dot diagram"></p>
 <a name="H_Example%3A%20PlantUML"></a><h2>Example: PlantUML</h2>
 <p>Input:</p>
 <pre><code>```{plantuml}
@@ -533,7 +507,7 @@ class Enrollment {
 ```
 </code></pre>
 <p>Output:</p>
-<p><img src="plantuml_0b6d6a681aa4dec2f819797ade358c64.svg" alt="PlantUML diagram"></p>
+<p><img src="plantuml_036bf6658bdc1e78adb47f8b709a1c5d.svg" alt="PlantUML diagram"></p>
 <a name="H_Example%3A%20Svgbob"></a><h2>Example: Svgbob</h2>
 <p>Input:</p>
 <pre><code>```{svgbob}
@@ -548,16 +522,7 @@ class Enrollment {
 ```
 </code></pre>
 <p>Output:</p>
-<p><img src="svgbob_c2c534fd4025a62f353e83031b3b5ee7.svg.svg" alt="Kroki diagram output"></p>
-<a name="H_Example%3A%20LaTeX%20Chemfig"></a><h2>Example: LaTeX Chemfig</h2>
-<p>Input:</p>
-<pre><code>```{chemfig}
-\chemfig{Cl-[6]Co(&lt;:[3]H_2O)(&lt;[5]H_2O)(&lt;[7]H_2O)(&lt;:[9]H_2O)-[6]Cl}
-```
-</code></pre>
-<p>Output:</p>
-<p><img src="chemfig_7d2b6ddeb0714cc4c27a5c5a520b362a.svg" alt="Chemfig diagram"></p>
-<p>All preamble and postamble text for the LaTeX document is automatically added by this extension -- only the chemfig LaTeX package is loaded.  For details on chemfig syntax, see <a href="https://en.wikibooks.org/w/index.php?title=LaTeX/Chemical_Graphics&amp;oldid=3452092">here</a>.</p>
+<p><img src="svgbob_9db677eca548cdefa75c05fe3c0215f9.svg.svg" alt="Kroki diagram output"></p>
 <a name="H_Example%3A%20Script%20Injection%20(CSS%2FJS)"></a><h2>Example: Script Injection (CSS/JS)</h2>
 <p>Input:</p>
 <pre><code>```{scriptinject}
@@ -566,46 +531,6 @@ test
 </code></pre>
 <p>Output:</p>
 <p><span class="SCRIPTINJECT_CLASS">test</span></p>
-<a name="H_Example%3A%20Image%20Annotation"></a><h2>Example: Image Annotation</h2>
-<p>Input:</p>
-<pre><code>```{img}
-201903_Ribosome.svg
-Diagram of ribosome translating messanger RNA
-By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595
-
-scale 0.45 0.45
-
-fg_color #000000ff
-bg_color #ffff00ff
-text 0.1 0.1 mRNA strand
-
-fg_color #ffff00ff
-bg_color #00000000
-arrow 0.1 0.1  0.1 0.55  0.25 0.55
-poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
-```
-</code></pre>
-<p>Output:</p>
-<p><img src="img_562703ad89e1df7cb54db3b742d828de/data.svg" alt="By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595" title=""></p><p>The first 3 lines must be as follows:</p>
-<ol>
-<li>file name prefixed with ! (should sit in the same directory as input.md).</li>
-<li>alternative text for the image (e.g. description of the image).</li>
-<li>title text for the image (e.g. attribution).</li>
-</ol>
-<p>Subsequent lines are commands that you can use to manipulate and annotate the image...</p>
-<ul>
-<li><em>scale x_scale y_scale</em> -- scale the image by some percentage (unit is percentage).</li>
-<li><em>expand new_width new_height x_offset y_offset</em> -- expand the image canvas to some new dimension without resizing the contents (unit is percentage).</li>
-<li><em>crop x_offset y_offset new_width new_height</em> -- crop the image to some new dimension (unit is percentage).</li>
-<li><em>bg_color html_color_code</em> -- changes the background color.</li>
-<li><em>fg_color html_color_code</em> -- changes the foreground color.</li>
-<li><em>stroke width</em> -- changes the stroke width (unit is pixels).</li>
-<li><em>font_size size</em> -- changes the font size (unit is pixels).</li>
-<li><em>rect x_offset y_offset width height</em> -- highlight a rectangle on the image (unit is percentage).</li>
-<li><em>poly x1 y1 x2 y2 x3 y3 ...</em> -- highlight a polygon on the image (unit is percentage).</li>
-<li><em>arrow x1 y1 x2 y2 ...</em> -- draw an arrow on the image (unit is percentage).</li>
-<li><em>text x_offset y_offset string</em> -- write a string on the image (unit is percentage).</li>
-</ul>
 <a name="H_Standard%20Markdown"></a><h1>Standard Markdown</h1>
 <p>Standard Markdown syntax guide (adapted from https://github.com/tchapi/markdown-cheatsheet).</p>
 <a name="H_Headers"></a><h2>Headers</h2>

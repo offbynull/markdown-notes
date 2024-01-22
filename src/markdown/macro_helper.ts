@@ -85,7 +85,6 @@ export function macroDirectoryCheck(parentDir: string, dir: string) {
 
     const containerSetupDir = Path.resolve(dir, 'container');
     const containerInputDir = Path.resolve(dir, 'input');
-    const containerRunnerScriptFile = Path.resolve(containerInputDir, 'run.sh');
     if (!FileSystem.existsSync(dir) || !FileSystem.lstatSync(dir).isDirectory()) {
         throw new Error(`Macro dir missing: ${dir}`);
     }
@@ -94,9 +93,6 @@ export function macroDirectoryCheck(parentDir: string, dir: string) {
     }
     if (!FileSystem.existsSync(containerInputDir) || !FileSystem.lstatSync(containerInputDir).isDirectory()) {
         throw new Error(`Macro input dir missing: ${containerInputDir}`);
-    }
-    if (!FileSystem.existsSync(containerRunnerScriptFile) || !FileSystem.lstatSync(containerRunnerScriptFile).isFile()) {
-        throw new Error(`Macro run script missing: ${containerRunnerScriptFile}`);
     }
  
     const macroSettingsFile = Path.resolve(dir, 'settings.json');
@@ -108,7 +104,6 @@ export function macroDirectoryCheck(parentDir: string, dir: string) {
     return {
         containerSetupDir: containerSetupDir,
         containerInputDir: containerInputDir,
-        containerRunnerScriptFile: containerRunnerScriptFile,
         macroSettingsFile: macroSettingsFile
     }
 }

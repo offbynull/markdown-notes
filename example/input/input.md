@@ -385,9 +385,7 @@ The structure of this special directory must be as follows:
  * `[MACRO_DIR]/container`: a directory containing container setup files.
  * `[MACRO_DIR]/container/Dockerfile`: a Dockerfile that sets up the container.
  * `[MACRO_DIR]/container/*`: files/resources required by the `Dockerfile`.
- * `[MACRO_DIR]/input`: a directory containing input files.
- * `[MACRO_DIR]/input/run.sh`: a script that gets run when the container starts.
- * `[MACRO_DIR]/input/*`: files/resources required by `run.sh` and/or whatever it invokes.
+ * `[MACRO_DIR]/input/*`: files/resources required by container to run.
  * `[MACRO_DIR]/settings.json`: a special settings file (described further below).
 
 The `settings.json` file can be used to configure how the macro operates and what files to pass to it:
@@ -422,7 +420,7 @@ When a macro gets used, the system ...
  1. stores macro contents to `/input/input.data` on the container.
  1. stores macro `copyInputsPrefix` filepaths to `/input/input.files` on the container.
  1. stores a unique ID to `/input/.__UNIQUE_INPUT_ID` on the container.
- 1. launches `/input/run.sh` on the container.
+ 1. launches `/_macro/run.sh` on the container.
  1. expects output markdown in `/output/output.md` on the container.
  1. expects output css/js filepaths in `/output/output.injects` on the container (optional).
 
@@ -540,13 +538,7 @@ AIA,Anguilla
 ATG,Antigua and Barbuda
 ```
 
-CSV parsing can optionally be configured if by a single-line JSON object preceded by !!...
-
-```{output}
-csv_macro_block/input/code.js
-js
-// MARKDOWN_CONFIG\s*\n([\s\S]+)\n\s*// MARKDOWN_CONFIG
-```
+CSV parsing can optionally be configured if by a single-line JSON object preceded by !!.
 
 ## Example: GraphViz
 
@@ -639,25 +631,6 @@ Output:
       \___/   \___/     
 ```
 
-## Example: LaTeX Chemfig
-
-Input:
-
-````
-```{chemfig}
-\chemfig{Cl-[6]Co(<:[3]H_2O)(<[5]H_2O)(<[7]H_2O)(<:[9]H_2O)-[6]Cl}
-```
-````
-
-Output:
-
-```{chemfig}
-\chemfig{Cl-[6]Co(<:[3]H_2O)(<[5]H_2O)(<[7]H_2O)(<:[9]H_2O)-[6]Cl}
-```
-
-All preamble and postamble text for the LaTeX document is automatically added by this extension -- only the chemfig LaTeX package is loaded.  For details on chemfig syntax, see [here](https://en.wikibooks.org/w/index.php?title=LaTeX/Chemical_Graphics&oldid=3452092).
-
-
 ## Example: Script Injection (CSS/JS)
 
 Input:
@@ -673,66 +646,6 @@ Output:
 ```{scriptinject}
 test
 ```
-
-## Example: Image Annotation
-
-Input:
-
-````
-```{img}
-201903_Ribosome.svg
-Diagram of ribosome translating messanger RNA
-By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595
-
-scale 0.45 0.45
-
-fg_color #000000ff
-bg_color #ffff00ff
-text 0.1 0.1 mRNA strand
-
-fg_color #ffff00ff
-bg_color #00000000
-arrow 0.1 0.1  0.1 0.55  0.25 0.55
-poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
-```
-````
-
-Output:
-
-```{img}
-201903_Ribosome.svg
-Diagram of ribosome translating messanger RNA
-By DataBase Center for Life Science (DBCLS) - http://togotv.dbcls.jp/ja/togopic.2019.06.html, CC BY 4.0, https://commons.wikimedia.org/w/index.php?curid=77793595
-
-scale 0.45 0.45
-
-fg_color #000000ff
-bg_color #ffff00ff
-text 0.1 0.1 mRNA strand
-
-fg_color #ffff00ff
-bg_color #00000000
-arrow 0.1 0.1  0.1 0.55  0.25 0.55
-poly 0.15 0.4  0.6 0.75  0.75 0.75  0.20 0.25
-```
-
-The first 3 lines must be as follows:
- 1. file name prefixed with ! (should sit in the same directory as input.md).
- 2. alternative text for the image (e.g. description of the image).
- 3. title text for the image (e.g. attribution).
-
-Subsequent lines are commands that you can use to manipulate and annotate the image...
- * *scale x_scale y_scale* -- scale the image by some percentage (unit is percentage).
- * *expand new_width new_height x_offset y_offset* -- expand the image canvas to some new dimension without resizing the contents (unit is percentage).
- * *crop x_offset y_offset new_width new_height* -- crop the image to some new dimension (unit is percentage).
- * *bg_color html_color_code* -- changes the background color.
- * *fg_color html_color_code* -- changes the foreground color.
- * *stroke width* -- changes the stroke width (unit is pixels).
- * *font_size size* -- changes the font size (unit is pixels).
- * *rect x_offset y_offset width height* -- highlight a rectangle on the image (unit is percentage).
- * *poly x1 y1 x2 y2 x3 y3 ...* -- highlight a polygon on the image (unit is percentage).
- * *arrow x1 y1 x2 y2 ...* -- draw an arrow on the image (unit is percentage).
- * *text x_offset y_offset string* -- write a string on the image (unit is percentage).
 
 # Standard Markdown
 
