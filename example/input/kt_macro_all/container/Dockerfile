@@ -1,4 +1,4 @@
-FROM node:12-alpine
+FROM node:20.11.0-alpine
 WORKDIR /_macro
 COPY package.json .
 COPY code.js .
