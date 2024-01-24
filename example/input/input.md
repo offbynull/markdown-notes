@@ -1,3 +1,6 @@
+```{githubmd}
+```
+
 # Table of Contents
 Use the following to generate a table of contents...
 ````

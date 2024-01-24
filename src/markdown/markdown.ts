@@ -85,20 +85,6 @@ export default class Markdown {
         headElement.appendChild(metaViewportElem);
 
 
-        // Apply changes for github styling
-        const githubMarkdownGenPath = `.temp_githib_css`;
-        FileSystemExtras.ensureDirSync(this.realBasePath + '/' + githubMarkdownGenPath);
-        FileSystemExtras.copySync('node_modules/github-markdown-css', this.realBasePath + '/' + githubMarkdownGenPath);
-        const githubMarkdownHtmlPath = (this.htmlBasePath === '' ? '' : this.htmlBasePath + '/') + githubMarkdownGenPath;
-
-        const githubCssElem = document.createElement('link');
-        githubCssElem.setAttribute('href', githubMarkdownHtmlPath + '/github-markdown.css');
-        githubCssElem.setAttribute('rel', 'stylesheet');
-        headElement.appendChild(githubCssElem);
-
-        bodyElement.classList.add('markdown-body');
-
-
         // Apply changes to highlight code blocks
         const highlightJsGenPath = `.temp_highlightjs_css`;
         FileSystemExtras.ensureDirSync(this.realBasePath + '/' + highlightJsGenPath);
