@@ -17,7 +17,7 @@
  */
 
 import MarkdownIt from 'markdown-it';
-import Token from 'markdown-it/lib/token';
+import Token from 'markdown-it/lib/token.mjs';
 import { Extension, TokenIdentifier, Type, ExtensionContext } from './extender_plugin';
 import { breakOnSlashes, combineWithSlashes } from '../utils/parse_helpers';
 import { BookmarkRegexScannerCollection, BookmarkKey } from './bookmark_regex_scanner_collection';

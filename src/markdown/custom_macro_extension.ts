@@ -19,14 +19,10 @@
 import FileSystem from 'fs-extra';
 import Path from 'path';
 import MarkdownIt from 'markdown-it';
-import Token from 'markdown-it/lib/token';
+import type { Token, StateBlock,StateCore, StateInline } from 'markdown-it';
 import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 import { runContainer } from './container_helper';
 import { MacroDefinition, MacroType, macroDirectoryCheck } from './macro_helper';
-import StateCore from 'markdown-it/lib/rules_core/state_core';
-import StateInline from 'markdown-it/lib/rules_inline/state_inline';
-import StateBlock from 'markdown-it/lib/rules_block/state_block';
-import { JSDOM } from 'jsdom';
 
 export class CustomMacroExtension implements Extension {
     public readonly tokenIds: ReadonlyArray<TokenIdentifier>;

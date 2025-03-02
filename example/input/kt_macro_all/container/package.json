@@ -3,7 +3,7 @@
         "start": "node code.js"
       },
     "dependencies": {
-        "fs-extra": "11.2.0",
-        "katex": "0.16.9"
+        "fs-extra": "11.3.0",
+        "katex": "0.16.21"
     }
 }

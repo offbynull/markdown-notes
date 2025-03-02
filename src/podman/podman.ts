@@ -56,7 +56,7 @@ export function createImage(environmentDir: string, imageName: string, dockerScr
     for (const srcPath of dockerScriptDataFiles) {
         const filename = Path.basename(srcPath);
         const dstPath = Path.resolve(environmentDir, filename);
-        FileSystem.copySync(srcPath, dstPath, { errorOnExist: true, recursive: true });
+        FileSystem.copySync(srcPath, dstPath, { errorOnExist: true });
     }
 
     // Run
@@ -158,6 +158,7 @@ export function launchContainer(environmentDir: string, imageName: string, comma
     args.push('--pid=host');
     args.push('--stop-signal=SIGKILL')
     args.push('--restart=no')
+    // args.push('--cidfile=.cid')  - Use this file with "podman kill --cidfile ..." to gracefully kill container (right now we're just killing process tree, which is likely leaving dangling resources)
     if (volumeMappings !== undefined) {
         for (const volumeMapping of volumeMappings) {
             const volMode = (() => {
@@ -183,6 +184,18 @@ export function launchContainer(environmentDir: string, imageName: string, comma
 
     // Execute container and move output data back
     execPodman(environmentDir, args, timeout);
+}
+
+
+
+
+
+
+export function removeAll(environmentDir: string) {
+    execPodman(environmentDir, ['stop', '-a']);
+    execPodman(environmentDir, ['rm', '-a']);
+    execPodman(environmentDir, ['rmi', '-a']);
+    execPodman(environmentDir, ['volume', 'rm', '-a']);
 }
 
 

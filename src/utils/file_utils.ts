@@ -1,26 +1,6 @@
 import * as FileSystem from 'fs-extra';
 import * as Path from 'path';
-import * as Tar from 'tar';
 import { isGitInstalled, listTrackedIgnoredFiles, listUntrackedIgnoredFiles } from './git_utils';
-
-export function targzDir(dir: string, outputFile: string) {
-    const filesToTar = FileSystem.readdirSync(dir);
-    Tar.create({
-        gzip: true,
-        sync: true,
-        cwd: dir,
-        file: outputFile 
-    }, filesToTar);
-}
-
-export function unTargzDir(dir: string, inputFile: string) {
-    FileSystem.mkdirpSync(dir);
-    Tar.extract({
-        sync: true,
-        cwd: dir,
-        file: inputFile
-    });
-}
 
 // originally written to revert containers back to original condition quickly, but too slow to use on normal disks (not SSDs, HDD)...
 // works similarly to rsync with --delete arg
