@@ -17,7 +17,7 @@
  */
 
 import MarkdownIt from 'markdown-it';
-import Token from 'markdown-it/lib/token.mjs';
+type Token = MarkdownIt.Token;
 import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 import { JSDOM } from 'jsdom';
 

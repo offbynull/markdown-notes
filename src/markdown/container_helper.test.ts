@@ -10,12 +10,14 @@ test('must create and run container', () => {
     const inputDir = dataDir + '/input';
     const outputDir = dataDir + '/output';
 
-    FileSystem.writeFileSync(envDir + '/Dockerfile', 'FROM alpine:3.10\nRUN apk add --no-cache bash\n');
+    FileSystem.writeFileSync(
+        envDir + '/Dockerfile',
+        'FROM alpine:3.10\nWORKDIR /_macro\nCOPY run.sh .\n'
+    );
+    FileSystem.writeFileSync(envDir + '/run.sh', 'echo hello world! > /output/out.data');
 
     FileSystem.mkdirpSync(inputDir);
     FileSystem.mkdirpSync(outputDir);
-    FileSystem.writeFileSync(inputDir + '/run.sh', 'echo hello world! > /output/out.data');
-
     const helper = new ContainerHelper('test_container', envDir, inputDir, outputDir, machineCacheDir, oldLocalCacheDir, newLocalCacheDir);
     helper.run();
 

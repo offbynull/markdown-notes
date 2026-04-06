@@ -17,7 +17,7 @@
  */
 
 import MarkdownIt from 'markdown-it';
-import Token from 'markdown-it/lib/token.mjs';
+type Token = MarkdownIt.Token;
 import { Extension, TokenIdentifier, Type, ExtensionContext } from './extender_plugin';
 import { breakOnSlashes, combineWithSlashes } from '../utils/parse_helpers';
 import { BookmarkRegexScannerCollection, BookmarkKey } from './bookmark_regex_scanner_collection';
@@ -230,6 +230,8 @@ export class BookmarkExtension implements Extension {
         let headerSkipMode = false;
         for (let tokenIdx = 0; tokenIdx < tokens.length; tokenIdx++) {
             const token = tokens[tokenIdx];
+            const tokenCtor = token.constructor as new (type: string, tag: string, nesting: number) => Token;
+            const createToken = (type: string, tag: string, nesting: number): Token => new tokenCtor(type, tag, nesting);
 
             // Don't process when in a heading
             if (token.type === 'heading_open') {
@@ -365,11 +367,11 @@ export class BookmarkExtension implements Extension {
                         + 'Target text: ' + targetText + '\n';
                 }
 
-                replacementTokens.push(new Token('bookmark_link_open', 'a', 1));
+                replacementTokens.push(createToken('bookmark_link_open', 'a', 1));
                 replacementTokens[replacementTokens.length - 1].attrSet('href', '#' + markdownIt.utils.escapeHtml(anchorId));
-                replacementTokens.push(new Token('text', '', 0));
+                replacementTokens.push(createToken('text', '', 0));
                 replacementTokens[replacementTokens.length - 1].content = text;
-                replacementTokens.push(new Token('bookmark_link_close', 'a', -1));
+                replacementTokens.push(createToken('bookmark_link_close', 'a', -1));
             } else if (token.type == 'text') {
                 // Scan the token and recursively break it up based on the bookmarks identified
                 let content = token.content;
@@ -380,7 +382,7 @@ export class BookmarkExtension implements Extension {
                             if (replacementTokens.length === 0) { // if nothing was modified, so just keep the original token (we want to be as pure as possible)
                                 return token
                             } else { // if something was modified, add the remaining content as a new token
-                                const finalToken = new Token('text', '', 0);
+                                const finalToken = createToken('text', '', 0);
                                 finalToken.content = content;
                                 return finalToken;
                             }
@@ -402,43 +404,43 @@ export class BookmarkExtension implements Extension {
                         if (scanResult.anchorId === null) {    // if null this was an ignore marker, just put the text back in and move on.
                             const bookmarkTokens: Token[] = [];
                             // pre text
-                            bookmarkTokens.push(new Token('text', '', 0));
+                            bookmarkTokens.push(createToken('text', '', 0));
                             bookmarkTokens[bookmarkTokens.length - 1].content = preText;
                             // capture preamble text
                             if (capturePreambleText !== null) {
-                                bookmarkTokens.push(new Token('text', '', 0)); 
+                                bookmarkTokens.push(createToken('text', '', 0)); 
                                 bookmarkTokens[bookmarkTokens.length - 1].content = capturePreambleText;
                             }
                             // capture link text
-                            bookmarkTokens.push(new Token('text', '', 0));
+                            bookmarkTokens.push(createToken('text', '', 0));
                             bookmarkTokens[bookmarkTokens.length - 1].content = captureText;
                             // capture postamble text
                             if (capturePostambleText !== null) {
-                                bookmarkTokens.push(new Token('text', '', 0));
+                                bookmarkTokens.push(createToken('text', '', 0));
                                 bookmarkTokens[bookmarkTokens.length - 1].content = capturePostambleText;
                             }
                             return bookmarkTokens;
                         } else {                               // if not null this was an normal marker, add the bookmark link
                             const bookmarkTokens: Token[] = [];
                             // pre text
-                            bookmarkTokens.push(new Token('text', '', 0));
+                            bookmarkTokens.push(createToken('text', '', 0));
                             bookmarkTokens[bookmarkTokens.length - 1].content = preText;
                             // capture preamble text
                             if (capturePreambleText !== null) {
-                                bookmarkTokens.push(new Token('text', '', 0)); 
+                                bookmarkTokens.push(createToken('text', '', 0)); 
                                 bookmarkTokens[bookmarkTokens.length - 1].content = capturePreambleText;
                             }
                             // capture link start
-                            bookmarkTokens.push(new Token('bookmark_link_open', 'a', 1));
+                            bookmarkTokens.push(createToken('bookmark_link_open', 'a', 1));
                             bookmarkTokens[bookmarkTokens.length - 1].attrSet('href', '#' + encodeURIComponent(scanResult.anchorId));
                             // capture link text
-                            bookmarkTokens.push(new Token('text', '', 0));
+                            bookmarkTokens.push(createToken('text', '', 0));
                             bookmarkTokens[bookmarkTokens.length - 1].content = captureText;
                             // capture link end
-                            bookmarkTokens.push(new Token('bookmark_link_close', 'a', -1));
+                            bookmarkTokens.push(createToken('bookmark_link_close', 'a', -1));
                             // capture postamble text
                             if (capturePostambleText !== null) {
-                                bookmarkTokens.push(new Token('text', '', 0));
+                                bookmarkTokens.push(createToken('text', '', 0));
                                 bookmarkTokens[bookmarkTokens.length - 1].content = capturePostambleText;
                             }
                             return bookmarkTokens;

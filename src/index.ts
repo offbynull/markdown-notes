@@ -150,9 +150,9 @@ inputWatcher.on('change', () => {
         switch (code) {
             case 0:
                 FileSystem.removeSync(outputPath);
-                FileSystem.renameSync(activeChildTmpOutputDir, outputPath);
+                FileSystem.moveSync(activeChildTmpOutputDir, outputPath, { overwrite: true });
                 FileSystem.removeSync(localCachePath);
-                FileSystem.renameSync(activeChildTmpRenderCacheDir, localCachePath);
+                FileSystem.moveSync(activeChildTmpRenderCacheDir, localCachePath, { overwrite: true });
                 console.log('Render completed.');
                 break;
             default:
