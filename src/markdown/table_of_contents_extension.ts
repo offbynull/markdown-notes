@@ -17,7 +17,7 @@
  */
 
 import MarkdownIt from 'markdown-it';
-import Token from 'markdown-it/lib/token.mjs';
+type Token = MarkdownIt.Token;
 import { Extension, TokenIdentifier, Type, ExtensionContext } from "./extender_plugin";
 
 class TocData {
@@ -39,6 +39,8 @@ export class TocExtension implements Extension {
             const token = tokens[tokenIdx];
 
             if (token.type === 'heading_open') {
+                const tokenCtor = token.constructor as new (type: string, tag: string, nesting: number) => Token;
+
                 // Generate anchor ID
                 let anchorId;
                 let counter = 0;
@@ -55,7 +57,7 @@ export class TocExtension implements Extension {
 
                 // Put in custom token just before the heading -- will get translated to anchor when rendered
                 //   (Alternatively, you can add in a link_open and link_close tag instead of a custom token)
-                const tocAnchorToken = new Token('__toc_anchor', '', 0);
+                const tocAnchorToken = new tokenCtor('__toc_anchor', '', 0);
                 tocAnchorToken.info = anchorId;
                 tokens.splice(tokenIdx, 0, tocAnchorToken);
                 tokenIdx += 1;

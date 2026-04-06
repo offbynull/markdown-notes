@@ -61,7 +61,7 @@ test('must detect inconsistency', () => {
     FileSystem.writeFileSync(dstRoot + '/0/a/2/z/file1', 'BAD');
 
     const res = recursiveCheckForMissingOrMismatched(srcRoot, dstRoot);
-    expect(res).toEqual([dstRoot + '/0/a/2/z/file1']);
+    expect(res).toEqual([dstRoot + '/0/a/1', dstRoot + '/0/a/2/z/file1', dstRoot + '/0/a/2/z/file3']);
 });
 
 

@@ -2,14 +2,16 @@ import { spawnSync } from "child_process";
 import { resolve } from 'path';
 
 export function isGitInstalled(dir: string): boolean {
-    const ret = spawnSync(`which`, [`git`], { cwd: dir, encoding: 'utf8' });
-    if (ret.status === 1) {
+    const whichRet = spawnSync('which', ['git'], { cwd: dir, encoding: 'utf8' });
+    if (whichRet.status === 1) {
         return false;
-    } else if (ret.status === 0) {
-        return true;
-    } else {
-        throw `Unable to determine if git installed: ${ret}`;
     }
+    if (whichRet.status !== 0) {
+        throw `Unable to determine if git installed: ${whichRet}`;
+    }
+
+    const repoRet = spawnSync('git', ['rev-parse', '--is-inside-work-tree'], { cwd: dir, encoding: 'utf8' });
+    return repoRet.status === 0 && repoRet.stdout.trim() === 'true';
 }
 
 export function getGitRoot(dir: string): string | null {
