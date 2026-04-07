@@ -241,7 +241,8 @@ function execPodman(workDir: string, args: ReadonlyArray<string>, timeout?: numb
     if (spawnRet.status !== 0) {
         throw new Error('Podman failed with status ' + spawnRet.status + ' signal ' + spawnRet.signal + ' error ' + spawnRet.error
             + '\n----\n' + spawnRet.stdout
-            + '\n----\n' + spawnRet.stderr);
+            + '\n----\n' + spawnRet.stderr
+            + '\n----\n' + BASE_ARGS.concat(args));
     }
 
     return {
