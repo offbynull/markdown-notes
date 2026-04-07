@@ -2,7 +2,7 @@ import FileSystem from 'fs-extra';
 import Crypto from 'crypto';
 import Path from 'path';
 
-module HashUtils {
+namespace HashUtils {
     export function md5(data: string | Buffer) {
         return Crypto.createHash('md5').update(data).digest('hex');
     }

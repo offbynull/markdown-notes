@@ -59,6 +59,9 @@ if (FileSystem.existsSync(outputPath) === false) {
     FileSystem.mkdirSync(outputPath);
 }
 
+recoverPromotedDirectory(outputPath);
+recoverPromotedDirectory(localCachePath);
+
 if (isGitInstalled(inputPath)) {
     console.log(Colors.yellow('GIT DETECTED: ') + 'Paths under the input directory that are ignored by git will be ignored by the render.');
 }
@@ -88,6 +91,41 @@ function logOutput(prefix: string, data: Buffer, state: { decoder: StringDecoder
         console.log(prefix + ": " + line);
         state.partialLine = state.partialLine.substring(idx + 1);
     }
+}
+
+
+function recoverPromotedDirectory(targetDir: string) {
+    const previousDir = targetDir + '.prev';
+    const nextDir = targetDir + '.next';
+
+    if (FileSystem.existsSync(targetDir) === false && FileSystem.existsSync(previousDir) === true) {
+        FileSystem.renameSync(previousDir, targetDir);
+    }
+
+    if (FileSystem.existsSync(nextDir) === true) {
+        FileSystem.removeSync(nextDir);
+    }
+
+    if (FileSystem.existsSync(previousDir) === true) {
+        FileSystem.removeSync(previousDir);
+    }
+}
+
+function promoteDirectory(srcDir: string, targetDir: string) {
+    const nextDir = targetDir + '.next';
+    const previousDir = targetDir + '.prev';
+
+    FileSystem.removeSync(nextDir);
+    FileSystem.removeSync(previousDir);
+
+    FileSystem.moveSync(srcDir, nextDir, { overwrite: true });
+
+    if (FileSystem.existsSync(targetDir) === true) {
+        FileSystem.renameSync(targetDir, previousDir);
+    }
+
+    FileSystem.renameSync(nextDir, targetDir);
+    FileSystem.removeSync(previousDir);
 }
 
 
@@ -149,10 +187,8 @@ inputWatcher.on('change', () => {
         }
         switch (code) {
             case 0:
-                FileSystem.removeSync(outputPath);
-                FileSystem.moveSync(activeChildTmpOutputDir, outputPath, { overwrite: true });
-                FileSystem.removeSync(localCachePath);
-                FileSystem.moveSync(activeChildTmpRenderCacheDir, localCachePath, { overwrite: true });
+                promoteDirectory(activeChildTmpOutputDir, outputPath);
+                promoteDirectory(activeChildTmpRenderCacheDir, localCachePath);
                 console.log('Render completed.');
                 break;
             default:
