@@ -22,19 +22,21 @@ The flavour of Markdown extended by MarkdownNotes is [CommonMark](https://common
 To setup MarkdownNotes...
 
 1. clone the repository.
-1. ensure [buildah](https://github.com/containers/buildah/blob/master/install.md) and [runc](https://github.com/opencontainers/runc) are installed.
+1. ensure [podman](https://podman.io) is installed.
 1. ensure [NodeJS](https://nodejs.org) is installed.
 1. run `npm install`.
+
+> [!TIP]
+> You can keep your host environment clean by setting up MarkdownNotes within a [distrobox](https://distrobox.it) container that has [prodman installed within it](https://github.com/89luca89/distrobox/blob/main/docs/useful_tips.md#using-podman-inside-a-distrobox).
 
 To run MarkdownNotes, run `npm start -- [path]` (where `[path]` is your work directory). A browser window will open to the rendered output of `[path]/input/input.md`. Any changes to any file in `[path]/input` will result in the rendered output being updated (scroll position will be maintained).
 
 The rendered output is in the HTML file located at `[path]/output/output.html`. 
 
-**WARNING**: You may have issues installing buildah on Ubuntu 18+. If the projectatomic PPA doesn't register with Ubuntu, you'll need to tell Ubuntu to reference the PPA as if it were an older version of Ubuntu. Open the *Software & Updates* application, go to the *Other Updates* tab, and edit the *projectatomic* entry such that the *distribution* points to an earlier release of Ubuntu (e.g. bionic). Once that's done, try performing the installation instructions again.
 
 ## Syntax
 
-The markdown syntax used by MarkdownNotes is an extended variant of CommonMark. Extensions and macros are written either as fenced or inline code, where the language is set to the name of the extension. For example, if a fenced code extension / macro named `kt` existed to insert a KaTeX expression...
+The markdown syntax used by MarkdownNotes is an extended variant of CommonMark. Extensions and macros are written either as fenced or inline blocks, where the language is set to the name of the extension. For example, if a fenced code extension / macro named `kt` existed to insert a KaTeX expression...
 
 ````
 ```{kt}
