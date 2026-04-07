@@ -164,7 +164,9 @@ export class ContainerHelper {
         if (FileSystem.existsSync(this.cachedOutputInMachineDir)) {
             return;
         }
-        const tmpDir = FileSystem.mkdtempSync('temp-dir-destined-for-machine-cache');
+        const machineCacheParentDir = Path.dirname(this.cachedOutputInMachineDir);
+        FileSystem.mkdirpSync(machineCacheParentDir);
+        const tmpDir = FileSystem.mkdtempSync(Path.join(machineCacheParentDir, 'temp-dir-destined-for-machine-cache'));
         FileSystem.copySync(src, tmpDir);
         FileSystem.renameSync(tmpDir, this.cachedOutputInMachineDir);
     }

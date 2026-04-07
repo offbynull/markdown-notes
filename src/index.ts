@@ -59,6 +59,9 @@ if (FileSystem.existsSync(outputPath) === false) {
     FileSystem.mkdirSync(outputPath);
 }
 
+recoverPromotedDirectory(outputPath);
+recoverPromotedDirectory(localCachePath);
+
 if (isGitInstalled(inputPath)) {
     console.log(Colors.yellow('GIT DETECTED: ') + 'Paths under the input directory that are ignored by git will be ignored by the render.');
 }
@@ -91,11 +94,45 @@ function logOutput(prefix: string, data: Buffer, state: { decoder: StringDecoder
 }
 
 
+function recoverPromotedDirectory(targetDir: string) {
+    const previousDir = targetDir + '.prev';
+    const nextDir = targetDir + '.next';
+
+    if (FileSystem.existsSync(targetDir) === false && FileSystem.existsSync(previousDir) === true) {
+        FileSystem.renameSync(previousDir, targetDir);
+    }
+
+    if (FileSystem.existsSync(nextDir) === true) {
+        FileSystem.removeSync(nextDir);
+    }
+
+    if (FileSystem.existsSync(previousDir) === true) {
+        FileSystem.removeSync(previousDir);
+    }
+}
+
+function promoteDirectory(srcDir: string, targetDir: string) {
+    const nextDir = targetDir + '.next';
+    const previousDir = targetDir + '.prev';
+
+    FileSystem.removeSync(nextDir);
+    FileSystem.removeSync(previousDir);
+
+    FileSystem.moveSync(srcDir, nextDir, { overwrite: true });
+
+    if (FileSystem.existsSync(targetDir) === true) {
+        FileSystem.renameSync(targetDir, previousDir);
+    }
+
+    FileSystem.renameSync(nextDir, targetDir);
+    FileSystem.removeSync(previousDir);
+}
+
+
 // FileSystem.removeSync(outputPath);
 FileSystem.mkdirpSync(outputPath);
 FileSystem.writeFileSync(outputPath + '/output.html', '<html><head></head><body><p>Awaiting initial render...</p></body></html>');
 
-let activeChildTmpDir: undefined | string;
 let activeChildProc: undefined | ChildProcess.ChildProcess;
 let activeChildExitMarker = { flag: false };
 inputWatcher.on('change', () => {
@@ -106,11 +143,7 @@ inputWatcher.on('change', () => {
         activeChildExitMarker.flag = true;
     }
 
-    if (activeChildTmpDir !== undefined) {
-        FileSystem.removeSync(activeChildTmpDir);
-    }
-
-    activeChildTmpDir = FileSystem.mkdtempSync('/tmp/render');
+    const activeChildTmpDir = FileSystem.mkdtempSync('/tmp/render');
     const activeChildTmpWorkDir = resolve(activeChildTmpDir, 'work');
     const activeChildTmpOutputDir = resolve(activeChildTmpDir, 'output');
     const activeChildTmpRenderCacheDir = resolve(activeChildTmpDir, 'localcache');
@@ -145,14 +178,13 @@ inputWatcher.on('change', () => {
     }
     activeChildProc.on('close', (code) => {
         if (exitMarker.flag === true) {
+            FileSystem.removeSync(activeChildTmpDir);
             return;
         }
         switch (code) {
             case 0:
-                FileSystem.removeSync(outputPath);
-                FileSystem.renameSync(activeChildTmpOutputDir, outputPath);
-                FileSystem.removeSync(localCachePath);
-                FileSystem.renameSync(activeChildTmpRenderCacheDir, localCachePath);
+                promoteDirectory(activeChildTmpOutputDir, outputPath);
+                promoteDirectory(activeChildTmpRenderCacheDir, localCachePath);
                 console.log('Render completed.');
                 break;
             default:
@@ -160,6 +192,7 @@ inputWatcher.on('change', () => {
                 break;
         }
         bs.reload('output.html');
+        FileSystem.removeSync(activeChildTmpDir);
         exitMarker.flag = true;
     })
 });
