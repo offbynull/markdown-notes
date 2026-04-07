@@ -27,7 +27,7 @@ To setup MarkdownNotes...
 1. run `npm install`.
 
 > [!TIP]
-> You can keep your host environment clean by setting up MarkdownNotes within a [distrobox](https://distrobox.it) container that has [prodman installed within it].(https://github.com/89luca89/distrobox/blob/main/docs/useful_tips.md#using-podman-inside-a-distrobox).
+> You can keep your host environment clean by setting up MarkdownNotes within a [distrobox](https://distrobox.it) container that has [prodman installed within it](https://github.com/89luca89/distrobox/blob/main/docs/useful_tips.md#using-podman-inside-a-distrobox).
 
 To run MarkdownNotes, run `npm start -- [path]` (where `[path]` is your work directory). A browser window will open to the rendered output of `[path]/input/input.md`. Any changes to any file in `[path]/input` will result in the rendered output being updated (scroll position will be maintained).
 
