@@ -30,8 +30,14 @@ export function podmanVersionCheck() {
             throw new Error('Unrecognized podman version string:' + versionString);
         }
         
-        if (regexRes[1].startsWith('3.4') === false) {
+        const [majorStr, minorStr] = regexRes[1].split('.');
+        const major = Number.parseInt(majorStr, 10);
+        const minor = Number.parseInt(minorStr, 10);
+        if (Number.isNaN(major) || Number.isNaN(minor)) {
             throw new Error('Unrecognized podman version number:' + regexRes[1]);
+        }
+        if (major < 3 || (major === 3 && minor < 4)) {
+            throw new Error('Podman version too old (requires >= 3.4): ' + regexRes[1]);
         }
     } catch (err) {
         throw new Error('Podman check failed -- is it installed?\n\n' + JSON.stringify(err));

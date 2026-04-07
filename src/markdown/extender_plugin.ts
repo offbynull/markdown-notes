@@ -19,13 +19,13 @@
 import Path from 'path';
 import FileSystemExtras from 'fs-extra';
 import MarkdownIt from 'markdown-it';
-import Token from 'markdown-it/lib/token.mjs';
+type Token = MarkdownIt.Token;
 import { JSDOM } from 'jsdom';
 import { md5 } from '../utils/hash_utils';
-import { RuleInline } from 'markdown-it/lib/parser_inline.mjs';
-import { RuleBlock } from 'markdown-it/lib/parser_block.mjs';
-import StateBlock from 'markdown-it/lib/rules_block/state_block.mjs';
-import StateInline from 'markdown-it/lib/rules_inline/state_inline.mjs';
+type RuleInline = MarkdownIt.ParserInline.RuleInline;
+type RuleBlock = MarkdownIt.ParserBlock.RuleBlock;
+type StateBlock = MarkdownIt.StateBlock;
+type StateInline = MarkdownIt.StateInline;
 
 export enum Type {
     BLOCK = 'block',

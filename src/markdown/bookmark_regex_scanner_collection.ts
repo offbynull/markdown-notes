@@ -136,7 +136,7 @@ export class BookmarkRegexScannerCollection {
     }
 
     public findKeyByMatch(text: string): BookmarkKey | null {
-        const finalMatch = this.findAndFilterDownToSingleMatch(text);
+        const finalMatch = this.findAndFilterDownToSingleMatch(text, true);
         if (finalMatch === null) {
             return null;
         } else {
@@ -145,7 +145,7 @@ export class BookmarkRegexScannerCollection {
     }
 
     public scan(text: string): ScanResult | null {
-        const finalMatch = this.findAndFilterDownToSingleMatch(text);
+        const finalMatch = this.findAndFilterDownToSingleMatch(text, false);
         
         // If nothing found or not enabled, return nuull
         if (finalMatch === null || finalMatch.entry.enabled === false) {
@@ -205,9 +205,12 @@ export class BookmarkRegexScannerCollection {
         }
     }
 
-    private findAndFilterDownToSingleMatch(text: string): CaptureEntry | null {
+    private findAndFilterDownToSingleMatch(text: string, includeDisabled: boolean): CaptureEntry | null {
         const matches: CaptureEntry[] = [];
         for (const entry of this.entries) {
+            if (!includeDisabled && entry.entry.enabled === false) {
+                continue;
+            }
             const match = entry.scanner.scan(text);
             if (match !== null) {
                 matches.push({
@@ -225,8 +228,8 @@ export class BookmarkRegexScannerCollection {
 
         // Sort by earliest matches on the full capture
         filterMatches = filterMatches.slice().sort((a, b) => a.capture.fullIndex < b.capture.fullIndex ? -1 : 1);
-        const earliestFullMatchIdx = filterMatches[0].capture.captureIndex;
-        filterMatches = filterMatches.filter(m => m.capture.captureIndex === earliestFullMatchIdx);
+        const earliestFullMatchIdx = filterMatches[0].capture.fullIndex;
+        filterMatches = filterMatches.filter(m => m.capture.fullIndex === earliestFullMatchIdx);
 
         // Sort by longest matches on the capture group
         filterMatches = filterMatches.slice().sort((a, b) => a.capture.captureMatch.length > b.capture.captureMatch.length ? -1 : 1);
