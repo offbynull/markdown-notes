@@ -137,11 +137,17 @@ let activeChildTmpDir: undefined | string;
 let activeChildProc: undefined | ChildProcess.ChildProcess;
 let activeChildExitMarker = { flag: false };
 inputWatcher.on('change', () => {
-    if (activeChildProc !== undefined && activeChildProc.connected) {
-        console.log('Render process killed (' + activeChildProc.pid + ')');
-        killProcessHierarchy('' + activeChildProc.pid);
-        activeChildProc.kill('SIGKILL');
+    if (activeChildProc !== undefined) {
+        // Mark previous process as stale before cleanup. The process may have already
+        // exited/disconnected while its close event is still queued, in which case its
+        // callback must be ignored to avoid promoting a tmp directory we've already deleted.
         activeChildExitMarker.flag = true;
+
+        if (activeChildProc.connected) {
+            console.log('Render process killed (' + activeChildProc.pid + ')');
+            killProcessHierarchy('' + activeChildProc.pid);
+            activeChildProc.kill('SIGKILL');
+        }
     }
 
     if (activeChildTmpDir !== undefined) {
