@@ -133,7 +133,6 @@ function promoteDirectory(srcDir: string, targetDir: string) {
 FileSystem.mkdirpSync(outputPath);
 FileSystem.writeFileSync(outputPath + '/output.html', '<html><head></head><body><p>Awaiting initial render...</p></body></html>');
 
-let activeChildTmpDir: undefined | string;
 let activeChildProc: undefined | ChildProcess.ChildProcess;
 let activeChildExitMarker = { flag: false };
 inputWatcher.on('change', () => {
@@ -150,11 +149,7 @@ inputWatcher.on('change', () => {
         }
     }
 
-    if (activeChildTmpDir !== undefined) {
-        FileSystem.removeSync(activeChildTmpDir);
-    }
-
-    activeChildTmpDir = FileSystem.mkdtempSync('/tmp/render');
+    const activeChildTmpDir = FileSystem.mkdtempSync('/tmp/render');
     const activeChildTmpWorkDir = resolve(activeChildTmpDir, 'work');
     const activeChildTmpOutputDir = resolve(activeChildTmpDir, 'output');
     const activeChildTmpRenderCacheDir = resolve(activeChildTmpDir, 'localcache');
@@ -189,6 +184,7 @@ inputWatcher.on('change', () => {
     }
     activeChildProc.on('close', (code) => {
         if (exitMarker.flag === true) {
+            FileSystem.removeSync(activeChildTmpDir);
             return;
         }
         switch (code) {
@@ -202,6 +198,7 @@ inputWatcher.on('change', () => {
                 break;
         }
         bs.reload('output.html');
+        FileSystem.removeSync(activeChildTmpDir);
         exitMarker.flag = true;
     })
 });
